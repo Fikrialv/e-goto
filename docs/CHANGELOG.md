@@ -4,6 +4,24 @@ Entri ringkas tiap iterasi selesai (aturan `CLAUDE.md` §6). Terbaru di atas.
 
 ---
 
+## 2026-08-05 — D1: Scaffold & fondasi
+
+- Laravel 12.64 di-scaffold ke root repo (lewat direktori sementara, karena root sudah berisi dokumen). Database `egoto` di MariaDB, driver Laravel dikunci ke `mysql` agar SQL lokal identik dengan production.
+- `QUEUE_CONNECTION=sync` — shared hosting tidak punya worker daemon, job ke driver `database` akan mengantre selamanya tanpa pernah jalan.
+- 11 tabel V1 + model dengan `$fillable` eksplisit. `booking_participants.id_number` cast `encrypted` (kolom `text`) dengan `id_number_hash` sha256 terpisah untuk lookup; keduanya masuk `$hidden`. Nominal uang disimpan sebagai rupiah utuh, bukan desimal.
+- `trips.vendor_id` sengaja tanpa foreign key — tabel `vendors` baru dibuat di D8, constraint menyusul lewat migration terpisah.
+- 7 enum backed-string + 3 interface (`PaymentGateway`, `MessagingService`, `TicketSigner`) tanpa implementasi; implementasi menyusul di D5/D6.
+- Middleware `role` (tolak 403, bukan redirect login) terdaftar di `bootstrap/app.php`.
+- Filament 3.3: panel `/admin` dan `/vendor`. `User::canAccessPanel()` mencocokkan role dengan panel — tanpa ini Filament mengizinkan setiap user terautentikasi masuk `/admin`.
+- Test dijalankan di MySQL (`egoto_testing`), bukan SQLite in-memory bawaan: `lockForUpdate()` adalah no-op di SQLite, sehingga test kuota D4 dan anti double check-in D6 akan lulus palsu.
+- Tailwind 4 (bawaan Laravel 12) + Alpine.js via Vite. Build produksi 34,7 kB gzip.
+- Seeder 6 kategori (Internasional `is_active=false`) + 3 akun demo lokal.
+- Laravel Boost terpasang, MCP terdaftar di `.mcp.json`; Boost menambahkan blok panduannya sendiri ke `CLAUDE.md`.
+
+**Hasil verifikasi:** `migrate:fresh --seed` bersih, `php artisan test` 8 lulus/11 assertion, Pint lulus, log Laravel bersih, `/`, `/admin/login`, `/vendor/login` semua 200.
+
+---
+
 ## 2026-08-05 — D0: Persiapan paralel
 
 - Repo di-`git init`, branch `main`, commit awal berisi dokumen perencanaan + `CLAUDE.md` + `.claude/settings.json`.

@@ -1,16 +1,22 @@
 # E-GOTO — Progress Checklist
 
-Status terakhir: **D0 selesai (sisi kode), menunggu instalasi PHP/Composer/MySQL sebelum D1.** Centang tiap item selesai. Dokumen ini dipakai terus-menerus untuk pengembangan selanjutnya — jangan dihapus/diganti, cukup update.
+Status terakhir: **D0 + D1 selesai. Fondasi berdiri, siap masuk D2 (browsing publik).** Centang tiap item selesai. Dokumen ini dipakai terus-menerus untuk pengembangan selanjutnya — jangan dihapus/diganti, cukup update.
 
 ## Sesi Terakhir (WAJIB diupdate tiap akhir sesi Claude Code CLI)
 
 - **Tanggal/waktu sesi terakhir:** 2026-08-05
-- **Sedang mengerjakan:** D0 selesai — git init + branch `main` + 2 commit awal, `.gitignore` Laravel 12 + `.gitattributes` (eol=lf), folder `Docs/` → `docs/` lowercase, `docs/PLAN.md` §0 disinkronkan, `docs/CHANGELOG.md` dibuat. `docs/oauth-setup-guide.md` diverifikasi sudah lengkap (tidak ditulis ulang).
-- **Langkah persis berikutnya:** D1 — scaffold Laravel 12 + Filament 3 (2 panel `/admin` + `/vendor`). **Catatan scaffold:** root repo sudah tidak kosong, jadi `composer create-project laravel/laravel .` akan gagal — scaffold ke direktori sementara lalu pindahkan isinya ke root tanpa menimpa `CLAUDE.md`, `.gitignore`, `.gitattributes`, `docs/`, `.claude/`. Sebelum itu pasang Laravel Boost MCP (CLAUDE.md §8).
+- **Sedang mengerjakan:** **D1 SELESAI.** Laravel 12.64 + Filament 3.3 (panel `/admin` + `/vendor`), 11 tabel V1 + model, 7 enum, 3 contract, middleware `role`, seeder 6 kategori + 3 akun demo, Tailwind 4 + Alpine via Vite, Pest, Laravel Boost + MCP. Verifikasi: `migrate:fresh --seed` bersih, 8 test lulus, Pint lulus, log bersih.
+- **Langkah persis berikutnya:** **D2 — browsing publik tanpa login** (homepage, halaman kategori + filter, detail trip). Sebelum mulai styling besar, PLAN §1 minta keputusan design system dulu (2 varian → pilih 1); default sementara: teal/navy/orange + Poppins/Inter. Font bawaan Laravel masih `Instrument Sans`, belum diganti — sengaja, menunggu keputusan itu.
+- **Cara menyalakan environment lokal (WAJIB tiap sesi baru):**
+  1. MariaDB XAMPP harus jalan dulu — nyalakan lewat XAMPP Control Panel, atau: `Start-Process "C:\xampp\mysql\bin\mysqld.exe" -ArgumentList "--defaults-file=C:\xampp\mysql\bin\my.ini","--standalone" -WindowStyle Hidden`. Kalau lupa, semua perintah artisan gagal dengan error 2002.
+  2. PHP tidak ada di PATH global — pakai `C:\xampp\php\php.exe` atau tambahkan `C:\xampp\php` ke PATH sesi.
+  3. Akun demo lokal: `admin@egoto.test` / `vendor@egoto.test` / `customer@egoto.test`, password semuanya `password`.
+  4. Database: `egoto` (aplikasi) dan `egoto_testing` (khusus test, dipakai phpunit.xml).
 - **Ada blocker/perlu keputusan Anda:**
-  1. **PHP 8.3, Composer, dan MySQL 8 belum terpasang** di mesin ini (Laragon/XAMPP/Herd juga tidak ada). Node v24 ✅ dan Git 2.55 ✅ sudah ada. **D1 tidak bisa dimulai sebelum tiga hal ini tersedia** — rekomendasi tercepat: install Laragon (PHP 8.3 + MySQL 8 + Composer sekaligus dalam satu installer).
-  2. Pendaftaran OAuth Google + Facebook masih menunggu eksekusi manual Anda — panduannya sudah siap di `docs/oauth-setup-guide.md`. Approval Facebook bisa makan hari, mulai sedini mungkin (risiko #1 di PLAN.md §11).
-  3. Hosting Hostinger + verifikasi restore backup belum dikerjakan (butuh akun Anda).
+  1. **Keputusan design system** (PLAN §1 no.2) — dibutuhkan sebelum styling D2 dikerjakan serius.
+  2. Pendaftaran OAuth Google + Facebook masih menunggu eksekusi manual Anda — panduannya siap di `docs/oauth-setup-guide.md`. Approval Facebook bisa makan hari, mulai sedini mungkin (risiko #1 di PLAN.md §11). Dibutuhkan di D3.
+  3. Hosting Hostinger + verifikasi restore backup belum dikerjakan (butuh akun Anda). Dibutuhkan di D7.
+  4. Catatan beda dev vs production: dev pakai **PHP 8.2 + MariaDB 10.4**, production Hostinger **PHP 8.3 + MySQL 8**. Sudah dimitigasi (driver `mysql` dikunci, query JSON-path dilarang, test jalan di MySQL), tapi tetap perlu uji ulang saat deploy.
 
 *(Sesi baru WAJIB baca bagian ini dulu sebelum mulai kerja — lihat "Ritual awal sesi" di EXECUTION_PROMPTS.md)*
 
@@ -24,18 +30,22 @@ Status terakhir: **D0 selesai (sisi kode), menunggu instalasi PHP/Composer/MySQL
 - [x] CLAUDE.md ada di root repo (bukan di docs/)
 - [x] docs/GUIDE.md dan docs/PLAN.md sinkron, tanpa versi ganda
 - [x] docs/oauth-setup-guide.md siap dipakai (Google + Facebook, langkah bernomor)
-- [ ] PHP 8.3 + Composer + MySQL 8 terpasang di mesin dev — **blocker D1**
+- [x] PHP + Composer + database terpasang di mesin dev (XAMPP: PHP 8.2.12 + MariaDB 10.4.32; ekstensi zip/gd/intl diaktifkan)
 
 ## D1 — Scaffold & fondasi
 
-- [ ] Laravel 12 + Filament 3, 2 panel (/admin, /vendor)
-- [ ] Migration semua tabel V1
-- [ ] Model + Enum + Contract (PaymentGateway, MessagingService)
-- [ ] Middleware role
-- [ ] Seeder 6 kategori (internasional is_active=false)
-- [ ] Akun admin & vendor demo lokal
-- [ ] `php artisan migrate:fresh --seed` bersih
-- [ ] Login Filament admin demo berhasil
+- [x] Laravel 12 + Filament 3, 2 panel (/admin, /vendor)
+- [x] Migration semua tabel V1 (11 tabel)
+- [x] Model + Enum + Contract (PaymentGateway, MessagingService, TicketSigner)
+- [x] Middleware role
+- [x] Seeder 6 kategori (internasional is_active=false)
+- [x] Akun admin & vendor demo lokal (+ customer, untuk menguji penolakan panel)
+- [x] `php artisan migrate:fresh --seed` bersih
+- [x] Login Filament admin demo berhasil
+- [x] Gerbang `canAccessPanel` — customer & vendor ditolak dari /admin (ada test-nya)
+- [x] Tailwind 4 + Alpine.js via Vite (build produksi, bukan CDN)
+- [x] Pest terpasang, test jalan di MySQL bukan SQLite (lockForUpdate no-op di SQLite)
+- [x] Laravel Boost + MCP terdaftar di .mcp.json
 
 ## D2 — Browsing publik
 
