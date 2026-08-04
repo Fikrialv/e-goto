@@ -1,13 +1,16 @@
 # E-GOTO — Progress Checklist
 
-Status terakhir: **restart penuh, belum mulai eksekusi.** Centang tiap item selesai. Dokumen ini dipakai terus-menerus untuk pengembangan selanjutnya — jangan dihapus/diganti, cukup update.
+Status terakhir: **D0 selesai (sisi kode), menunggu instalasi PHP/Composer/MySQL sebelum D1.** Centang tiap item selesai. Dokumen ini dipakai terus-menerus untuk pengembangan selanjutnya — jangan dihapus/diganti, cukup update.
 
 ## Sesi Terakhir (WAJIB diupdate tiap akhir sesi Claude Code CLI)
 
-- **Tanggal/waktu sesi terakhir:** —
-- **Sedang mengerjakan:** —
-- **Langkah persis berikutnya:** —
-- **Ada blocker/perlu keputusan Anda:** —
+- **Tanggal/waktu sesi terakhir:** 2026-08-05
+- **Sedang mengerjakan:** D0 selesai — git init + branch `main` + 2 commit awal, `.gitignore` Laravel 12 + `.gitattributes` (eol=lf), folder `Docs/` → `docs/` lowercase, `docs/PLAN.md` §0 disinkronkan, `docs/CHANGELOG.md` dibuat. `docs/oauth-setup-guide.md` diverifikasi sudah lengkap (tidak ditulis ulang).
+- **Langkah persis berikutnya:** D1 — scaffold Laravel 12 + Filament 3 (2 panel `/admin` + `/vendor`). **Catatan scaffold:** root repo sudah tidak kosong, jadi `composer create-project laravel/laravel .` akan gagal — scaffold ke direktori sementara lalu pindahkan isinya ke root tanpa menimpa `CLAUDE.md`, `.gitignore`, `.gitattributes`, `docs/`, `.claude/`. Sebelum itu pasang Laravel Boost MCP (CLAUDE.md §8).
+- **Ada blocker/perlu keputusan Anda:**
+  1. **PHP 8.3, Composer, dan MySQL 8 belum terpasang** di mesin ini (Laragon/XAMPP/Herd juga tidak ada). Node v24 ✅ dan Git 2.55 ✅ sudah ada. **D1 tidak bisa dimulai sebelum tiga hal ini tersedia** — rekomendasi tercepat: install Laragon (PHP 8.3 + MySQL 8 + Composer sekaligus dalam satu installer).
+  2. Pendaftaran OAuth Google + Facebook masih menunggu eksekusi manual Anda — panduannya sudah siap di `docs/oauth-setup-guide.md`. Approval Facebook bisa makan hari, mulai sedini mungkin (risiko #1 di PLAN.md §11).
+  3. Hosting Hostinger + verifikasi restore backup belum dikerjakan (butuh akun Anda).
 
 *(Sesi baru WAJIB baca bagian ini dulu sebelum mulai kerja — lihat "Ritual awal sesi" di EXECUTION_PROMPTS.md)*
 
@@ -17,9 +20,11 @@ Status terakhir: **restart penuh, belum mulai eksekusi.** Centang tiap item sele
 - [ ] OAuth app Facebook Developer didaftarkan (submit review kalau perlu)
 - [ ] Hosting Hostinger Business siap (domain/subdomain, PHP 8.3, SSH aktif)
 - [ ] Backup Hostinger diverifikasi BISA di-restore (bukan cuma aktif)
-- [ ] git init, .gitignore, branch main
-- [ ] CLAUDE.md ada di root repo (bukan di docs/)
-- [ ] docs/GUIDE.md dan docs/PLAN.md sinkron, tanpa versi ganda
+- [x] git init, .gitignore, branch main
+- [x] CLAUDE.md ada di root repo (bukan di docs/)
+- [x] docs/GUIDE.md dan docs/PLAN.md sinkron, tanpa versi ganda
+- [x] docs/oauth-setup-guide.md siap dipakai (Google + Facebook, langkah bernomor)
+- [ ] PHP 8.3 + Composer + MySQL 8 terpasang di mesin dev — **blocker D1**
 
 ## D1 — Scaffold & fondasi
 
