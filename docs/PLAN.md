@@ -36,7 +36,7 @@ Tidak memblok start. Diberi **default sementara** supaya kerja jalan; ganti kala
 
 ## 2. Stack Final
 
-- Laravel 12.x, PHP 8.3, MySQL 8
+- Laravel 12.x. **PHP 8.2.12 (dev, XAMPP) → PHP 8.3 (production Hostinger)**. **MariaDB 10.4.32 (dev, XAMPP) → MySQL 8 (production Hostinger)**. Driver Laravel dikunci ke `mysql` (bukan `mariadb`) supaya SQL yang dihasilkan di lokal identik dengan yang jalan di production. Konsekuensi yang harus diingat: kolom JSON tetap pakai `$table->json()` + cast `array` (aman di keduanya, di MariaDB tersimpan sebagai LONGTEXT), tapi **jangan pakai query JSON-path** (`whereJsonContains`, operator `->>`) — implementasinya berbeda antara MariaDB 10.4 dan MySQL 8. V1 tidak butuh query JSON sama sekali.
 - Filament 3 — panel `/admin` (Admin) + panel `/vendor` (Vendor). Dua panel terpisah, bukan satu panel dengan filter role.
 - Blade + Alpine.js + Tailwind — sisi customer (publik + booking + profil)
 - Laravel Socialite — Google, Facebook
@@ -115,6 +115,8 @@ TripStatus:     draft | pending_review | published | rejected | archived
 TicketStatus:   issued | used | void
 VendorStatus:   pending | approved | rejected | suspended
 ```
+
+**Aturan kolom JSON (dev MariaDB vs prod MySQL):** kolom bertipe JSON (`vendor_applications.documents` di V1.5) dibuat dengan `$table->json()` + cast `array` di model. Ini aman di kedua sisi. Yang **dilarang**: query JSON-path (`whereJsonContains()`, operator `->>`, index fungsional atas JSON) — perilakunya berbeda antara MariaDB 10.4 dan MySQL 8, dan bug seperti ini baru ketahuan saat deploy. Kalau suatu saat butuh mencari di dalam JSON, buat kolom terpisah, jangan query ke dalam JSON.
 
 **Aturan enkripsi PII:** `booking_participants.id_number` pakai cast `encrypted`. Kolom `text`, bukan `varchar(16)` — ciphertext lebih panjang. Konsekuensi: **tidak bisa di-`where` langsung**. Kalau butuh cari NIK, tambah kolom `id_number_hash` (sha256) khusus lookup. Diputuskan sekarang, bukan pas migrasi sudah jalan.
 

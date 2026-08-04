@@ -11,7 +11,7 @@ Sebelum mengerjakan task apa pun, baca `docs/GUIDE.md` (sumber kebenaran *scope*
 ## 1. Konteks project
 
 - **Website** responsive (bukan aplikasi native) — booking open trip & aktivitas wisata, mendukung banyak mitra/vendor (marketplace). Solo developer.
-- Stack: **Laravel 12 + PHP 8.3 + Filament 3** (2 panel terpisah: `/admin` dan `/vendor`) + **Blade + Alpine.js + Tailwind** (sisi customer, mobile-first tapi wajib responsive semua breakpoint). Jangan usulkan stack lain kecuali diminta eksplisit.
+- Stack: **Laravel 12 + PHP 8.2 (dev XAMPP; target production Hostinger PHP 8.3) + Filament 3** (2 panel terpisah: `/admin` dan `/vendor`) + **Blade + Alpine.js + Tailwind** (sisi customer, mobile-first tapi wajib responsive semua breakpoint). Jangan usulkan stack lain kecuali diminta eksplisit.
 - Hosting target: Hostinger Business (shared hosting) — **tidak ada proses background persisten**. Tidak pakai queue worker daemon. Tugas periodik (expired booking) pakai Scheduled Artisan Command via cron `schedule:run`, bukan queue.
 - Browsing publik (homepage, kategori, detail trip) **tanpa login sama sekali**. Login hanya jadi gerbang tepat sebelum booking (lihat PLAN.md 5.5).
 
