@@ -23,8 +23,14 @@
         <env name="BCRYPT_ROUNDS" value="4"/>
         <env name="BROADCAST_CONNECTION" value="null"/>
         <env name="CACHE_STORE" value="array"/>
-        <env name="DB_CONNECTION" value="sqlite"/>
-        <env name="DB_DATABASE" value=":memory:"/>
+        <!--
+            Test dijalankan di MySQL, bukan SQLite in-memory bawaan Laravel.
+            Alasannya bukan sekadar kemiripan: lockForUpdate() adalah no-op di
+            SQLite, sehingga test penguncian kuota (D4) dan anti double check-in
+            (D6) akan LULUS palsu padahal penguncian tidak pernah teruji.
+        -->
+        <env name="DB_CONNECTION" value="mysql"/>
+        <env name="DB_DATABASE" value="egoto_testing"/>
         <env name="DB_URL" value=""/>
         <env name="MAIL_MAILER" value="array"/>
         <env name="QUEUE_CONNECTION" value="sync"/>
