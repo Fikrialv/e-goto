@@ -1,19 +1,20 @@
 # E-GOTO — Progress Checklist
 
-Status terakhir: **D0 + D1 selesai. Fondasi berdiri, siap masuk D2 (browsing publik).** Centang tiap item selesai. Dokumen ini dipakai terus-menerus untuk pengembangan selanjutnya — jangan dihapus/diganti, cukup update.
+Status terakhir: **D0 + D1 + D2 selesai. Browsing publik jalan, siap masuk D3 (auth & profil).** Centang tiap item selesai. Dokumen ini dipakai terus-menerus untuk pengembangan selanjutnya — jangan dihapus/diganti, cukup update.
 
 ## Sesi Terakhir (WAJIB diupdate tiap akhir sesi Claude Code CLI)
 
 - **Tanggal/waktu sesi terakhir:** 2026-08-05
-- **Sedang mengerjakan:** **D1 SELESAI.** Laravel 12.64 + Filament 3.3 (panel `/admin` + `/vendor`), 11 tabel V1 + model, 7 enum, 3 contract, middleware `role`, seeder 6 kategori + 3 akun demo, Tailwind 4 + Alpine via Vite, Pest, Laravel Boost + MCP. Verifikasi: `migrate:fresh --seed` bersih, 8 test lulus, Pint lulus, log bersih.
-- **Langkah persis berikutnya:** **D2 — browsing publik tanpa login** (homepage, halaman kategori + filter, detail trip). Sebelum mulai styling besar, PLAN §1 minta keputusan design system dulu (2 varian → pilih 1); default sementara: teal/navy/orange + Poppins/Inter. Font bawaan Laravel masih `Instrument Sans`, belum diganti — sengaja, menunggu keputusan itu.
+- **Sedang mengerjakan:** **D2 SELESAI.** Tiga halaman publik jalan tanpa auth: homepage (hero, Trip Populer, Jadwal Terdekat, grid kategori), kategori + filter tanggal/harga/urutan + paginasi, detail trip (galeri Alpine, akordeon itinerary, jadwal + sisa kuota, harga bertingkat). 7 komponen Blade reusable, design system diputuskan (sand/forest/terracotta + Fraunces/Inter, self-host lewat Vite). Factory 5 model + `DemoTripSeeder` (6 trip). Verifikasi: 17 test lulus, `migrate:fresh --seed` bersih, `npm run build` sukses, Pint lulus, log bersih.
+- **Langkah persis berikutnya:** **D3 — auth & profil.** Login/register manual, Socialite Google (Facebook di-flag config kalau kredensial belum turun), lengkapi profil, `url.intended` balik ke booking, kerangka "Booking Saya". Catatan untuk D3/D4: tombol "Booking sekarang" di detail trip (`resources/views/pages/trip-detail.blade.php`) saat ini sengaja **disabled** — begitu route booking ada, ganti jadi tautan ke route itu; test `PublicBrowsingTest` harus tetap hijau (browsing publik tidak boleh mulai meminta login).
+- **Cara kerja di worktree (kalau sesi berikutnya juga pakai worktree):** worktree baru tidak punya `vendor/`, `node_modules/`, `.env` (semuanya gitignored). Salin `.env` dari checkout utama, lalu jalankan `composer install` **nyata** di worktree — `vendor/` jangan di-junction ke checkout utama, karena Pest ikut menghitung namespace dari lokasi `vendor` dan seluruh test langsung merah (`Target class [cache] does not exist`). `node_modules/` aman di-junction.
 - **Cara menyalakan environment lokal (WAJIB tiap sesi baru):**
   1. MariaDB XAMPP harus jalan dulu — nyalakan lewat XAMPP Control Panel, atau: `Start-Process "C:\xampp\mysql\bin\mysqld.exe" -ArgumentList "--defaults-file=C:\xampp\mysql\bin\my.ini","--standalone" -WindowStyle Hidden`. Kalau lupa, semua perintah artisan gagal dengan error 2002.
   2. PHP tidak ada di PATH global — pakai `C:\xampp\php\php.exe` atau tambahkan `C:\xampp\php` ke PATH sesi.
   3. Akun demo lokal: `admin@egoto.test` / `vendor@egoto.test` / `customer@egoto.test`, password semuanya `password`.
   4. Database: `egoto` (aplikasi) dan `egoto_testing` (khusus test, dipakai phpunit.xml).
 - **Ada blocker/perlu keputusan Anda:**
-  1. **Keputusan design system** (PLAN §1 no.2) — dibutuhkan sebelum styling D2 dikerjakan serius.
+  1. ~~Keputusan design system (PLAN §1 no.2)~~ — **selesai 2026-08-05**: editorial hangat (sand/forest/terracotta, Fraunces + Inter). Detail di GUIDE.md bagian Design System.
   2. Pendaftaran OAuth Google + Facebook masih menunggu eksekusi manual Anda — panduannya siap di `docs/oauth-setup-guide.md`. Approval Facebook bisa makan hari, mulai sedini mungkin (risiko #1 di PLAN.md §11). Dibutuhkan di D3.
   3. Hosting Hostinger + verifikasi restore backup belum dikerjakan (butuh akun Anda). Dibutuhkan di D7.
   4. Catatan beda dev vs production: dev pakai **PHP 8.2 + MariaDB 10.4**, production Hostinger **PHP 8.3 + MySQL 8**. Sudah dimitigasi (driver `mysql` dikunci, query JSON-path dilarang, test jalan di MySQL), tapi tetap perlu uji ulang saat deploy.
@@ -49,12 +50,12 @@ Status terakhir: **D0 + D1 selesai. Fondasi berdiri, siap masuk D2 (browsing pub
 
 ## D2 — Browsing publik
 
-- [ ] Homepage: hero, Trip Populer, Jadwal Terdekat, grid kategori
-- [ ] Halaman kategori + filter
-- [ ] Detail trip: galeri, itinerary, jadwal+kuota, harga bertingkat, CTA
-- [ ] Komponen Blade reusable (trip-card, price-tag, status-badge)
-- [ ] Cek 3 breakpoint (mobile/tablet/desktop)
-- [ ] Guest akses 3 halaman ini tanpa redirect login
+- [x] Homepage: hero, Trip Populer, Jadwal Terdekat, grid kategori
+- [x] Halaman kategori + filter (tanggal, harga, urutan) + paginasi
+- [x] Detail trip: galeri, itinerary, jadwal+kuota, harga bertingkat, CTA
+- [x] Komponen Blade reusable (layouts.app, trip-card, price-tag, status-badge, empty-state, trip-image, section-heading)
+- [x] Cek 3 breakpoint (mobile/tablet/desktop) — layout mobile-first, grid `sm`/`lg`/`xl`, panel filter dilipat di bawah `lg`
+- [x] Guest akses 3 halaman ini tanpa redirect login (dijaga test `PublicBrowsingTest`)
 
 ## D3 — Auth & profil
 
@@ -172,7 +173,7 @@ Status terakhir: **D0 + D1 selesai. Fondasi berdiri, siap masuk D2 (browsing pub
 ## Keputusan masih menggantung (lihat GUIDE.md & PLAN.md bagian 1)
 
 - [ ] Trip internasional: dummy aktif untuk uji coba, atau tetap tutup?
-- [ ] Design system: 2 variasi Claude Design → pilih 1
+- [x] Design system: **diputuskan 2026-08-05** — editorial hangat (sand/forest/terracotta, Fraunces + Inter)
 - [ ] Skema komisi platform: flat atau tiered per kategori?
 
 ## Catatan teknis penting (jangan diabaikan)

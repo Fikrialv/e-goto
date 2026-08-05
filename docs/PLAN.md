@@ -29,7 +29,7 @@ Tidak memblok start. Diberi **default sementara** supaya kerja jalan; ganti kala
 | # | Pertanyaan | Default sementara dipakai PLAN | Deadline keputusan |
 |---|---|---|---|
 | 1 | Trip internasional: dummy atau tutup? | Kategori dibuat, `is_active = false`. Seeder isi 1 trip dummy status hidden | Sebelum D7 (seeder) |
-| 2 | Design system: 2 varian → pilih 1 | Palet dasar GUIDE: teal (brand), navy (admin/teks), orange (CTA); Poppins/Inter | Sebelum D2 (UI publik) |
+| 2 | ~~Design system: 2 varian → pilih 1~~ **SUDAH DIPUTUSKAN 2026-08-05** | **Editorial hangat: sand (permukaan) + forest (teks/aksen) + terracotta (khusus CTA); Fraunces + Inter, self-host lewat Vite.** Token ada di `resources/css/app.css`, detail di GUIDE.md | ✅ selesai sebelum D2 |
 | 3 | Komisi platform 3–10%: flat atau tiered? | Kolom `commission_percent` disiapkan di `vendors`, **tidak dipakai** di V1/V1.5 | Sebelum V2 |
 
 ---

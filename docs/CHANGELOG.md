@@ -4,6 +4,23 @@ Entri ringkas tiap iterasi selesai (aturan `CLAUDE.md` §6). Terbaru di atas.
 
 ---
 
+## 2026-08-05 — D2: Browsing publik (homepage, kategori, detail trip)
+
+- **Design system diputuskan** (blocker PLAN §1 no.2 tertutup): editorial hangat — sand (permukaan), forest (teks/aksen), terracotta (**khusus CTA**), tipografi Fraunces + Inter. Token di `resources/css/app.css` (`@theme`); GUIDE.md dan PLAN.md disesuaikan.
+- Font di-self-host lewat npm `@fontsource-variable/*` + Vite, bukan CDN Google Fonts — halaman tidak menunggu domain pihak ketiga.
+- 3 route publik **tanpa middleware auth** (PLAN §5.5): `/` (`home`), `/kategori/{category:slug}` (`categories.show`), `/trip/{trip:slug}` (`trips.show`).
+- Homepage: hero editorial, Trip Populer (kartu), Jadwal Terdekat (daftar, tanggal ditonjolkan), grid kategori. Tiga blok datanya di-cache 5 menit; menu kategori header/footer lewat view composer + cache 1 jam.
+- Halaman kategori: filter tanggal/harga/urutan lewat `TripFilterRequest` (Form Request — seluruh input berasal dari query string), paginasi 12 + `withQueryString()`. Aturan `gte`/`after_or_equal` hanya dipasang kalau field lawannya diisi, supaya filter satu sisi tidak ikut ditolak.
+- Detail trip: galeri Alpine (state pakai indeks, path gambar tidak masuk ekspresi JS), akordeon itinerary/termasuk/belum termasuk, daftar jadwal + sisa kuota + harga bertingkat, blok trip terkait. CTA booking sengaja nonaktif dan menyebut statusnya — alurnya baru dibangun D3/D4, tidak menaut ke route yang belum ada.
+- Kebocoran ditutup: trip non-`published` → 404, kategori `is_active=false` → 404, jadwal yang sudah lewat tidak dirender. Semua teks dari database dirender lewat escaping Blade `{{ }}` (deskripsi/itinerary nanti diisi mitra — permukaan XSS tersimpan).
+- Komponen Blade reusable: `layouts.app`, `trip-card`, `price-tag`, `status-badge`, `empty-state`, `trip-image`, `section-heading`. `trip-image` memakai `loading="lazy"` + fallback gradient lokal (nol request eksternal saat foto belum ada).
+- Anti N+1: semua daftar eager-load `category`/`schedules`/`prices`; `trip-card` mengecek `relationLoaded()` sebelum menghitung, jadi tidak memicu query per kartu.
+- Factory `Category`/`Trip`/`TripSchedule`/`TripPrice`/`TripImage` + `DemoTripSeeder` (6 trip, ada featured, ada sisa 1 kursi, ada kuota habis). Seeder variatif 10–12 trip tetap milik D7.
+
+**Hasil verifikasi:** `php artisan test` 17 lulus/30 assertion, `migrate:fresh --seed` bersih, `npm run build` sukses, Pint lulus, log Laravel bersih setelah dihapus & ketiga halaman diakses ulang, `/` `/kategori/pantai` `/trip/{slug}` → 200 sebagai guest, `/kategori/internasional` → 404.
+
+---
+
 ## 2026-08-05 — D1: Scaffold & fondasi
 
 - Laravel 12.64 di-scaffold ke root repo (lewat direktori sementara, karena root sudah berisi dokumen). Database `egoto` di MariaDB, driver Laravel dikunci ke `mysql` agar SQL lokal identik dengan production.

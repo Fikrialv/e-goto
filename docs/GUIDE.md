@@ -160,13 +160,21 @@ Dashboard analitik penuh, Ledger/Buku Kas, AI Assistant, Web Builder, Ticket Des
 
 10-12 trip demo, variatif: minimal 2 per kategori aktif, variasi harga bertingkat, variasi tanggal jadwal (untuk uji "Jadwal Terdekat"), minimal 1 trip kuota hampir penuh, minimal 1 kuota penuh (state disabled/waitlist). Internasional: status masih perlu dikonfirmasi — aktifkan dummy untuk uji coba atau tetap tutup.
 
-## Design System — status: dalam eksplorasi
+## Design System — status: **diputuskan (2026-08-05, sebelum D2)**
 
-2 variasi palet + type pairing (Claude Design) untuk dibandingkan sebelum final. Kriteria pilih: kejelasan 3 warna semantik (hijau=sukses, merah=error, kuning/orange=pending), kecepatan baca di layar verifikasi admin, konsisten lintas breakpoint.
+Arah terpilih: **editorial hangat**, bukan palet teal/navy/orange yang sebelumnya jadi default sementara.
 
-Palet dasar: hijau-teal (brand utama), navy (teks/otoritas admin), orange (aksen CTA). Tipografi: Poppins (heading), Inter (body). Prinsip visual: setiap elemen (3D object, animasi, ilustrasi) harus fungsional, tidak boleh terlihat "dibuat AI".
+| Peran | Warna | Catatan |
+|---|---|---|
+| Permukaan / latar | **sand** (`sand-50` … `sand-400`) | Latar halaman, kartu, panel filter |
+| Teks & aksen | **forest** (`forest-200` … `forest-900`) | Heading, body, badge sukses |
+| CTA | **terracotta** (`terracotta-500/600/700`) | **Hanya** untuk aksi utama & state pending — tidak untuk dekorasi, supaya satu-satunya warna hangat pekat di layar selalu berarti "klik ini" |
 
-*(Update bagian ini setelah hasil Claude Design dipilih.)*
+Tipografi: **Fraunces Variable** (heading/display, serif) + **Inter Variable** (body). Keduanya di-self-host lewat Vite, bukan CDN.
+
+Warna semantik: hijau = `forest` (sukses/kursi tersedia), terracotta = pending/hampir habis, `sand-200` + strikethrough = habis/nonaktif. Merah error dipakai apa adanya dari state form.
+
+Prinsip visual: setiap elemen (3D object, animasi, ilustrasi) harus fungsional, tidak boleh terlihat "dibuat AI". Token warna & font didefinisikan di `resources/css/app.css` (`@theme`).
 
 ## Yang Masih Perlu Dikonfirmasi
 
