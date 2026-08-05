@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -36,6 +37,23 @@ class TripSchedule extends Model
     public function remainingQuota(): int
     {
         return max(0, $this->quota - $this->booked_count);
+    }
+
+    /**
+     * Jadwal yang masih bisa dipesan: tanggal berangkat belum lewat.
+     * Jadwal hari ini tetap masuk — cut-off jam keberangkatan urusan D4.
+     *
+     * @param  Builder<TripSchedule>  $query
+     * @return Builder<TripSchedule>
+     */
+    public function scopeUpcoming(Builder $query): Builder
+    {
+        return $query->whereDate('start_date', '>=', today());
+    }
+
+    public function isSoldOut(): bool
+    {
+        return $this->remainingQuota() === 0;
     }
 
     /** @return BelongsTo<Trip, $this> */

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\TripStatus;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -35,6 +36,44 @@ class Trip extends Model
             'is_featured' => 'boolean',
             'published_at' => 'datetime',
         ];
+    }
+
+    /**
+     * Hanya trip yang sudah dipublikasikan boleh muncul di sisi publik.
+     * Dipakai di semua query halaman publik supaya draft milik mitra tidak
+     * pernah bocor lewat URL tebakan.
+     *
+     * @param  Builder<Trip>  $query
+     * @return Builder<Trip>
+     */
+    public function scopePublished(Builder $query): Builder
+    {
+        return $query->where('status', TripStatus::Published);
+    }
+
+    /**
+     * Jadwal terdekat dari relasi `schedules` yang sudah ter-eager-load.
+     * Sengaja tidak query ulang — dipanggil di dalam loop kartu trip.
+     */
+    public function nextSchedule(): ?TripSchedule
+    {
+        return $this->schedules
+            ->filter(fn (TripSchedule $schedule) => $schedule->start_date->isToday() || $schedule->start_date->isFuture())
+            ->sortBy('start_date')
+            ->first();
+    }
+
+    /**
+     * Harga termurah lintas jadwal mendatang, untuk label "mulai dari".
+     * Null kalau trip belum punya jadwal/harga aktif.
+     */
+    public function startingPrice(): ?int
+    {
+        $price = $this->schedules
+            ->flatMap(fn (TripSchedule $schedule) => $schedule->prices)
+            ->min('price');
+
+        return $price !== null ? (int) $price : null;
     }
 
     /** @return BelongsTo<Category, $this> */
