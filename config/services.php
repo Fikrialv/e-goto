@@ -35,4 +35,18 @@ return [
         ],
     ],
 
+    /*
+     * Login Google (Laravel Socialite). Satu-satunya login pihak ketiga —
+     * Facebook dibatalkan 2026-08-05.
+     *
+     * Kalau client_id kosong, tombol "Masuk dengan Google" tidak dirender dan
+     * route /auth/google/* menolak dengan 404: lebih baik fiturnya tidak
+     * terlihat daripada memajang tombol yang pasti melempar error ke user.
+     */
+    'google' => [
+        'client_id' => env('GOOGLE_CLIENT_ID'),
+        'client_secret' => env('GOOGLE_CLIENT_SECRET'),
+        'redirect' => env('GOOGLE_REDIRECT_URI', '/auth/google/callback'),
+    ],
+
 ];
