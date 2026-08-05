@@ -150,6 +150,19 @@
                                         @endif
                                     </div>
 
+                                    {{-- CTA per jadwal, bukan satu tombol untuk seluruh trip:
+                                         pemesanan selalu terikat ke satu `trip_schedule`.
+                                         Halaman ini tetap publik — hanya tujuannya yang
+                                         terkunci `auth`, dan middleware itulah yang menyimpan
+                                         `url.intended` supaya tamu kembali ke jadwal ini
+                                         sesudah masuk. --}}
+                                    @unless ($item->isSoldOut())
+                                        <a href="{{ route('bookings.create', $item) }}"
+                                           class="mt-3 block rounded-full bg-terracotta-600 px-5 py-2.5 text-center text-sm font-medium text-sand-50 transition-colors hover:bg-terracotta-700">
+                                            Booking tanggal ini
+                                        </a>
+                                    @endunless
+
                                     @if ($item->prices->isNotEmpty())
                                         <dl class="mt-3 space-y-1.5 border-t border-sand-200 pt-3 text-sm">
                                             @foreach ($item->prices as $harga)
@@ -172,16 +185,11 @@
                         </ul>
                     @endif
 
-                    {{-- CTA booking: alurnya baru dibangun di D3-D4. Tombol sengaja
-                         nonaktif dan jujur menyebut statusnya, bukan menautkan ke
-                         route yang belum ada. --}}
-                    <button type="button" disabled
-                            class="mt-6 w-full cursor-not-allowed rounded-full bg-terracotta-600/40 px-6 py-3 text-sm font-medium text-sand-50">
-                        Booking sekarang
-                    </button>
-                    <p class="mt-2 text-center text-xs text-forest-500">
-                        Pemesanan online dibuka sebentar lagi.
-                    </p>
+                    @if ($jadwal->isNotEmpty())
+                        <p class="mt-6 text-center text-xs leading-relaxed text-forest-500">
+                            Pilih tanggal di atas untuk memesan. Kuota dikunci setelah pembayaran diverifikasi.
+                        </p>
+                    @endif
                 </div>
             </div>
         </aside>

@@ -30,10 +30,40 @@
                 @endforeach
             </nav>
 
+            <div class="hidden items-center gap-3 lg:flex">
+                @guest
+                    <a href="{{ route('login') }}" class="text-sm text-forest-700 hover:text-terracotta-600">Masuk</a>
+                    <a href="{{ route('register') }}"
+                       class="rounded-full bg-terracotta-600 px-4 py-2 text-sm font-medium text-sand-50 transition-colors hover:bg-terracotta-700">
+                        Daftar
+                    </a>
+                @else
+                    <div x-data="{ akunTerbuka: false }" class="relative" @keydown.escape.window="akunTerbuka = false">
+                        <button type="button" @click="akunTerbuka = !akunTerbuka" :aria-expanded="akunTerbuka"
+                                class="flex items-center gap-2 rounded-full border border-sand-300 py-1.5 pr-3 pl-1.5 text-sm text-forest-700 hover:border-sand-400">
+                            <span class="flex size-7 items-center justify-center rounded-full bg-forest-700 text-xs font-semibold text-sand-50">
+                                {{ Str::upper(Str::substr(auth()->user()->name, 0, 1)) }}
+                            </span>
+                            {{ Str::limit(auth()->user()->name, 14) }}
+                        </button>
+
+                        <div x-show="akunTerbuka" x-cloak x-transition.opacity @click.outside="akunTerbuka = false"
+                             class="absolute right-0 z-50 mt-2 w-48 rounded-2xl border border-sand-200 bg-sand-50 p-1.5 shadow-sm">
+                            <a href="{{ route('profile.edit') }}" class="block rounded-xl px-3 py-2 text-sm text-forest-700 hover:bg-sand-100">Profil</a>
+                            <a href="{{ route('bookings.index') }}" class="block rounded-xl px-3 py-2 text-sm text-forest-700 hover:bg-sand-100">Booking Saya</a>
+                            <form method="POST" action="{{ route('logout') }}">
+                                @csrf
+                                <button type="submit" class="w-full rounded-xl px-3 py-2 text-left text-sm text-forest-700 hover:bg-sand-100">Keluar</button>
+                            </form>
+                        </div>
+                    </div>
+                @endguest
+            </div>
+
             <button type="button" @click="menuTerbuka = !menuTerbuka"
                     class="rounded-full border border-sand-300 px-3 py-2 text-sm text-forest-700 lg:hidden"
                     :aria-expanded="menuTerbuka" aria-controls="menu-mobile">
-                <span x-text="menuTerbuka ? 'Tutup' : 'Kategori'">Kategori</span>
+                <span x-text="menuTerbuka ? 'Tutup' : 'Menu'">Menu</span>
             </button>
         </div>
 
@@ -44,6 +74,26 @@
                        class="rounded-lg px-3 py-2 text-sm text-forest-700 hover:bg-sand-100">{{ $navCategory->name }}</a>
                 @endforeach
             </nav>
+
+            <div class="mx-auto max-w-6xl border-t border-sand-200 px-4 py-3 sm:px-6">
+                @guest
+                    <div class="flex gap-2">
+                        <a href="{{ route('login') }}"
+                           class="flex-1 rounded-full border border-sand-300 px-4 py-2 text-center text-sm text-forest-700">Masuk</a>
+                        <a href="{{ route('register') }}"
+                           class="flex-1 rounded-full bg-terracotta-600 px-4 py-2 text-center text-sm font-medium text-sand-50">Daftar</a>
+                    </div>
+                @else
+                    <div class="grid gap-1">
+                        <a href="{{ route('profile.edit') }}" class="rounded-lg px-3 py-2 text-sm text-forest-700 hover:bg-sand-100">Profil</a>
+                        <a href="{{ route('bookings.index') }}" class="rounded-lg px-3 py-2 text-sm text-forest-700 hover:bg-sand-100">Booking Saya</a>
+                        <form method="POST" action="{{ route('logout') }}">
+                            @csrf
+                            <button type="submit" class="w-full rounded-lg px-3 py-2 text-left text-sm text-forest-700 hover:bg-sand-100">Keluar</button>
+                        </form>
+                    </div>
+                @endguest
+            </div>
         </div>
     </header>
 
