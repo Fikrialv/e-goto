@@ -4,6 +4,23 @@ Entri ringkas tiap iterasi selesai (aturan `CLAUDE.md` §6). Terbaru di atas.
 
 ---
 
+## 2026-08-05 — D3: Auth, login Google, profil & gerbang booking
+
+- **Login Facebook dibatalkan** (keputusan pemilik project). Google jadi satu-satunya login pihak ketiga; `docs/oauth-setup-guide.md`, `GUIDE.md`, `PLAN.md`, `CLAUDE.md` §11, dan komentar migration dibersihkan. Kolom `provider`/`provider_id` tetap (generik), jadi tidak ada migration baru — dan risiko "approval Facebook lama" hilang dari daftar risiko PLAN §11.
+- `laravel/socialite` ^5.29 terpasang. Blok `google` di `config/services.php`; `.env`/`.env.example` dapat slot `GOOGLE_CLIENT_ID`/`SECRET` kosong. Selama kosong, tombolnya tidak dirender dan `/auth/google/*` menjawab 404 — lebih baik fiturnya tak terlihat daripada memajang tombol yang pasti error.
+- Route auth berbahasa Indonesia: `/masuk`, `/daftar`, `/keluar`, `/profil`, `/profil/lengkapi`, `/profil/lewati`, `/booking-saya`, `/booking/{schedule}`. Nama route internal tetap `login`/`register` karena middleware `auth` bawaan Laravel bergantung pada nama `login`.
+- **Gerbang login (PLAN §5.5)** memakai `redirect()->guest()` bawaan Laravel — `url.intended` terisi sendiri, tidak ada kode penyimpan tujuan buatan sendiri. `intended()` sengaja baru dikonsumsi setelah layar "lengkapi profil" selesai atau dilewati; kalau dikonsumsi di controller register, tujuan booking-nya hilang di tengah jalan.
+- Keamanan yang ditutup: field register diisi eksplisit (bukan sebar `validated()`) karena `role` ada di `$fillable` — request yang menyelipkan `role=admin` tidak lagi jadi jalur naik hak akses; pesan login gagal seragam untuk semua sebab (anti-enumerasi email); `session()->regenerate()` sesudah login/daftar dan `invalidate()` saat keluar; rate limit 5 percobaan/menit per **email+IP** (bukan IP saja, supaya satu jaringan ber-NAT tidak saling mengunci).
+- Login Google: pencarian berurutan `provider_id` → email → buat baru, dibungkus transaksi + `lockForUpdate` karena pasangan provider tidak punya unique constraint. Penautan lewat email menaruh kepercayaan pada verifikasi email Google — risikonya searah dan disebut eksplisit di doc-block. Callback tanpa email ditolak, kegagalan Socialite di-`report()` lalu diarahkan balik dengan pesan netral (bukan stack trace). Driver dipakai stateful supaya parameter `state` OAuth tetap jadi proteksi CSRF-nya.
+- Profil: `full_name` wajib, sisanya opsional dan bisa dilewati — data yang benar-benar mengikat (NIK/paspor peserta) baru dikumpulkan di D4, jadi memaksa semuanya di sini hanya menambah gesekan tepat di titik konversi. `phone` disimpan di `users`, sisanya di `customer_profiles`.
+- Detail trip: tombol "Booking sekarang" yang sebelumnya disabled diganti CTA **per jadwal** (booking selalu terikat satu `trip_schedule`, dan D4 butuh id-nya). Jadwal penuh tidak dapat tombol; halaman detailnya sendiri tetap publik.
+- Komponen baru: `form-field` (label + error + `aria-describedby`), `auth-card`, `google-button` (logo SVG inline — nol request ke domain Google). Header layout dapat blok akun untuk desktop & mobile.
+- `BookingController@create` masih kerangka: ringkasan jadwal + kuota + harga, sudah terkunci `auth` supaya gerbang bisa diuji utuh sebelum form pemesanan dibangun. Jadwal lewat/penuh/trip non-published ditolak 404.
+
+**Hasil verifikasi:** `php artisan test` 35 lulus/104 assertion (9 di antaranya D3), `migrate:fresh --seed` bersih, `npm run build` sukses, Pint lulus, `storage/logs` tetap kosong sesudah alur dijalankan. Diuji lewat HTTP nyata: guest `/booking/1` → 302 `/masuk` → POST login → 302 kembali ke `/booking/1`, lalu `/booking/1` `/profil` `/booking-saya` semuanya 200.
+
+---
+
 ## 2026-08-05 — D2: Browsing publik (homepage, kategori, detail trip)
 
 - **Design system diputuskan** (blocker PLAN §1 no.2 tertutup): editorial hangat — sand (permukaan), forest (teks/aksen), terracotta (**khusus CTA**), tipografi Fraunces + Inter. Token di `resources/css/app.css` (`@theme`); GUIDE.md dan PLAN.md disesuaikan.

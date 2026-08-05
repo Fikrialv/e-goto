@@ -1,12 +1,12 @@
 # E-GOTO — Progress Checklist
 
-Status terakhir: **D0 + D1 + D2 selesai. Browsing publik jalan, siap masuk D3 (auth & profil).** Centang tiap item selesai. Dokumen ini dipakai terus-menerus untuk pengembangan selanjutnya — jangan dihapus/diganti, cukup update.
+Status terakhir: **D0 + D1 + D2 + D3 selesai. Browsing publik + gerbang login jalan, siap masuk D4 (booking).** Centang tiap item selesai. Dokumen ini dipakai terus-menerus untuk pengembangan selanjutnya — jangan dihapus/diganti, cukup update.
 
 ## Sesi Terakhir (WAJIB diupdate tiap akhir sesi Claude Code CLI)
 
 - **Tanggal/waktu sesi terakhir:** 2026-08-05
-- **Sedang mengerjakan:** **D2 SELESAI.** Tiga halaman publik jalan tanpa auth: homepage (hero, Trip Populer, Jadwal Terdekat, grid kategori), kategori + filter tanggal/harga/urutan + paginasi, detail trip (galeri Alpine, akordeon itinerary, jadwal + sisa kuota, harga bertingkat). 7 komponen Blade reusable, design system diputuskan (sand/forest/terracotta + Fraunces/Inter, self-host lewat Vite). Factory 5 model + `DemoTripSeeder` (6 trip). Verifikasi: 17 test lulus, `migrate:fresh --seed` bersih, `npm run build` sukses, Pint lulus, log bersih.
-- **Langkah persis berikutnya:** **D3 — auth & profil.** Login/register manual, Socialite Google (Facebook di-flag config kalau kredensial belum turun), lengkapi profil, `url.intended` balik ke booking, kerangka "Booking Saya". Catatan untuk D3/D4: tombol "Booking sekarang" di detail trip (`resources/views/pages/trip-detail.blade.php`) saat ini sengaja **disabled** — begitu route booking ada, ganti jadi tautan ke route itu; test `PublicBrowsingTest` harus tetap hijau (browsing publik tidak boleh mulai meminta login).
+- **Sedang mengerjakan:** **D3 SELESAI.** Auth customer lengkap: `/masuk` `/daftar` `/keluar` (rate limit 5/menit per email+IP), login Google lewat Socialite (tombol otomatis muncul begitu `GOOGLE_CLIENT_ID` diisi), layar "lengkapi profil" yang bisa dilewati, `/profil`, `/booking-saya`, dan `/booking/{schedule}` sebagai kerangka terkunci `auth`. Tombol booking di detail trip sekarang **per jadwal** (`route('bookings.create', $item)`), jadwal penuh tidak dapat tombol. Facebook dibuang total dari project (keputusan user 2026-08-05) — dokumen, panduan OAuth, dan komentar migration sudah dibersihkan. Verifikasi: 35 test lulus/104 assertion, `migrate:fresh --seed` bersih, `npm run build` sukses, Pint lulus, log bersih, alur gerbang diuji lewat HTTP nyata (guest `/booking/1` → `/masuk` → login → balik ke `/booking/1`).
+- **Langkah persis berikutnya:** **D4 — booking.** Isi `BookingController@create` dengan form peserta (leader + anggota), field adaptif NIK/paspor/none sesuai kategori, enkripsi `id_number` + `id_number_hash`, nominal unik 3 digit, kunci kuota lewat transaksi + `lockForUpdate()`, `expires_at` 2 jam, dan Scheduled Command `bookings:expire`. View kerangkanya sudah ada di `resources/views/pages/booking-create.blade.php` (blok komentar menandai persis di mana form masuk). Test yang tidak boleh berubah merah: `PublicBrowsingTest`, `LoginGateTest`.
 - **Cara kerja di worktree (kalau sesi berikutnya juga pakai worktree):** worktree baru tidak punya `vendor/`, `node_modules/`, `.env` (semuanya gitignored). Salin `.env` dari checkout utama, lalu jalankan `composer install` **nyata** di worktree — `vendor/` jangan di-junction ke checkout utama, karena Pest ikut menghitung namespace dari lokasi `vendor` dan seluruh test langsung merah (`Target class [cache] does not exist`). `node_modules/` aman di-junction.
 - **Cara menyalakan environment lokal (WAJIB tiap sesi baru):**
   1. MariaDB XAMPP harus jalan dulu — nyalakan lewat XAMPP Control Panel, atau: `Start-Process "C:\xampp\mysql\bin\mysqld.exe" -ArgumentList "--defaults-file=C:\xampp\mysql\bin\my.ini","--standalone" -WindowStyle Hidden`. Kalau lupa, semua perintah artisan gagal dengan error 2002.
@@ -15,7 +15,7 @@ Status terakhir: **D0 + D1 + D2 selesai. Browsing publik jalan, siap masuk D3 (a
   4. Database: `egoto` (aplikasi) dan `egoto_testing` (khusus test, dipakai phpunit.xml).
 - **Ada blocker/perlu keputusan Anda:**
   1. ~~Keputusan design system (PLAN §1 no.2)~~ — **selesai 2026-08-05**: editorial hangat (sand/forest/terracotta, Fraunces + Inter). Detail di GUIDE.md bagian Design System.
-  2. Pendaftaran OAuth Google + Facebook masih menunggu eksekusi manual Anda — panduannya siap di `docs/oauth-setup-guide.md`. Approval Facebook bisa makan hari, mulai sedini mungkin (risiko #1 di PLAN.md §11). Dibutuhkan di D3.
+  2. **Kredensial Google OAuth belum ditempel.** Kode Socialite sudah jalan penuh dan teruji (mock), tapi tombol "Masuk dengan Google" masih tersembunyi sampai `GOOGLE_CLIENT_ID` + `GOOGLE_CLIENT_SECRET` diisi di `.env` — slotnya sudah disiapkan di baris paling bawah. Ikuti `docs/oauth-setup-guide.md`, redirect URI lokal `http://localhost:8000/auth/google/callback`. Login manual tidak terpengaruh. Facebook dibatalkan.
   3. Hosting Hostinger + verifikasi restore backup belum dikerjakan (butuh akun Anda). Dibutuhkan di D7.
   4. Catatan beda dev vs production: dev pakai **PHP 8.2 + MariaDB 10.4**, production Hostinger **PHP 8.3 + MySQL 8**. Sudah dimitigasi (driver `mysql` dikunci, query JSON-path dilarang, test jalan di MySQL), tapi tetap perlu uji ulang saat deploy.
 
@@ -23,14 +23,13 @@ Status terakhir: **D0 + D1 + D2 selesai. Browsing publik jalan, siap masuk D3 (a
 
 ## D0 — Persiapan paralel
 
-- [ ] OAuth app Google Cloud Console didaftarkan
-- [ ] OAuth app Facebook Developer didaftarkan (submit review kalau perlu)
+- [ ] OAuth app Google Cloud Console didaftarkan (Facebook dibatalkan 2026-08-05 — Google saja)
 - [ ] Hosting Hostinger Business siap (domain/subdomain, PHP 8.3, SSH aktif)
 - [ ] Backup Hostinger diverifikasi BISA di-restore (bukan cuma aktif)
 - [x] git init, .gitignore, branch main
 - [x] CLAUDE.md ada di root repo (bukan di docs/)
 - [x] docs/GUIDE.md dan docs/PLAN.md sinkron, tanpa versi ganda
-- [x] docs/oauth-setup-guide.md siap dipakai (Google + Facebook, langkah bernomor)
+- [x] docs/oauth-setup-guide.md siap dipakai (Google, langkah bernomor)
 - [x] PHP + Composer + database terpasang di mesin dev (XAMPP: PHP 8.2.12 + MariaDB 10.4.32; ekstensi zip/gd/intl diaktifkan)
 
 ## D1 — Scaffold & fondasi
@@ -59,12 +58,11 @@ Status terakhir: **D0 + D1 + D2 selesai. Browsing publik jalan, siap masuk D3 (a
 
 ## D3 — Auth & profil
 
-- [ ] Login/register manual
-- [ ] Socialite Google
-- [ ] Socialite Facebook (atau flag config kalau kredensial belum turun)
-- [ ] Lengkapi profil setelah daftar
-- [ ] Login gate: url.intended redirect balik ke booking yang sama
-- [ ] Halaman profil + kerangka "Booking Saya"
+- [x] Login/register manual (`/masuk`, `/daftar`, `/keluar`) + rate limit 5 percobaan/menit
+- [x] Socialite Google (tombol otomatis tersembunyi selama kredensial kosong)
+- [x] Lengkapi profil setelah daftar (bisa dilewati lewat `/profil/lewati`)
+- [x] Login gate: url.intended redirect balik ke booking yang sama
+- [x] Halaman profil + kerangka "Booking Saya"
 
 ## D4 — Booking
 
