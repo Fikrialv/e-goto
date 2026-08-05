@@ -5,7 +5,75 @@
 @source '../**/*.blade.php';
 @source '../**/*.js';
 
+/*
+ * Design system E-GOTO — "editorial hangat".
+ * Sand = permukaan, forest = teks & aksen, terracotta = KHUSUS CTA.
+ * Terracotta sengaja tidak dipakai untuk dekorasi supaya satu-satunya
+ * warna hangat pekat di layar selalu berarti "aksi utama".
+ */
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-sans: 'Inter Variable', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji';
+    --font-display: 'Fraunces Variable', ui-serif, Georgia, 'Times New Roman', serif;
+
+    --color-sand-50: #fbf8f3;
+    --color-sand-100: #f4eee3;
+    --color-sand-200: #e8ddca;
+    --color-sand-300: #d8c8ad;
+    --color-sand-400: #bda884;
+
+    --color-forest-50: #f1f5f2;
+    --color-forest-200: #c6d4c9;
+    --color-forest-400: #6d8f78;
+    --color-forest-500: #4e7059;
+    --color-forest-600: #3d5a46;
+    --color-forest-700: #2f4636;
+    --color-forest-800: #223327;
+    --color-forest-900: #16211a;
+
+    --color-terracotta-100: #f7e3da;
+    --color-terracotta-500: #c4613c;
+    --color-terracotta-600: #a94e2d;
+    --color-terracotta-700: #8a3d22;
+}
+
+@layer base {
+    html {
+        scroll-behavior: smooth;
+    }
+
+    body {
+        background-color: var(--color-sand-50);
+        color: var(--color-forest-800);
+        -webkit-font-smoothing: antialiased;
+    }
+
+    /* Fraunces punya sumbu opsional; "SOFT" dinaikkan sedikit supaya heading
+       besar terbaca hangat, bukan kaku seperti serif koran. */
+    .font-display {
+        font-variation-settings: 'SOFT' 30, 'WONK' 1;
+    }
+
+    /* Sembunyikan elemen ber-x-show sebelum Alpine sempat jalan — cegah
+       "kedip" menu mobile saat halaman pertama dirender. */
+    [x-cloak] {
+        display: none !important;
+    }
+
+    :focus-visible {
+        outline: 2px solid var(--color-terracotta-600);
+        outline-offset: 2px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html {
+        scroll-behavior: auto;
+    }
+
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+    }
 }
