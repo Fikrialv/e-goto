@@ -21,7 +21,7 @@ Sebelum lapor selesai: jalankan test, perbaiki kalau merah lalu ulangi sampai hi
 ## D0 — Persiapan paralel
 
 ```
-Buatkan docs/oauth-setup-guide.md: langkah bernomor detail daftar OAuth Google Cloud Console + Facebook Developer sampai dapat Client ID+Secret (saya yang eksekusi klik manual). Paralel: git init, .gitignore Laravel, branch main, commit awal. Pastikan CLAUDE.md di root (bukan docs/).
+Buatkan docs/oauth-setup-guide.md: langkah bernomor detail daftar OAuth Google Cloud Console sampai dapat Client ID+Secret (saya yang eksekusi klik manual). Paralel: git init, .gitignore Laravel, branch main, commit awal. Pastikan CLAUDE.md di root (bukan docs/).
 
 [+ template penutup]
 ```
@@ -51,7 +51,7 @@ Selesai kalau: guest akses 3 halaman, tidak ada redirect login.
 ## D3 — Auth & profil
 
 ```
-Login/register manual + Socialite Google+Facebook (kalau kredensial FB belum ada: kode siap, tombol disembunyikan via config flag). Lengkapi profil setelah daftar. Login gate PLAN.md §5.5: guest klik booking → session url.intended → login → redirect balik ke booking yang sama. Kerangka profil + "Booking Saya".
+Login/register manual + Socialite Google (kalau kredensial belum ada: kode siap, tombol disembunyikan via config flag). Lengkapi profil setelah daftar. Login gate PLAN.md §5.5: guest klik booking → session url.intended → login → redirect balik ke booking yang sama. Kerangka profil + "Booking Saya".
 
 Selesai kalau: alur guest→booking→login→balik ke booking sama, mulus.
 [+ template penutup]

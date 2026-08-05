@@ -78,9 +78,11 @@ Tujuan produk adalah mempermudah orang, jadi web yang berat justru melawan tujua
 
 Halaman customer-facing (homepage, detail trip, checkout) adalah yang pertama dilihat calon user — kualitas visual di sini menentukan dipakai atau ditinggalkan. Hindari pola generik: gradient ungu-biru template, kartu shadow seragam tanpa karakter, ikon stok tanpa konteks, layout "cookie-cutter" ala SaaS landing page generik. Arahkan ke desain yang terasa dirancang khusus: tipografi editorial (ukuran kontras jelas antara heading dan body), whitespace yang disengaja bukan sisa, micro-interaction halus (bukan animasi berlebihan), foto/ilustrasi yang spesifik ke konteks travel Indonesia — bukan stok generik. Kalau ragu arah visual, tanya dulu referensi sebelum eksekusi styling besar-besaran, jangan asal pasang default framework.
 
-## 11. OAuth Google/Facebook — Batas yang Bisa Dieksekusi AI
+## 11. OAuth Google — Batas yang Bisa Dieksekusi AI
 
-Claude Code CLI **tidak bisa** mendaftarkan aplikasi OAuth ke Google Cloud Console / Facebook Developer secara otomatis — itu butuh login manusia ke console masing-masing (verifikasi identitas, consent screen). Yang harus dilakukan: buat panduan super detail (`docs/oauth-setup-guide.md`) berisi langkah bernomor persis (field mana diisi apa, tombol mana diklik, di halaman mana) supaya user tinggal ikuti seperti resep tanpa bingung. Setelah user selesai klik manual dan dapat Client ID + Secret, baru Claude Code lanjut pasang ke `.env` dan konfigurasi Socialite. Jangan berhenti di D3 hanya karena kredensial belum ada — kode tetap disiapkan penuh, tombol disembunyikan lewat config flag sampai kredensial masuk.
+Login Facebook **tidak dipakai** (keputusan 2026-08-05). Satu-satunya login pihak ketiga adalah Google — jangan usulkan/menambahkan provider lain kecuali diminta eksplisit.
+
+Claude Code CLI **tidak bisa** mendaftarkan aplikasi OAuth ke Google Cloud Console secara otomatis — itu butuh login manusia ke console (verifikasi identitas, consent screen). Yang harus dilakukan: buat panduan super detail (`docs/oauth-setup-guide.md`) berisi langkah bernomor persis (field mana diisi apa, tombol mana diklik, di halaman mana) supaya user tinggal ikuti seperti resep tanpa bingung. Setelah user selesai klik manual dan dapat Client ID + Secret, baru Claude Code lanjut pasang ke `.env` dan konfigurasi Socialite. Jangan berhenti di D3 hanya karena kredensial belum ada — kode tetap disiapkan penuh, tombol disembunyikan lewat config flag sampai kredensial masuk.
 
 ## 12. Double-Cek Wajib Sebelum Lapor Selesai (berlaku semua sesi, permanen)
 

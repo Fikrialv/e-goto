@@ -12,7 +12,7 @@ Project **di-restart total dari nol** (versi sebelumnya dinilai kurang rapi). Do
 
 ## Tiga jenis pengguna
 
-1. **Customer** — bisa lihat-lihat trip tanpa login (browsing bebas), baru diminta login/daftar (manual atau Google/Facebook) saat mau booking. Bayar via QRIS, upload bukti bayar di website, dapat e-tiket QR setelah admin verifikasi.
+1. **Customer** — bisa lihat-lihat trip tanpa login (browsing bebas), baru diminta login/daftar (manual atau Google) saat mau booking. Bayar via QRIS, upload bukti bayar di website, dapat e-tiket QR setelah admin verifikasi.
 2. **Vendor/Mitra** — pihak wisata yang gabung ke E-GOTO. Punya trip sendiri, verifikasi tiket QR customer saat check-in di lokasi.
 3. **Admin** — kelola trip, verifikasi pembayaran, approve mitra baru. Merangkap fungsi CS (balas pertanyaan/pesan private trip via WhatsApp manual).
 

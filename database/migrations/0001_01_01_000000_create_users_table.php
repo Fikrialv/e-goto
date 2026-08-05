@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('name');
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
-            // Nullable: user yang daftar lewat Google/Facebook tidak punya password.
+            // Nullable: user yang daftar lewat Google tidak punya password.
             $table->string('password')->nullable();
             $table->string('role')->default('customer')->index();
             $table->string('phone')->nullable();

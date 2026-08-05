@@ -13,7 +13,7 @@ Turunan teknis dari `docs/GUIDE.md`. GUIDE = sumber kebenaran *scope*. PLAN = ur
 | Git | ✅ Sudah init, branch `main`, commit awal ada |
 | `CLAUDE.md` | ✅ Ada di root repo, isi lengkap (bukan placeholder lagi) |
 | Folder dokumen | ✅ `docs/` lowercase — cocok dengan semua rujukan & aman di Hostinger (Linux case-sensitive) |
-| `docs/oauth-setup-guide.md` | ✅ Lengkap (Google + Facebook, langkah bernomor) |
+| `docs/oauth-setup-guide.md` | ✅ Lengkap (Google saja — Facebook dibatalkan 2026-08-05) |
 | Plugin aktif (project) | `frontend-design`, `security-guidance`, `commit-commands` |
 
 **Blocker nyata sebelum D1:** **PHP 8.3, Composer, dan MySQL 8 belum terpasang** di mesin dev (Laragon/XAMPP/Herd juga tidak ada). Node v24 dan Git 2.55 sudah ada. Scaffold Laravel tidak bisa dijalankan sampai tiga hal itu tersedia.
@@ -39,7 +39,7 @@ Tidak memblok start. Diberi **default sementara** supaya kerja jalan; ganti kala
 - Laravel 12.x. **PHP 8.2.12 (dev, XAMPP) → PHP 8.3 (production Hostinger)**. **MariaDB 10.4.32 (dev, XAMPP) → MySQL 8 (production Hostinger)**. Driver Laravel dikunci ke `mysql` (bukan `mariadb`) supaya SQL yang dihasilkan di lokal identik dengan yang jalan di production. Konsekuensi yang harus diingat: kolom JSON tetap pakai `$table->json()` + cast `array` (aman di keduanya, di MariaDB tersimpan sebagai LONGTEXT), tapi **jangan pakai query JSON-path** (`whereJsonContains`, operator `->>`) — implementasinya berbeda antara MariaDB 10.4 dan MySQL 8. V1 tidak butuh query JSON sama sekali.
 - Filament 3 — panel `/admin` (Admin) + panel `/vendor` (Vendor). Dua panel terpisah, bukan satu panel dengan filter role.
 - Blade + Alpine.js + Tailwind — sisi customer (publik + booking + profil)
-- Laravel Socialite — Google, Facebook
+- Laravel Socialite — Google saja (Facebook dibatalkan 2026-08-05)
 - Pest — testing
 - Pint — formatter
 - `simple-qrcode` (endroid/bacon) — generate QR tiket
@@ -147,7 +147,7 @@ Tombol "Booking Sekarang" pada guest → simpan `session('url.intended')` → lo
 ## 6. FASE V1 — Fondasi (6–7 hari)
 
 **D0 — paralel, mulai hari pertama, jangan ditunda**
-- Daftar OAuth app Google Cloud Console + Facebook Developer (approval FB bisa berhari-hari — ini bottleneck di luar kendali coding)
+- Daftar OAuth app Google Cloud Console (app External mulai di mode Testing — email penguji awal didaftarkan manual di Audience → Test users)
 - Siapkan hosting Hostinger + **verifikasi backup benar-benar jalan** (bukan cuma "ada menunya")
 - `git init`, `.gitignore`, branch `main`
 
@@ -167,7 +167,7 @@ Tombol "Booking Sekarang" pada guest → simpan `session('url.intended')` → lo
 - ✅ Selesai kalau: 3 halaman ini jalan tanpa auth sama sekali, tidak ada redirect login
 
 **D3 — Auth & profil**
-- Login/register manual + Socialite Google & Facebook (kalau kredensial FB belum turun: kode siap, tombol disembunyikan lewat config flag — bukan alasan berhenti)
+- Login/register manual + Socialite Google (kalau kredensial belum turun: kode siap, tombol disembunyikan lewat config flag — bukan alasan berhenti)
 - Lengkapi profil setelah daftar
 - `url.intended` redirect balik ke booking
 - Halaman profil + "Booking Saya" (kerangka)
@@ -280,7 +280,7 @@ Test wajib V1:
 
 | Risiko | Dampak | Mitigasi |
 |---|---|---|
-| Approval OAuth Facebook lama | Blok D3 | Mulai D0. Kode siap, tombol di-flag config, rilis Google dulu |
+| App Google OAuth masih mode Testing | User di luar daftar Test users gagal login Google | Daftarkan email penguji di Audience → Test users (maks 100). Publish app sebelum rilis publik — scope email/profil dasar tidak butuh review manual Google |
 | QRIS statis = verifikasi manual | Admin jadi bottleneck saat volume naik | Nominal unik + kode booking + tampilan cocok-cocokan. Midtrans nanti tinggal swap `PaymentGateway` |
 | Kuota balapan (2 orang booking sisa 1) | Overbooking | Transaksi + `lockForUpdate()` pada `trip_schedules` saat kunci kuota |
 | Enkripsi PII bikin query mati | Ketahuan telat, migrasi ulang | Kolom `id_number_hash` diputuskan sekarang di D1, bukan nanti |

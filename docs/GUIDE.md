@@ -34,7 +34,7 @@ Domestik (NIK), Internasional (paspor — ditutup sementara), Pendakian (wajib N
 Buka web (TANPA perlu login) → Lihat homepage: Trip Populer, Jadwal Terdekat,
 browse per kategori → Buka detail trip (masih tanpa login) →
 Klik "Booking Sekarang" → BARU diminta login/sign up
-  (isi manual ATAU Google/Facebook, cepat & tidak kaku) →
+  (isi manual ATAU Google, cepat & tidak kaku) →
 Lengkapi profil (kalau baru daftar) →
 Kembali otomatis ke halaman booking trip yang tadi dipilih →
 Isi data peserta (leader+peserta lain, NIK domestik/pendakian, paspor internasional) →
@@ -104,8 +104,8 @@ QRIS statis (GoPay Merchant) dipakai sekarang — gratis, tidak perlu badan usah
 
 ## Login & Profil Customer
 
-- Sign up/login manual (email+password) **atau** via Google/Facebook (Laravel Socialite) — dibuat interaktif, cepat, tidak kaku.
-- **Catatan waktu:** pendaftaran aplikasi OAuth ke Google Cloud Console & Facebook Developer harus dimulai **paralel sejak hari pertama development** — proses approval (khususnya Facebook) bisa makan beberapa hari di luar kendali kecepatan coding, supaya tidak jadi bottleneck di tengah jalan.
+- Sign up/login manual (email+password) **atau** via Google (Laravel Socialite) — dibuat interaktif, cepat, tidak kaku. **Login Facebook dibatalkan (keputusan 2026-08-05)** — Google saja, supaya tidak menunggu App Review Meta.
+- **Catatan waktu:** pendaftaran aplikasi OAuth ke Google Cloud Console dikerjakan manual oleh pemilik project (`docs/oauth-setup-guide.md`). Tanpa kredensial, kode Socialite tetap dibangun penuh dan tombolnya disembunyikan lewat config — bukan alasan menunda D3.
 - Profil customer: data diri, foto, riwayat booking, e-tiket tersimpan, beri rating setelah trip selesai, teaser "Jadi Mitra E-GOTO?" (link ke halaman onboarding mitra).
 - Login wajib **hanya saat mau booking**, bukan syarat browsing.
 
@@ -116,7 +116,7 @@ QRIS statis (GoPay Merchant) dipakai sekarang — gratis, tidak perlu badan usah
 ### FASE V1 — Fondasi Platform (6-7 hari)
 
 - Browsing publik tanpa login (homepage, kategori, detail trip, Trip Populer, Jadwal Terdekat)
-- Login/sign up manual + Google/Facebook, gerbang tepat sebelum booking
+- Login/sign up manual + Google, gerbang tepat sebelum booking
 - Profil customer dasar + riwayat booking
 - Booking + field adaptif NIK/paspor
 - Pembayaran anti-fraud lengkap (nominal unik, kode booking, deteksi hash duplikat, expired otomatis)

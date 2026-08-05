@@ -1,10 +1,12 @@
-# E-GOTO — Panduan OAuth Google & Facebook (dikerjakan manual oleh Anda)
+# E-GOTO — Panduan OAuth Google (dikerjakan manual oleh Anda)
 
-Ini WAJIB dikerjakan Anda sendiri — butuh login akun Google/Facebook pribadi, tidak bisa diwakilkan ke AI. Ikuti berurutan, jangan lompat. Setelah dapat Client ID + Secret di akhir tiap bagian, balik ke Claude Code CLI dan minta dipasang ke `.env`.
+Ini WAJIB dikerjakan Anda sendiri — butuh login akun Google pribadi, tidak bisa diwakilkan ke AI. Ikuti berurutan, jangan lompat. Setelah dapat Client ID + Secret di akhir, balik ke Claude Code CLI dan minta dipasang ke `.env`.
+
+> Login Facebook **tidak dipakai** di E-GOTO (keputusan 2026-08-05). Satu-satunya login pihak ketiga adalah Google.
 
 ---
 
-## A. Google OAuth (Google Auth Platform — UI terbaru 2026)
+## Google OAuth (Google Auth Platform — UI terbaru 2026)
 
 1. Buka **console.cloud.google.com**, login dengan akun Google Anda.
 2. Buat project baru (atau pilih project yang sudah ada khusus E-GOTO) — jangan campur dengan project lain, supaya gampang di-manage nanti.
@@ -26,43 +28,18 @@ Ini WAJIB dikerjakan Anda sendiri — butuh login akun Google/Facebook pribadi, 
 
 ---
 
-## B. Facebook OAuth (Meta for Developers)
-
-1. Buka **developers.facebook.com**, login dengan akun Facebook Anda.
-2. Klik **My Apps** (kanan atas) → **Create App**.
-3. Pilih tipe app — kalau ditanya use case, pilih yang berkaitan dengan **Authenticate and request data from users with Facebook Login** (atau "None" kalau opsi itu tidak muncul, nanti Facebook Login ditambah manual di step berikut).
-4. Isi **App name** (contoh: "E-GOTO") dan **Contact email** → **Create app**.
-5. Di dashboard app yang baru dibuat, cari produk **Facebook Login** → klik **Set up**.
-6. Pilih platform **Web**.
-7. Masukkan **Site URL**: `http://localhost:8000` untuk lokal (nanti update ke domain production).
-8. Masuk ke **Facebook Login → Settings** (menu kiri).
-9. Di **Valid OAuth Redirect URIs**, masukkan:
-    - Lokal: `http://localhost:8000/auth/facebook/callback`
-    - Production nanti: `https://domainanda.com/auth/facebook/callback`
-10. **Save Changes**.
-11. Buka **Settings → Basic** (menu kiri) — di sini Anda lihat **App ID**.
-12. Klik **Show** di sebelah **App Secret**, mungkin diminta masukkan password Facebook Anda lagi untuk verifikasi keamanan.
-13. **Copy App ID dan App Secret**, simpan sementara.
-
-**Catatan penting:** app Facebook baru juga mulai dalam mode terbatas (cuma admin/developer/tester app yang bisa login). Untuk soft launch, tambahkan email tester di **App roles → Roles**. Kalau approval publik ternyata butuh **App Review** (biasanya untuk permission yang lebih sensitif dari sekadar email/profil dasar), itu bisa makan beberapa hari — makanya proses ini disarankan dimulai paling awal, paralel dengan development.
-
----
-
-## Setelah Anda dapat 4 nilai ini:
+## Setelah Anda dapat 2 nilai ini:
 
 - Google Client ID
 - Google Client Secret
-- Facebook App ID
-- Facebook App Secret
 
-**Balik ke Claude Code CLI**, paste prompt ini:
+Buka `.env` di root project, isi dua baris yang sudah disiapkan (slot-nya sudah ada, tinggal ditempel):
 
 ```
-Ini kredensial OAuth hasil saya daftar manual:
 GOOGLE_CLIENT_ID=[tempel-client-id-dari-google-cloud]
 GOOGLE_CLIENT_SECRET=[tempel-client-secret-dari-google-cloud]
-FACEBOOK_CLIENT_ID=[tempel]
-FACEBOOK_CLIENT_SECRET=[tempel]
-
-Pasang ke .env dan konfigurasi Laravel Socialite untuk keduanya sesuai docs/PLAN.md bagian 2. Redirect URI lokal pakai http://localhost:8000, nanti saya update ke domain production saat deploy.
 ```
+
+Tombol "Masuk dengan Google" di halaman `/masuk` dan `/daftar` **muncul sendiri** begitu dua nilai itu terisi — tidak perlu ubah kode. Kalau kosong, tombolnya sengaja disembunyikan supaya tidak ada tombol yang pasti error.
+
+Jalankan `php artisan config:clear` setelah menempel, lalu coba klik tombolnya.
