@@ -6,6 +6,7 @@ use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TripController;
 use Illuminate\Support\Facades\Route;
@@ -54,4 +55,14 @@ Route::middleware(['auth', 'role:customer'])->group(function () {
 
     Route::get('/booking-saya', [BookingController::class, 'index'])->name('bookings.index');
     Route::get('/booking/{schedule}', [BookingController::class, 'create'])->name('bookings.create');
+    Route::post('/booking/{schedule}', [BookingController::class, 'store'])
+        ->middleware('throttle:booking')
+        ->name('bookings.store');
+
+    /*
+     * Halaman pembayaran dipanggil dengan kode booking, bukan id berurutan —
+     * id yang bisa ditebak mengundang orang mencoba membuka booking tetangga.
+     * Kepemilikan tetap diperiksa di controller, ini cuma lapis pertama.
+     */
+    Route::get('/booking/{booking:code}/bayar', [PaymentController::class, 'show'])->name('payments.show');
 });
