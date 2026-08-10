@@ -65,7 +65,15 @@ return [
     |
     */
 
-    'timezone' => 'UTC',
+    /*
+     * Seluruh pengguna, admin, dan mitra berada di Indonesia, dan waktu yang
+     * ditampilkan adalah janji operasional: batas 2 jam pembayaran dan jam
+     * keberangkatan. Menyimpan UTC lalu mengonversi di setiap tampilan cuma
+     * menambah satu titik salah tanpa manfaat — tidak ada pengguna di zona lain.
+     * Ditetapkan sekarang, sebelum ada data produksi: menggesernya belakangan
+     * mengubah arti timestamp yang sudah tersimpan.
+     */
+    'timezone' => env('APP_TIMEZONE', 'Asia/Jakarta'),
 
     /*
     |--------------------------------------------------------------------------
@@ -78,11 +86,13 @@ return [
     |
     */
 
-    'locale' => env('APP_LOCALE', 'en'),
+    // Situsnya berbahasa Indonesia; `translatedFormat()` dan `diffForHumans()`
+    // mengikuti locale ini — tanpa penyetelan ini tanggal tampil "16 August".
+    'locale' => env('APP_LOCALE', 'id'),
 
     'fallback_locale' => env('APP_FALLBACK_LOCALE', 'en'),
 
-    'faker_locale' => env('APP_FAKER_LOCALE', 'en_US'),
+    'faker_locale' => env('APP_FAKER_LOCALE', 'id_ID'),
 
     /*
     |--------------------------------------------------------------------------
