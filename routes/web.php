@@ -65,4 +65,17 @@ Route::middleware(['auth', 'role:customer'])->group(function () {
      * Kepemilikan tetap diperiksa di controller, ini cuma lapis pertama.
      */
     Route::get('/booking/{booking:code}/bayar', [PaymentController::class, 'show'])->name('payments.show');
+    Route::post('/booking/{booking:code}/bayar', [PaymentController::class, 'store'])
+        ->middleware('throttle:upload-bukti')
+        ->name('payments.store');
+    Route::get('/booking/{booking:code}/bukti', [PaymentController::class, 'proof'])->name('payments.proof');
 });
+
+/*
+ * Bukti bayar untuk layar verifikasi admin. Berkasnya ada di disk non-publik,
+ * jadi Filament tidak bisa menautkannya langsung — route inilah yang
+ * menyalurkannya, dengan `role:admin` sebagai penjaganya.
+ */
+Route::get('/bukti-bayar/{payment}', [PaymentController::class, 'adminProof'])
+    ->middleware(['auth', 'role:admin'])
+    ->name('admin.payments.proof');

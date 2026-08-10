@@ -70,9 +70,67 @@
             </div>
         </div>
 
-        {{-- Unggah bukti bayar, deteksi duplikat, dan tombol notifikasi admin
-             dipasang di D5. Halaman ini sudah menampilkan seluruh instruksi
-             bayar supaya alur D4 (booking → nominal unik) bisa diuji utuh. --}}
+        @if (session('status'))
+            <p role="status" class="mt-6 rounded-2xl border border-forest-200 bg-forest-50 px-5 py-4 text-sm text-forest-800">
+                {{ session('status') }}
+            </p>
+        @endif
+
+        @php($pembayaran = $booking->latestPayment)
+
+        @if ($pembayaran?->status === App\Enums\PaymentStatus::Rejected)
+            <div role="alert" class="mt-6 rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-800">
+                <p class="font-medium">Bukti pembayaran sebelumnya ditolak admin.</p>
+                <p class="mt-1">Alasan: {{ $pembayaran->reject_reason }}</p>
+                <p class="mt-1">Silakan perbaiki dan unggah ulang bukti transfer Anda di bawah ini.</p>
+            </div>
+        @endif
+
+        <div class="mt-8 rounded-3xl border border-sand-200 bg-white/70 p-6 sm:p-8">
+            <h2 class="font-display text-2xl font-semibold text-forest-900">Unggah bukti pembayaran</h2>
+            <p class="mt-1 text-sm leading-relaxed text-forest-600">
+                Unggah tangkapan layar atau foto struk transfer. Berkas disimpan tertutup dan hanya bisa dilihat
+                Anda dan admin yang memverifikasi.
+            </p>
+
+            @if ($pembayaran?->status === App\Enums\PaymentStatus::Pending && $pembayaran->proof_path)
+                <div class="mt-5 flex flex-wrap items-center gap-4 rounded-2xl bg-sand-100 px-5 py-4">
+                    <p class="text-sm text-forest-700">
+                        Bukti sudah terkirim {{ $pembayaran->created_at->diffForHumans() }} &middot; menunggu verifikasi admin.
+                    </p>
+                    <a href="{{ route('payments.proof', $booking) }}" target="_blank" rel="noopener"
+                       class="text-sm text-forest-700 underline underline-offset-4 hover:text-terracotta-600">
+                        Lihat bukti yang saya kirim
+                    </a>
+                </div>
+            @endif
+
+            @error('proof')
+                <p role="alert" class="mt-4 rounded-2xl border border-red-200 bg-red-50 px-5 py-3 text-sm text-red-800">{{ $message }}</p>
+            @enderror
+
+            <form method="POST" action="{{ route('payments.store', $booking) }}" enctype="multipart/form-data" class="mt-5">
+                @csrf
+
+                <label for="bukti" class="block text-sm font-medium text-forest-800">Berkas bukti transfer</label>
+                <input id="bukti" name="proof" type="file" accept="image/jpeg,image/png,image/webp" required
+                       class="mt-2 w-full rounded-2xl border border-sand-300 bg-sand-50 px-4 py-2.5 text-sm text-forest-900 file:mr-4 file:rounded-full file:border-0 file:bg-forest-700 file:px-4 file:py-2 file:text-sm file:text-sand-50">
+                <p class="mt-1.5 text-xs text-forest-500">JPG, PNG, atau WebP. Maksimal 4 MB.</p>
+
+                <button type="submit"
+                        class="mt-5 rounded-full bg-terracotta-600 px-7 py-3 text-sm font-medium text-sand-50 transition-colors hover:bg-terracotta-700">
+                    Kirim bukti pembayaran
+                </button>
+            </form>
+
+            <p class="mt-6 text-sm text-forest-600">
+                Sudah mengunggah tapi ingin memberi tahu admin langsung?
+                <a href="{{ $linkWhatsApp }}" target="_blank" rel="noopener"
+                   class="font-medium text-forest-800 underline underline-offset-4 hover:text-terracotta-600">
+                    Kirim notifikasi lewat WhatsApp
+                </a>
+            </p>
+        </div>
 
         <div class="mt-8 flex flex-wrap gap-3">
             <a href="{{ route('bookings.index') }}"
