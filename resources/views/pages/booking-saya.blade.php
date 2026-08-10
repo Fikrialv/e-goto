@@ -30,8 +30,21 @@
                                 <p class="mt-1 font-mono text-xs text-forest-500">{{ $booking->code }}</p>
                             </div>
 
-                            <x-status-badge>{{ $booking->status->value }}</x-status-badge>
+                            <x-status-badge>{{ $booking->status->label() }}</x-status-badge>
                         </div>
+
+                        @php($aksi = match ($booking->status) {
+                            App\Enums\BookingStatus::PendingPayment, App\Enums\BookingStatus::AwaitingVerification => ['label' => 'Lihat pembayaran', 'url' => route('payments.show', $booking)],
+                            App\Enums\BookingStatus::Confirmed, App\Enums\BookingStatus::Completed => ['label' => 'Lihat e-tiket', 'url' => route('tickets.show', $booking)],
+                            default => null,
+                        })
+
+                        @if ($aksi)
+                            <a href="{{ $aksi['url'] }}"
+                               class="mt-4 inline-block rounded-full border border-sand-300 px-5 py-2 text-sm text-forest-700 hover:border-forest-500">
+                                {{ $aksi['label'] }}
+                            </a>
+                        @endif
                     </li>
                 @endforeach
             </ul>

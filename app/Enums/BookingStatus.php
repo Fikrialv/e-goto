@@ -13,6 +13,23 @@ enum BookingStatus: string
     case Completed = 'completed';
 
     /**
+     * Label bahasa Indonesia untuk ditampilkan ke customer. Nilai mentah enum
+     * ("awaiting_verification") tidak pernah tampil di layar.
+     */
+    public function label(): string
+    {
+        return match ($this) {
+            self::PendingPayment => 'Menunggu pembayaran',
+            self::AwaitingVerification => 'Menunggu verifikasi',
+            self::Confirmed => 'Terkonfirmasi',
+            self::Rejected => 'Ditolak',
+            self::Expired => 'Kedaluwarsa',
+            self::Cancelled => 'Dibatalkan',
+            self::Completed => 'Selesai',
+        };
+    }
+
+    /**
      * Status yang masih menahan kuota trip. Dipakai saat melepas kuota
      * (bookings:expire, D4) dan saat cek bentrok nominal unik (D4).
      */
