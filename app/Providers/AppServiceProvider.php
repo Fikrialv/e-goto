@@ -2,7 +2,13 @@
 
 namespace App\Providers;
 
+use App\Contracts\MessagingService;
+use App\Contracts\PaymentGateway;
+use App\Contracts\TicketSigner;
 use App\Models\Category;
+use App\Services\Messaging\WhatsAppLinkService;
+use App\Services\Payment\ManualQrisGateway;
+use App\Services\Ticket\HmacTicketSigner;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -18,7 +24,16 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        /*
+         * Tiga batas yang sengaja dipasang sejak V1 (PLAN.md §3): pembayaran,
+         * notifikasi, dan penandatangan tiket dipanggil lewat interface. Saat
+         * nanti pindah ke Midtrans / WhatsApp Business API, yang diganti cuma
+         * baris di bawah ini — alur booking, verifikasi, dan tiket tidak ikut
+         * dibongkar.
+         */
+        $this->app->bind(PaymentGateway::class, ManualQrisGateway::class);
+        $this->app->bind(MessagingService::class, WhatsAppLinkService::class);
+        $this->app->bind(TicketSigner::class, HmacTicketSigner::class);
     }
 
     /**
@@ -47,5 +62,19 @@ class AppServiceProvider extends ServiceProvider
          */
         RateLimiter::for('masuk', fn (Request $request) => Limit::perMinute(5)
             ->by(Str::lower((string) $request->input('email')).'|'.$request->ip()));
+
+        /*
+         * Dua titik tulis milik customer. Dibatasi per akun (bukan per IP):
+         * keduanya hanya bisa diakses setelah login, dan pembatas per akun
+         * tidak ikut menghukum orang lain yang kebetulan satu IP publik.
+         *
+         * Booking menahan kuota sejak dibuat, jadi tanpa rem ini satu akun
+         * bisa memborong semua kursi dengan booking yang tidak pernah dibayar.
+         */
+        RateLimiter::for('booking', fn (Request $request) => Limit::perMinute(5)
+            ->by((string) $request->user()?->id));
+
+        RateLimiter::for('upload-bukti', fn (Request $request) => Limit::perMinute(10)
+            ->by((string) $request->user()?->id));
     }
 }
