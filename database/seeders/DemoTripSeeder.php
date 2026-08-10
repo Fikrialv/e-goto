@@ -12,9 +12,10 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
 
 /**
- * Data demo secukupnya untuk melihat halaman publik (D2) di tiga breakpoint.
- * Seeder demo lengkap 10–12 trip dengan variasi kuota penuh/hampir penuh
- * dijadwalkan di D7 — jangan digemukkan di sini.
+ * Data demo V1: 13 trip di 6 kategori, dengan variasi yang memang perlu dilihat
+ * sebelum rilis — kuota penuh, kuota tinggal sedikit, jadwal dekat/jauh, harga
+ * bertingkat, dan satu trip internasional berstatus draft (kategorinya masih
+ * ditutup, jadi tidak boleh muncul di halaman publik).
  */
 class DemoTripSeeder extends Seeder
 {
@@ -72,6 +73,69 @@ class DemoTripSeeder extends Seeder
                 'harga' => [['Reguler', 225_000, 1, null]],
                 'jadwal' => [[11, 18, 6]],
             ],
+            [
+                'category' => 'pendakian',
+                'title' => 'Pendakian Gunung Merbabu via Selo',
+                'meeting_point' => 'Basecamp Selo, Boyolali',
+                'featured' => false,
+                'harga' => [['Reguler', 495_000, 1, null], ['Rombongan 4+', 460_000, 4, null]],
+                // Sisa 1 kursi — untuk melihat tampilan "tinggal sedikit".
+                'jadwal' => [[15, 15, 14], [33, 15, 2]],
+            ],
+            [
+                'category' => 'domestik',
+                'title' => 'Open Trip Labuan Bajo 4 Hari 3 Malam',
+                'meeting_point' => 'Bandara Komodo, Labuan Bajo',
+                'featured' => true,
+                'harga' => [['Reguler', 3_250_000, 1, null], ['Rombongan 8+', 2_950_000, 8, null]],
+                'jadwal' => [[30, 20, 7], [58, 20, 0]],
+            ],
+            [
+                'category' => 'domestik',
+                'title' => 'Wisata Budaya Yogyakarta 2 Hari',
+                'meeting_point' => 'Stasiun Tugu Yogyakarta',
+                'featured' => false,
+                'harga' => [['Reguler', 550_000, 1, null], ['Pelajar', 475_000, 1, null]],
+                'jadwal' => [[5, 22, 18]],
+            ],
+            [
+                'category' => 'keliling-kota',
+                'title' => 'Kuliner Malam Solo Naik Becak',
+                'meeting_point' => 'Ngarsopuro Night Market, Solo',
+                'featured' => false,
+                'harga' => [['Reguler', 185_000, 1, null]],
+                'jadwal' => [[3, 20, 11], [17, 20, 20]],
+            ],
+            [
+                'category' => 'aktivitas',
+                'title' => 'Paralayang Gunung Banyak Batu',
+                'meeting_point' => 'Gunung Banyak, Batu',
+                'featured' => false,
+                'harga' => [['Tandem Reguler', 425_000, 1, null]],
+                'jadwal' => [[8, 12, 4], [26, 12, 12]],
+            ],
+            [
+                'category' => 'pantai',
+                'title' => 'Island Hopping Kepulauan Seribu',
+                'meeting_point' => 'Dermaga Marina Ancol, Jakarta',
+                'featured' => false,
+                'harga' => [['Reguler', 850_000, 1, null], ['Rombongan 6+', 780_000, 6, null]],
+                'jadwal' => [[13, 28, 9]],
+            ],
+            [
+                /*
+                 * Kategori internasional masih ditutup (is_active = false), jadi
+                 * trip ini sengaja berstatus draft: ada untuk uji coba internal,
+                 * tidak muncul di halaman publik mana pun.
+                 */
+                'category' => 'internasional',
+                'title' => 'Open Trip Kuala Lumpur 3 Hari 2 Malam',
+                'meeting_point' => 'Terminal 2 Bandara Soekarno-Hatta',
+                'featured' => false,
+                'status' => TripStatus::Draft,
+                'harga' => [['Reguler', 4_150_000, 1, null]],
+                'jadwal' => [[45, 18, 0]],
+            ],
         ];
 
         foreach ($trips as $data) {
@@ -93,7 +157,7 @@ class DemoTripSeeder extends Seeder
                     'excludes' => 'Transportasi menuju titik kumpul, pengeluaran pribadi, asuransi tambahan.',
                     'meeting_point' => $data['meeting_point'],
                     'cover_image' => null,
-                    'status' => TripStatus::Published,
+                    'status' => $data['status'] ?? TripStatus::Published,
                     'is_featured' => $data['featured'],
                     'published_at' => now()->subDays(random_int(1, 20)),
                 ]

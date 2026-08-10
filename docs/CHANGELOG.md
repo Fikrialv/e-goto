@@ -4,6 +4,24 @@ Entri ringkas tiap iterasi selesai (aturan `CLAUDE.md` §6). Terbaru di atas.
 
 ---
 
+## 2026-08-11 — D4–D7: booking, pembayaran, tiket, hardening (V1 fungsional selesai)
+
+**Fondasi (dipakai D4–D7).** Tiga interface yang disiapkan sejak D1 akhirnya punya implementasi V1 dan binding di `AppServiceProvider`: `ManualQrisGateway` (QRIS statis + nominal unik, keabsahan ditentukan admin), `WhatsAppLinkService` (URL `wa.me`, tanpa API/worker), `HmacTicketSigner` (HMAC-SHA256, verifikasi `hash_equals`). Angka alur bayar dipusatkan di `config/booking.php` (batas 2 jam, percobaan nominal unik, path QRIS, nomor WA admin, disk bukti). Logika transaksional tinggal di `app/Actions/` — controller dan Filament hanya pemanggil.
+
+**D4 — Booking.** Form peserta (ketua + anggota) dengan repeater Alpine; aturan identitas ditentukan kategori jadwal, **bukan** nilai yang dikirim browser — kalau `id_type` ikut dipercaya dari form, peserta pendakian tinggal mengirim "none" untuk melewati kewajiban NIK. `CreateBooking` menjalankan semuanya dalam satu transaksi: baris `trip_schedules` dikunci `lockForUpdate` dan kuotanya **dibaca ulang dari baris terkunci** (angka yang dibaca saat halaman dibuka sudah basi), harga diambil ulang dari `trip_prices` sesuai jumlah peserta (kalau beberapa tingkat cocok, yang termurah dipakai), `id_number` lewat cast `encrypted` + `id_number_hash` untuk lookup. Nominal unik dijamin tidak bentrok di antara booking bersubtotal sama yang masih menunggu bayar; 3 digit padat naik ke 4 digit. Kode booking menghindari karakter yang mudah tertukar saat ditulis di catatan transfer (0/O, 1/I/L). `bookings:expire` melepas kursi lewat cron `schedule:run` — bukan queue worker.
+
+**D5 — Pembayaran & verifikasi.** Halaman bayar: kode booking besar, nominal unik ditonjolkan beserta rinciannya, hitung mundur batas waktu, instruksi QRIS. Bukti diunggah **di website** dan disimpan di disk non-publik — berkasnya memuat nama dan nomor rekening pengirim, jadi hanya keluar lewat route yang memeriksa peminta: pemilik booking, atau admin lewat route terpisah ber-`role:admin`. `proof_hash` sha256 menandai bukti kembar (`is_duplicate_flagged`) tapi **tidak menolak otomatis** — bisa jadi salah unggah, keputusan tetap milik manusia. Filament: antrean `PaymentResource` (default tersaring "menunggu", badge navigasi, tanpa create/edit), layar verifikasi menaruh bukti berdampingan dengan nominal seharusnya + banner duplikat, widget dashboard 3 angka. Alasan penolakan wajib, dijaga di Action bukan cuma di form, dan booking kembali ke `pending_payment` dengan batas waktu disegarkan supaya customer sempat unggah ulang.
+
+**D6 — Tiket & check-in.** Approve menerbitkan satu tiket per peserta secara sinkron; penerbitan idempoten (approve dari dua tab tidak menggandakan tiket). Token 32 karakter + HMAC atas `token|kode_booking|participant_id`. **QR berisi token saja, bukan URL** — tangkapan layar tiket yang tersebar tidak membuka alamat apa pun. QR dirender SVG inline (`simplesoftwareio/simple-qrcode`), bukan PNG, supaya tidak bergantung ekstensi `imagick` yang tidak ada di XAMPP maupun shared hosting. Halaman check-in panel vendor: transisi `issued → used` dikunci `lockForUpdate` di dalam transaksi, pesan tolak dibedakan tegas ("tidak valid" vs "sudah dipakai jam X"), sementara token tak dikenal dan tanda tangan salah sengaja memberi pesan **sama** — membedakannya memberi tahu penyerang bahwa tokennya sudah benar. Vendor hanya bisa men-check-in trip miliknya; diperiksa di Action, bukan di UI.
+
+**D7 — Hardening.** Seeder demo jadi 13 trip di 6 kategori (12 published + 1 internasional berstatus draft karena kategorinya masih ditutup), dengan variasi kuota penuh, tinggal sedikit, dan jadwal dekat/jauh. Test penjaga N+1 (`PerformaTest`) dan rate limit (`RateLimitTest`) ditambahkan supaya eager load atau rem yang terhapus gagal keras, bukan diam-diam melambat. Semua model sudah punya `$fillable` eksplisit.
+
+**Hasil verifikasi:** `php artisan test` **73 lulus / 281 assertion**, `migrate:fresh --seed` bersih (13 trip, 22 jadwal), `npm run build` sukses, Pint lulus, `storage/logs` bersih.
+
+**Belum dikerjakan (butuh akun pemilik project):** deploy Hostinger, verifikasi restore backup, penggantian password akun demo. Kredensial Google OAuth sudah dipasang ke `.env` (tombol "Masuk dengan Google" kini muncul).
+
+---
+
 ## 2026-08-05 — D3: Auth, login Google, profil & gerbang booking
 
 - **Login Facebook dibatalkan** (keputusan pemilik project). Google jadi satu-satunya login pihak ketiga; `docs/oauth-setup-guide.md`, `GUIDE.md`, `PLAN.md`, `CLAUDE.md` §11, dan komentar migration dibersihkan. Kolom `provider`/`provider_id` tetap (generik), jadi tidak ada migration baru — dan risiko "approval Facebook lama" hilang dari daftar risiko PLAN §11.
