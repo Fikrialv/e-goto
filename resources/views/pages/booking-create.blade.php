@@ -24,36 +24,36 @@
 
 <x-layouts.app :title="'Pesan '.$schedule->trip->title">
     <div class="mx-auto w-full max-w-3xl px-4 py-12 sm:px-6 lg:py-16">
-        <a href="{{ route('trips.show', $schedule->trip) }}" class="text-sm text-forest-600 hover:text-terracotta-600">
+        <a href="{{ route('trips.show', $schedule->trip) }}" class="text-sm text-teal-600 hover:text-amber-600">
             &larr; Kembali ke detail trip
         </a>
 
-        <p class="mt-6 text-xs font-semibold tracking-widest text-forest-500 uppercase">
+        <p class="mt-6 text-xs font-semibold tracking-widest text-teal-500 uppercase">
             {{ $schedule->trip->category->name }}
         </p>
 
-        <h1 class="mt-2 font-display text-3xl leading-tight font-semibold text-forest-900 sm:text-4xl">
+        <h1 class="mt-2 font-display text-3xl leading-tight font-bold text-teal-900 sm:text-4xl">
             {{ $schedule->trip->title }}
         </h1>
 
-        <div class="mt-8 rounded-3xl border border-sand-200 bg-white/70 p-6 sm:p-8">
+        <div class="mt-8 rounded-3xl border border-mist-200 bg-white/70 p-6 sm:p-8">
             <dl class="grid gap-5 sm:grid-cols-3">
                 <div>
-                    <dt class="text-xs tracking-wide text-forest-500 uppercase">Tanggal berangkat</dt>
-                    <dd class="mt-1 font-display text-lg font-semibold text-forest-900">
+                    <dt class="text-xs tracking-wide text-teal-500 uppercase">Tanggal berangkat</dt>
+                    <dd class="mt-1 font-display text-lg font-bold text-teal-900">
                         {{ $schedule->start_date->translatedFormat('j F Y') }}
                     </dd>
                 </div>
 
                 <div>
-                    <dt class="text-xs tracking-wide text-forest-500 uppercase">Sisa kuota</dt>
-                    <dd class="mt-1 font-display text-lg font-semibold text-forest-900">
+                    <dt class="text-xs tracking-wide text-teal-500 uppercase">Sisa kuota</dt>
+                    <dd class="mt-1 font-display text-lg font-bold text-teal-900">
                         {{ $schedule->remainingQuota() }} kursi
                     </dd>
                 </div>
 
                 <div>
-                    <dt class="text-xs tracking-wide text-forest-500 uppercase">Mulai dari</dt>
+                    <dt class="text-xs tracking-wide text-teal-500 uppercase">Mulai dari</dt>
                     <dd class="mt-1">
                         <x-price-tag :amount="$schedule->prices->min('price')" />
                     </dd>
@@ -61,9 +61,9 @@
             </dl>
 
             @if ($schedule->prices->count() > 1)
-                <div class="mt-6 rounded-2xl bg-sand-100 px-5 py-4">
-                    <p class="text-xs font-semibold tracking-widest text-forest-500 uppercase">Harga bertingkat</p>
-                    <ul class="mt-2 space-y-1 text-sm text-forest-700">
+                <div class="mt-6 rounded-2xl bg-mist-100 px-5 py-4">
+                    <p class="text-xs font-semibold tracking-widest text-teal-500 uppercase">Harga bertingkat</p>
+                    <ul class="mt-2 space-y-1 text-sm text-teal-700">
                         @foreach ($schedule->prices->sortBy('min_pax') as $harga)
                             <li>
                                 {{ $harga->label }} ({{ $harga->min_pax }}@if ($harga->max_pax)&ndash;{{ $harga->max_pax }}@else+ @endif orang):
@@ -71,7 +71,7 @@
                             </li>
                         @endforeach
                     </ul>
-                    <p class="mt-2 text-xs text-forest-500">
+                    <p class="mt-2 text-xs text-teal-500">
                         Harga menyesuaikan otomatis dengan jumlah peserta yang Anda isi.
                     </p>
                 </div>
@@ -92,7 +92,9 @@
         <form method="POST" action="{{ route('bookings.store', $schedule) }}" class="mt-8"
               x-data="{
                   peserta: @js(array_values($pesertaAwal)),
-                  maks: {{ min(20, $schedule->remainingQuota()) }},
+                  {{-- Cap keras 12 vs sisa kuota — yang lebih kecil menang. Angka
+                       12-nya dari config, sama dengan yang dipakai validasi server. --}}
+                  maks: {{ min(config('booking.max_pax_per_booking'), $schedule->remainingQuota()) }},
                   tambah() { if (this.peserta.length < this.maks) this.peserta.push({ full_name: '', phone: '', id_number: '', dob: '', emergency_contact: '' }) },
                   hapus(i) { if (this.peserta.length > 1) this.peserta.splice(i, 1) },
               }">
@@ -100,60 +102,73 @@
 
             <div class="flex flex-wrap items-end justify-between gap-3">
                 <div>
-                    <h2 class="font-display text-2xl font-semibold text-forest-900">Data peserta</h2>
-                    <p class="mt-1 text-sm text-forest-600">
+                    <h2 class="font-display text-2xl font-bold text-teal-900">Data peserta</h2>
+                    <p class="mt-1 text-sm text-teal-600">
                         Peserta pertama menjadi ketua rombongan dan penanggung jawab pemesanan.
                     </p>
                 </div>
 
-                <p class="text-sm text-forest-600">
+                <p class="text-sm text-teal-600">
                     <span x-text="peserta.length">1</span> dari maksimal <span x-text="maks">1</span> kursi
                 </p>
             </div>
 
+            {{-- Yang membatasi di sini cap 12, bukan kuota — jadi rombongan besar
+                 perlu tahu jalan keluarnya, bukan cuma tahu dia mentok. --}}
+            @if ($schedule->remainingQuota() > config('booking.max_pax_per_booking'))
+                <p class="mt-4 rounded-2xl border border-mist-200 bg-mist-100 px-4 py-3 text-sm leading-relaxed text-teal-700">
+                    Satu pemesanan maksimal {{ config('booking.max_pax_per_booking') }} peserta, walau kursi tersisa
+                    {{ $schedule->remainingQuota() }}. Rombongan lebih besar kami tangani sebagai
+                    <a href="{{ app(\App\Contracts\MessagingService::class)->requestPrivateTrip($schedule->trip) }}"
+                       target="_blank" rel="noopener"
+                       class="font-medium text-amber-600 underline underline-offset-2 hover:text-amber-700">private trip</a>
+                    supaya transport dan titik jemputnya bisa diatur khusus.
+                </p>
+            @endif
+
             <div class="mt-6 space-y-5">
                 <template x-for="(orang, i) in peserta" :key="i">
-                    <fieldset class="rounded-3xl border border-sand-200 bg-white/70 p-5 sm:p-6">
-                        <legend class="px-2 text-xs font-semibold tracking-widest text-forest-500 uppercase"
+                    <fieldset class="rounded-3xl border border-mist-200 bg-white/70 p-5 sm:p-6">
+                        <legend class="px-2 text-xs font-semibold tracking-widest text-teal-500 uppercase"
                                 x-text="i === 0 ? 'Ketua rombongan' : 'Peserta ' + (i + 1)"></legend>
 
                         <div class="grid gap-4 sm:grid-cols-2">
                             <div class="sm:col-span-2">
-                                <label :for="'peserta-nama-' + i" class="block text-sm font-medium text-forest-800">Nama lengkap</label>
+                                <label :for="'peserta-nama-' + i" class="block text-sm font-medium text-teal-800">Nama lengkap</label>
                                 <input :id="'peserta-nama-' + i" :name="'participants[' + i + '][full_name]'" type="text"
                                        x-model="orang.full_name" required maxlength="255"
-                                       class="mt-2 w-full rounded-2xl border border-sand-300 bg-sand-50 px-4 py-2.5 text-sm text-forest-900 focus:border-forest-500">
+                                       class="mt-2 w-full rounded-2xl border border-mist-300 bg-mist-50 px-4 py-2.5 text-sm text-teal-900 focus:border-teal-500">
                             </div>
 
                             <div>
-                                <label :for="'peserta-hp-' + i" class="block text-sm font-medium text-forest-800">
-                                    Nomor HP <span class="ml-1 text-xs font-normal text-forest-500">(opsional)</span>
+                                <label :for="'peserta-hp-' + i" class="block text-sm font-medium text-teal-800">
+                                    Nomor HP <span class="ml-1 text-xs font-normal text-teal-500">(opsional)</span>
                                 </label>
                                 <input :id="'peserta-hp-' + i" :name="'participants[' + i + '][phone]'" type="tel"
                                        x-model="orang.phone" maxlength="30"
-                                       class="mt-2 w-full rounded-2xl border border-sand-300 bg-sand-50 px-4 py-2.5 text-sm text-forest-900 focus:border-forest-500">
+                                       class="mt-2 w-full rounded-2xl border border-mist-300 bg-mist-50 px-4 py-2.5 text-sm text-teal-900 focus:border-teal-500">
                             </div>
 
                             <div>
-                                <label :for="'peserta-lahir-' + i" class="block text-sm font-medium text-forest-800">
-                                    Tanggal lahir <span class="ml-1 text-xs font-normal text-forest-500">(opsional)</span>
+                                <label :for="'peserta-lahir-' + i" class="block text-sm font-medium text-teal-800">
+                                    Tanggal lahir <span class="ml-1 text-xs font-normal text-teal-500">(opsional)</span>
                                 </label>
                                 <input :id="'peserta-lahir-' + i" :name="'participants[' + i + '][dob]'" type="date"
                                        x-model="orang.dob"
-                                       class="mt-2 w-full rounded-2xl border border-sand-300 bg-sand-50 px-4 py-2.5 text-sm text-forest-900 focus:border-forest-500">
+                                       class="mt-2 w-full rounded-2xl border border-mist-300 bg-mist-50 px-4 py-2.5 text-sm text-teal-900 focus:border-teal-500">
                             </div>
 
                             @if ($labelIdentitas)
                                 <div class="sm:col-span-2">
-                                    <label :for="'peserta-identitas-' + i" class="block text-sm font-medium text-forest-800">
+                                    <label :for="'peserta-identitas-' + i" class="block text-sm font-medium text-teal-800">
                                         {{ $labelIdentitas }}
                                     </label>
                                     <input :id="'peserta-identitas-' + i" :name="'participants[' + i + '][id_number]'" type="text"
                                            x-model="orang.id_number" required
                                            inputmode="{{ $idRequirement === IdType::Nik ? 'numeric' : 'text' }}"
                                            maxlength="{{ $idRequirement === IdType::Nik ? 16 : 12 }}"
-                                           class="mt-2 w-full rounded-2xl border border-sand-300 bg-sand-50 px-4 py-2.5 text-sm text-forest-900 focus:border-forest-500">
-                                    <p class="mt-1.5 text-xs text-forest-500">
+                                           class="mt-2 w-full rounded-2xl border border-mist-300 bg-mist-50 px-4 py-2.5 text-sm text-teal-900 focus:border-teal-500">
+                                    <p class="mt-1.5 text-xs text-teal-500">
                                         Diwajibkan kategori {{ Str::lower($schedule->trip->category->name) }} untuk pendataan peserta oleh
                                         penyelenggara. Nomor disimpan terenkripsi dan tidak ditampilkan kembali.
                                     </p>
@@ -161,12 +176,12 @@
                             @endif
 
                             <div class="sm:col-span-2">
-                                <label :for="'peserta-darurat-' + i" class="block text-sm font-medium text-forest-800">
-                                    Kontak darurat <span class="ml-1 text-xs font-normal text-forest-500">(opsional)</span>
+                                <label :for="'peserta-darurat-' + i" class="block text-sm font-medium text-teal-800">
+                                    Kontak darurat <span class="ml-1 text-xs font-normal text-teal-500">(opsional)</span>
                                 </label>
                                 <input :id="'peserta-darurat-' + i" :name="'participants[' + i + '][emergency_contact]'" type="text"
                                        x-model="orang.emergency_contact" maxlength="255"
-                                       class="mt-2 w-full rounded-2xl border border-sand-300 bg-sand-50 px-4 py-2.5 text-sm text-forest-900 focus:border-forest-500">
+                                       class="mt-2 w-full rounded-2xl border border-mist-300 bg-mist-50 px-4 py-2.5 text-sm text-teal-900 focus:border-teal-500">
                             </div>
                         </div>
 
@@ -181,25 +196,25 @@
             </div>
 
             <button type="button" @click="tambah()" x-show="peserta.length < maks"
-                    class="mt-5 rounded-full border border-dashed border-sand-400 px-5 py-2.5 text-sm text-forest-700 hover:border-forest-500">
+                    class="mt-5 rounded-full border border-dashed border-mist-400 px-5 py-2.5 text-sm text-teal-700 hover:border-teal-500">
                 + Tambah peserta
             </button>
 
             <div class="mt-8">
-                <label for="catatan" class="block text-sm font-medium text-forest-800">
-                    Catatan untuk penyelenggara <span class="ml-1 text-xs font-normal text-forest-500">(opsional)</span>
+                <label for="catatan" class="block text-sm font-medium text-teal-800">
+                    Catatan untuk penyelenggara <span class="ml-1 text-xs font-normal text-teal-500">(opsional)</span>
                 </label>
                 <textarea id="catatan" name="notes" rows="3" maxlength="500"
                           placeholder="Misal: alergi makanan, titik jemput, permintaan khusus."
-                          class="mt-2 w-full rounded-2xl border border-sand-300 bg-sand-50 px-4 py-2.5 text-sm text-forest-900 placeholder:text-forest-400 focus:border-forest-500">{{ old('notes') }}</textarea>
+                          class="mt-2 w-full rounded-2xl border border-mist-300 bg-mist-50 px-4 py-2.5 text-sm text-teal-900 placeholder:text-teal-400 focus:border-teal-500">{{ old('notes') }}</textarea>
             </div>
 
             <div class="mt-8 flex flex-wrap items-center gap-4">
                 <button type="submit"
-                        class="rounded-full bg-terracotta-600 px-7 py-3 text-sm font-medium text-sand-50 transition-colors hover:bg-terracotta-700">
+                        class="rounded-full bg-amber-600 px-7 py-3 text-sm font-medium text-mist-50 transition-colors hover:bg-amber-700">
                     Lanjut ke pembayaran
                 </button>
-                <p class="text-sm text-forest-600">
+                <p class="text-sm text-teal-600">
                     Kursi ditahan {{ (int) (config('booking.expiry_minutes') / 60) }} jam setelah pemesanan dibuat.
                 </p>
             </div>

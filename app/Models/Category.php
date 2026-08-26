@@ -19,6 +19,7 @@ class Category extends Model
         'is_active',
         'sort_order',
         'icon',
+        'gear_checklist',
     ];
 
     protected function casts(): array
@@ -26,6 +27,7 @@ class Category extends Model
         return [
             'id_requirement' => IdType::class,
             'is_active' => 'boolean',
+            'gear_checklist' => 'array',
         ];
     }
 

@@ -37,6 +37,12 @@ Sebelum menulis fungsi/file baru, tangga keputusan:
 
 Jangan kompromi tangga ini untuk validasi input, keamanan (hash, signing, enkripsi PII, sanitasi), atau aksesibilitas — bagian itu tetap harus lengkap walau "berlebih" secara baris kode.
 
+**Dilarang pasang package pihak ketiga untuk fungsi native sederhana.** Anak tangga 3 dan 4 bukan formalitas — kalau Laravel/Filament bawaan sudah bisa, pakai itu. Contoh arah yang sering salah: helper string/array (`Str`, `Arr`, `collect()`), slug, UUID/ULID, format & manipulasi tanggal (Carbon bawaan), upload + validasi file, cache, HTTP client, paginasi, ekspor sederhana. Menambah dependensi untuk hal-hal ini menambah beban update, risiko keamanan, dan ukuran build tanpa imbalan. Kalau memang tetap butuh package, sebutkan dulu bagian native mana yang tidak cukup dan kenapa (lihat bagian 15) — jangan dipasang diam-diam.
+
+**Dilarang placeholder atau fungsi dummy.** Fitur yang diminta harus diimplementasi nyata: jangan bikin method/route/komponen kosong, `return true` palsu, data hardcode yang berpura-pura hasil query, atau tombol UI yang tidak melakukan apa-apa. Kalau satu bagian tidak selesai di sesi ini, katakan terus terang di laporan dan di `docs/update.md` — jangan tutup dengan kerangka kosong yang terlihat jadi.
+
+Yang **tetap boleh dan justru bagus**: komentar jujur soal scope yang memang sengaja belum dikerjakan karena di luar fase berjalan — misalnya field `icon` di `CategoryResource` yang ditandai belum dipakai. Itu penanda scope, bukan dummy.
+
 **Fondasi extensible wajib** (lihat PLAN.md bagian 3): implementasi V1 lewat `interface PaymentGateway`, `interface MessagingService`, Enum PHP native untuk semua status (jangan string bebas), middleware `role:` sejak awal. Ini bukan over-engineering — ini yang mencegah bongkar ulang saat V1.5/V2 nanti nempel fitur baru.
 
 ## 5. Cara kerja teknis
@@ -52,9 +58,17 @@ Jangan kompromi tangga ini untuk validasi input, keamanan (hash, signing, enkrip
 
 Tambahkan entri ringkas di `docs/CHANGELOG.md` dan centang item terkait di `docs/update.md`. Kalau ada keputusan yang mengubah scope, update `docs/GUIDE.md` dulu (sumber kebenaran), baru sesuaikan `docs/PLAN.md`.
 
+**Commit & push berkala — ingatkan, jangan putuskan sendiri.** Kapan commit dan push ke remote adalah tanggung jawab pemilik project. Claude Code **tidak** commit/push tanpa diminta eksplisit. Tapi diam saat tumpukan membesar juga salah: kalau berkas belum ter-commit sudah menumpuk — patokan praktis **lebih dari ~15 berkas berubah**, atau perubahan sudah melewati satu sesi kerja penuh tanpa commit — CLI **wajib** menyebutkannya di bagian "Perlu diupdate:" / "Langkah selanjutnya:" pada laporan penutup sesi, lengkap dengan angkanya (hasil `git status --short | wc -l`), bukan peringatan kabur seperti "banyak file belum di-commit". Alasannya: tumpukan lintas sesi berakhir jadi satu commit raksasa yang tidak bisa di-review, dan begitu ada yang rusak, tidak ada titik balik yang jelas untuk kembali.
+
 ## 7. Gaya komunikasi
 
 Ringkas, langsung, jawab dalam Bahasa Indonesia kecuali user minta lain. Jangan ubah kode di luar yang diminta — kalau lihat masalah lain, laporkan dan sarankan, jangan langsung ubah tanpa diminta (kecuali bug yang menghalangi task yang sedang dikerjakan).
+
+Aturan tambahan, berlaku permanen:
+- Tanpa basa-basi. Skip salam pembuka dan kalimat penutup ("semoga membantu", "kalau ada yang kurang bilang ya").
+- Jangan jelaskan kode kecuali diminta. Sebut apa yang berubah dan di file mana, bukan tur baris per baris.
+- Jangan tulis komentar yang cuma mengulang apa yang kodenya sudah jelas katakan. Komentar dipakai untuk *kenapa*-nya, bukan *apa*-nya.
+- Laporan hasil kerja bernada datar dan faktual. Tanpa minta maaf, tanpa pujian diri, tanpa nada percakapan berlebihan. Kalau ada yang gagal, tulis apa yang gagal dan buktinya — bukan permintaan maaf panjang.
 
 ## 8. Tooling Claude Code CLI — pasang sendiri, jangan tanya user dulu
 
@@ -77,6 +91,14 @@ Tujuan produk adalah mempermudah orang, jadi web yang berat justru melawan tujua
 ## 10. Standar Desain — Jangan Terlihat "Dibuat AI"
 
 Halaman customer-facing (homepage, detail trip, checkout) adalah yang pertama dilihat calon user — kualitas visual di sini menentukan dipakai atau ditinggalkan. Hindari pola generik: gradient ungu-biru template, kartu shadow seragam tanpa karakter, ikon stok tanpa konteks, layout "cookie-cutter" ala SaaS landing page generik. Arahkan ke desain yang terasa dirancang khusus: tipografi editorial (ukuran kontras jelas antara heading dan body), whitespace yang disengaja bukan sisa, micro-interaction halus (bukan animasi berlebihan), foto/ilustrasi yang spesifik ke konteks travel Indonesia — bukan stok generik. Kalau ragu arah visual, tanya dulu referensi sebelum eksekusi styling besar-besaran, jangan asal pasang default framework.
+
+Empat pola yang paling cepat membocorkan "ini dibuat AI" — hindari:
+- **Spacing seragam di semua sisi.** Pola "16px di mana-mana" adalah ciri khas AI. Jarak harus mengikuti hierarki elemen: jeda antar-seksi jauh lebih lega daripada jarak antar-baris di dalam satu kartu; padding kartu, gap grid, dan margin bawah heading tidak boleh bernilai sama hanya karena praktis. Nilai berbeda dipilih sadar, bukan diseragamkan.
+- **Gradient sebagai default.** Jangan pakai gradient kalau tidak diminta atau tidak ada alasan visual jelas. Default-nya warna solid dari token `teal`/`mist`/`amber` (lihat `docs/GUIDE.md` bagian Design System).
+- **Copywriting formal/AI-generated.** Pakai bahasa Indonesia sehari-hari, seperti orang bicara ke calon peserta trip. Hindari kalimat kaku rasa terjemahan mesin ("Silakan melakukan proses pembayaran sesuai ketentuan yang berlaku" → "Bayar sebelum 2 jam, ya"), superlatif kosong ("pengalaman tak terlupakan", "solusi terbaik"), dan jargon korporat. Ini kelanjutan prinsip "tidak boleh terlihat dibuat AI" di `docs/GUIDE.md` bagian Design System — berlaku ke teks, bukan cuma visual.
+- **Ikon dekoratif di judul.** Jangan pakai ikon dekoratif yang tidak jelas fungsinya di header/section title — emoji atau ikon kecil menempel di depan judul (contoh yang DILARANG: "🚀 Recent Activity"). Header cukup teks polos dengan hierarki tipografi yang sudah didefinisikan di `docs/GUIDE.md` bagian Design System — bukan ikon yang menggantikan kejelasan. Ikon boleh dipakai HANYA kalau fungsinya jelas dan sudah ada preseden di kode (contoh: heroicon navigasi Filament yang sudah dipakai `CategoryResource`).
+
+Rujukan pola header yang benar: label kecil huruf kapital di atas, judul tebal di bawahnya (pola "RECENT ACTIVITY" lalu "3 transactions this week" — yang ditiru strukturnya, bukan datanya). Spacing mengikuti bullet pertama: padding seksi, gap antar-kartu, dan padding dalam kartu pakai nilai berbeda yang dipilih sadar, bukan satu angka yang sama untuk semuanya.
 
 ## 11. OAuth Google — Batas yang Bisa Dieksekusi AI
 

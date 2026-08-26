@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\TripDifficulty;
 use App\Enums\TripStatus;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -26,6 +27,7 @@ class Trip extends Model
         'cover_image',
         'status',
         'is_featured',
+        'difficulty_level',
         'published_at',
     ];
 
@@ -33,6 +35,7 @@ class Trip extends Model
     {
         return [
             'status' => TripStatus::class,
+            'difficulty_level' => TripDifficulty::class,
             'is_featured' => 'boolean',
             'published_at' => 'datetime',
         ];

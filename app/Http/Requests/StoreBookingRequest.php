@@ -28,7 +28,11 @@ class StoreBookingRequest extends FormRequest
     public function rules(): array
     {
         $aturan = [
-            'participants' => ['required', 'array', 'min:1', 'max:20'],
+            // Cap keras 12 peserta (PLAN.md §5.6). Ditegakkan di sini, bukan cuma
+            // di form: batas yang hanya hidup di UI bisa dilewati siapa pun yang
+            // mengirim POST sendiri. Kuota jadwal tetap dicek terpisah di
+            // CreateBooking — yang lebih kecil di antara keduanya yang menang.
+            'participants' => ['required', 'array', 'min:1', 'max:'.$this->maxPax()],
             'participants.*.full_name' => ['required', 'string', 'max:255'],
             'participants.*.phone' => ['nullable', 'string', 'max:30'],
             'participants.*.dob' => ['nullable', 'date', 'before:today'],
@@ -53,12 +57,20 @@ class StoreBookingRequest extends FormRequest
     public function messages(): array
     {
         return [
+            // Pesan menyebut jalur keluarnya, bukan cuma angkanya — kalau tidak,
+            // rombongan besar mentok tanpa tahu harus ke mana (PLAN.md §5.6).
+            'participants.max' => 'Satu pemesanan maksimal '.$this->maxPax().' peserta. Untuk rombongan lebih besar, ajukan Request Private Trip lewat kontak admin.',
             'participants.*.full_name.required' => 'Nama lengkap peserta wajib diisi.',
             'participants.*.id_number.required' => $this->idRequirement() === IdType::Nik
                 ? 'NIK peserta wajib diisi untuk kategori trip ini.'
                 : 'Nomor paspor peserta wajib diisi untuk kategori trip ini.',
             'participants.*.id_number.digits' => 'NIK harus 16 digit angka.',
         ];
+    }
+
+    public function maxPax(): int
+    {
+        return (int) config('booking.max_pax_per_booking');
     }
 
     public function idRequirement(): IdType

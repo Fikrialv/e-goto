@@ -29,6 +29,12 @@ class CategoryController extends Controller
             ->select('trips.*')
             ->published()
             ->whereBelongsTo($category)
+            // Level fisik menempel di trip, jadi disaring di sini — bukan ikut
+            // filter jadwal di bawah yang memang soal tanggal & harga.
+            ->when(
+                $filters['level'] ?? null,
+                fn (Builder $query, string $level) => $query->where('difficulty_level', $level)
+            )
             ->whereHas('schedules', fn (Builder $query) => $this->applyScheduleFilters($query, $filters))
             ->withMin(['schedules as tanggal_terdekat' => fn ($query) => $query->upcoming()], 'start_date')
             ->addSelect(['harga_mulai' => $this->startingPriceSubquery()])

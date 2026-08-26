@@ -12,8 +12,8 @@ class CategorySeeder extends Seeder
     {
         $categories = [
             ['name' => 'Domestik', 'slug' => 'domestik', 'id_requirement' => IdType::Nik, 'is_active' => true, 'sort_order' => 1],
-            ['name' => 'Pendakian', 'slug' => 'pendakian', 'id_requirement' => IdType::Nik, 'is_active' => true, 'sort_order' => 2],
-            ['name' => 'Pantai', 'slug' => 'pantai', 'id_requirement' => IdType::None, 'is_active' => true, 'sort_order' => 3],
+            ['name' => 'Pendakian', 'slug' => 'pendakian', 'id_requirement' => IdType::Nik, 'is_active' => true, 'sort_order' => 2, 'gear_checklist' => ['Tas carrier 40L+', 'Jaket gunung & jas hujan', 'Sepatu trekking', 'Sleeping bag', 'Headlamp + baterai cadangan', 'Air minum 2 liter', 'Obat pribadi']],
+            ['name' => 'Pantai', 'slug' => 'pantai', 'id_requirement' => IdType::None, 'is_active' => true, 'sort_order' => 3, 'gear_checklist' => ['Sunblock', 'Baju ganti & handuk cepat kering', 'Sandal gunung', 'Dry bag untuk HP', 'Topi atau kacamata hitam']],
             ['name' => 'Keliling Kota', 'slug' => 'keliling-kota', 'id_requirement' => IdType::None, 'is_active' => true, 'sort_order' => 4],
             ['name' => 'Aktivitas', 'slug' => 'aktivitas', 'id_requirement' => IdType::None, 'is_active' => true, 'sort_order' => 5],
             // Ditutup sementara sesuai GUIDE.md — kategorinya tetap ada supaya

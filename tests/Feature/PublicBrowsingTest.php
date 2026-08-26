@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\TripDifficulty;
 use App\Enums\TripStatus;
 use App\Models\Category;
 use App\Models\Trip;
@@ -120,4 +121,90 @@ it('tidak menampilkan jadwal yang sudah lewat di detail trip', function () {
     $this->get(route('trips.show', $trip))
         ->assertSuccessful()
         ->assertSee('Belum ada jadwal terbuka');
+});
+
+/*
+ * Halaman legal (D7.5). Justru dibaca orang yang belum punya akun — saat
+ * memutuskan mau pesan atau tidak — jadi wajib terbuka untuk guest.
+ */
+it('membuka halaman legal untuk guest tanpa redirect login', function (string $url) {
+    $this->get($url)->assertOk();
+})->with(['/faq', '/syarat-ketentuan', '/kebijakan-privasi']);
+
+it('menautkan halaman legal dari footer', function () {
+    $this->get('/')
+        ->assertOk()
+        ->assertSee(route('pages.faq'), escape: false)
+        ->assertSee(route('pages.terms'), escape: false)
+        ->assertSee(route('pages.privacy'), escape: false);
+});
+
+it('menandai angka refund dan retensi yang belum final', function () {
+    $this->get('/syarat-ketentuan')->assertOk()->assertSee('[SEMENTARA');
+    $this->get('/kebijakan-privasi')->assertOk()->assertSee('[SEMENTARA');
+});
+
+/*
+ * Filter level fisik (D7.6 c, test §9 #17). Tingkat kesulitan menempel di trip,
+ * bukan kategori: dua trip dalam satu kategori bisa jauh berbeda beratnya, dan
+ * label yang salah di konteks fisik bukan sekadar bikin kecewa.
+ */
+it('menyaring trip berdasarkan tingkat kesulitan', function () {
+    $category = Category::factory()->create();
+
+    $pemula = tripPublished($category);
+    $pemula->update(['difficulty_level' => TripDifficulty::Pemula]);
+
+    $lanjutan = tripPublished($category);
+    $lanjutan->update(['difficulty_level' => TripDifficulty::Lanjutan]);
+
+    $this->get(route('categories.show', [$category, 'level' => 'pemula']))
+        ->assertOk()
+        ->assertSee($pemula->title)
+        ->assertDontSee($lanjutan->title);
+});
+
+it('menampilkan seluruh trip saat filter tingkat kesulitan tidak dipakai', function () {
+    $category = Category::factory()->create();
+
+    $pemula = tripPublished($category);
+    $pemula->update(['difficulty_level' => TripDifficulty::Pemula]);
+
+    $tanpaLevel = tripPublished($category);
+
+    $this->get(route('categories.show', $category))
+        ->assertOk()
+        ->assertSee($pemula->title)
+        ->assertSee($tanpaLevel->title);
+});
+
+it('menolak nilai tingkat kesulitan di luar daftar', function () {
+    $category = Category::factory()->create();
+    tripPublished($category);
+
+    $this->get(route('categories.show', [$category, 'level' => 'ekstrem']))
+        ->assertSessionHasErrors('level');
+});
+
+/*
+ * Checklist perlengkapan (D7.6 e, test §9 #19). Kategori tanpa checklist tidak
+ * boleh meninggalkan judul menggantung di halaman detail.
+ */
+it('menampilkan checklist perlengkapan kategori di detail trip', function () {
+    $category = Category::factory()->create(['gear_checklist' => ['Tenda', 'Sleeping bag']]);
+    $trip = tripPublished($category);
+
+    $this->get(route('trips.show', $trip))
+        ->assertOk()
+        ->assertSee('Yang perlu Anda bawa')
+        ->assertSee('Sleeping bag');
+});
+
+it('tidak menampilkan blok checklist untuk kategori tanpa checklist', function () {
+    $category = Category::factory()->create(['gear_checklist' => null]);
+    $trip = tripPublished($category);
+
+    $this->get(route('trips.show', $trip))
+        ->assertOk()
+        ->assertDontSee('Yang perlu Anda bawa');
 });

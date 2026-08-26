@@ -21,7 +21,7 @@ class TicketController extends Controller
             404,
         );
 
-        $booking->load(['schedule.trip', 'tickets.participant']);
+        $booking->load(['schedule.trip.category', 'tickets.participant']);
 
         return view('pages.e-ticket', compact('booking'));
     }

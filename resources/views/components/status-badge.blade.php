@@ -4,10 +4,10 @@
 
 @php
     $toneClass = match ($tone) {
-        'success' => 'bg-forest-50 text-forest-700 ring-forest-200',
-        'warning' => 'bg-terracotta-100 text-terracotta-700 ring-terracotta-500/30',
-        'danger' => 'bg-sand-200 text-forest-600 ring-sand-300 line-through decoration-1',
-        default => 'bg-sand-100 text-forest-600 ring-sand-200',
+        'success' => 'bg-teal-50 text-teal-700 ring-teal-200',
+        'warning' => 'bg-amber-100 text-amber-700 ring-amber-500/30',
+        'danger' => 'bg-mist-200 text-teal-600 ring-mist-300 line-through decoration-1',
+        default => 'bg-mist-100 text-teal-600 ring-mist-200',
     };
 @endphp
 

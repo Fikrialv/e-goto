@@ -27,8 +27,10 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->login()
+            // Teal logo E-GOTO (#077C82), bukan palet bawaan Filament — panel staf
+            // dan sisi customer harus terbaca sebagai satu produk yang sama.
             ->colors([
-                'primary' => Color::Amber,
+                'primary' => Color::hex('#077C82'),
             ])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')

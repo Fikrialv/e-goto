@@ -203,3 +203,47 @@ it('menolak pemilik lain membuka halaman pembayaran booking', function () {
     $this->actingAs($pemilik)->get("/booking/{$booking->code}/bayar")->assertOk();
     $this->actingAs($penyusup)->get("/booking/{$booking->code}/bayar")->assertForbidden();
 });
+
+/*
+ * Cap keras 12 peserta (PLAN.md §5.6). Dua sisi yang dijaga: batasnya
+ * ditegakkan server (bukan cuma di form, yang bisa dilewati POST manual),
+ * dan orang yang mentok diberi tahu jalan keluarnya.
+ */
+it('menolak booking di atas batas peserta walau kuota masih longgar', function () {
+    $maks = config('booking.max_pax_per_booking');
+    $schedule = jadwalUntukBooking(quota: 30);
+
+    $peserta = collect(range(1, $maks + 1))
+        ->map(fn (int $i) => ['full_name' => "Peserta {$i}"])
+        ->all();
+
+    kirimBooking($schedule, $peserta)->assertSessionHasErrors('participants');
+
+    expect(Booking::count())->toBe(0)
+        ->and($schedule->fresh()->booked_count)->toBe(0);
+});
+
+it('menerima booking tepat di batas peserta', function () {
+    $maks = config('booking.max_pax_per_booking');
+    $schedule = jadwalUntukBooking(quota: 30);
+
+    $peserta = collect(range(1, $maks))
+        ->map(fn (int $i) => ['full_name' => "Peserta {$i}"])
+        ->all();
+
+    kirimBooking($schedule, $peserta)->assertRedirect();
+
+    expect(Booking::firstOrFail()->pax_count)->toBe($maks)
+        ->and($schedule->fresh()->booked_count)->toBe($maks);
+});
+
+it('menawarkan private trip di form booking saat sisa kuota melebihi batas peserta', function () {
+    $schedule = jadwalUntukBooking(quota: 30);
+    $user = User::factory()->customer()->create();
+
+    $this->actingAs($user)
+        ->get("/booking/{$schedule->id}")
+        ->assertOk()
+        ->assertSee('private trip')
+        ->assertSee('wa.me/'.config('booking.admin_whatsapp'), escape: false);
+});

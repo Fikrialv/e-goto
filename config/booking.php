@@ -31,6 +31,24 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Batas peserta per booking
+    |--------------------------------------------------------------------------
+    |
+    | Cap keras: berlaku walau sisa kuota jadwal jauh lebih besar (GUIDE.md
+    | "Batas Peserta per Booking", PLAN.md §5.6). Rombongan di atas angka ini
+    | punya kebutuhan berbeda (transport, akomodasi, negosiasi harga) dan
+    | diarahkan ke Request Private Trip, bukan lewat checkout normal.
+    |
+    | Angkanya ditaruh di sini supaya form, validasi server, dan tampilan
+    | membaca sumber yang sama — batas yang diketik ulang di beberapa tempat
+    | cepat berbeda, dan yang paling longgar yang akhirnya menang.
+    |
+    */
+
+    'max_pax_per_booking' => (int) env('BOOKING_MAX_PAX', 12),
+
+    /*
+    |--------------------------------------------------------------------------
     | Pembayaran QRIS statis
     |--------------------------------------------------------------------------
     |
@@ -43,6 +61,21 @@ return [
     'qris_image_path' => env('QRIS_IMAGE_PATH', 'images/qris-placeholder.svg'),
 
     'qris_merchant_name' => env('QRIS_MERCHANT_NAME', 'E-GOTO Indonesia'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Estimasi waktu verifikasi pembayaran
+    |--------------------------------------------------------------------------
+    |
+    | Kalimat yang tampil ke customer selama pembayarannya masih `pending`, dan
+    | di panel konfirmasi metode pembayaran sebelum QRIS dibuka (D7.6 b & f).
+    | Ditaruh di config, bukan diketik di Blade, supaya bisa dilonggarkan saat
+    | antrean verifikasi ramai tanpa menyentuh view — dan supaya dua tempat yang
+    | menampilkannya tidak pernah berbeda angka.
+    |
+    */
+
+    'verification_eta' => env('BOOKING_VERIFICATION_ETA', 'maksimal 1x24 jam'),
 
     /*
     |--------------------------------------------------------------------------

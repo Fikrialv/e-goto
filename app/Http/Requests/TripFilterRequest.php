@@ -2,8 +2,10 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\TripDifficulty;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 /**
  * Filter daftar trip di halaman kategori.
@@ -45,6 +47,7 @@ class TripFilterRequest extends FormRequest
             'harga_min' => ['nullable', 'integer', 'min:0'],
             'harga_max' => $hargaMax,
             'urut' => ['nullable', 'in:terdekat,termurah,termahal'],
+            'level' => ['nullable', Rule::enum(TripDifficulty::class)],
         ];
     }
 
@@ -59,6 +62,7 @@ class TripFilterRequest extends FormRequest
             'harga_min' => 'harga minimum',
             'harga_max' => 'harga maksimum',
             'urut' => 'urutan',
+            'level' => 'tingkat kesulitan',
         ];
     }
 }

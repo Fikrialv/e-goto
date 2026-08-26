@@ -4,6 +4,171 @@ Entri ringkas tiap iterasi selesai (aturan `CLAUDE.md` §6). Terbaru di atas.
 
 ---
 
+## 2026-08-27 — Perbaikan hasil audit form + masa sesi login
+
+Empat perbaikan, semuanya berangkat dari temuan audit form D7.7 dan laporan masa sesi login.
+
+**`trip_prices.min_pax` wajib diisi.** Kolomnya NOT NULL tapi form hanya punya `->default(1)`. Field yang dikosongkan saat menyunting mengirim `null` dan berakhir sebagai galat database, bukan pesan validasi yang bisa dibaca admin. Sekarang `required()`.
+
+**`trip_schedules.status` pakai Enum.** Dari TextInput teks bebas jadi `Select` berbasis `TripStatus`, plus cast Enum di model `TripSchedule` dan `Rule::enum()` di form. Migration `normalize_trip_schedules_status` merapikan baris lama yang nilainya di luar enum ke `published`. **Pola yang perlu diingat:** daftar `->options()` saja tidak menolak nilai asing yang dikirim langsung ke Livewire — tanpa `Rule::enum()`, yang meledak adalah cast Enum saat baris dibaca, jauh dari tempat nilai itu masuk. Aturan yang sama dipasang ke Select status di `TripResource`.
+
+**Trip tidak bisa published tanpa jadwal.** Dijaga di `CreateTrip::beforeCreate()` dan `EditTrip::beforeSave()`: notifikasi Filament persistent yang menyebut langkah berikutnya, lalu `halt()` — bukan galat mentah. Sebelum ini, trip published tanpa jadwal menghasilkan keadaan yang membingungkan dari dua sisi: halaman detailnya terbuka untuk umum tapi bertuliskan "belum ada jadwal", sementara di halaman kategori trip itu tidak muncul sama sekali. Konsekuensi alur yang disengaja: trip baru wajib disimpan sebagai draf dulu, karena jadwal memang baru bisa diisi setelah record induknya ada.
+
+**`SESSION_LIFETIME` 120 → 240 menit.** Sebelumnya persis sama dengan `BOOKING_EXPIRY_MINUTES` (120), jadi customer yang menunda pembayaran sampai mendekati batas booking bisa ter-logout tepat saat kembali membuka halaman bayar — hambatan di titik paling rawan batal. Dua angka itu sekarang tidak lagi bertabrakan.
+
+Verifikasi: **112 test lulus / 468 assertion** (5 test baru di `TripResourceTest`), `migrate:fresh --seed` bersih, Pint lulus.
+
+---
+
+
+## 2026-08-27 — Web Push naik ke D12 + aturan pengingat commit + audit form D7.7
+
+**Web Push notification pindah ke D12** (dokumen saja). Item terakhir yang masih menganggur di GUIDE "Backlog — Menunggu Giliran" untuk urusan notifikasi sekarang punya fase resmi. Waktunya tepat karena fondasinya sudah berdiri sejak D7.6: `public/manifest.json` dan `public/sw.js` tinggal ditambahi listener `push` + `notificationclick`, bukan dibangun dari nol. Blok D12 di PLAN.md §7 mengunci empat hal:
+
+- Dua pemicu saja — pembayaran jadi `verified` dan pengingat H-1. Keduanya sudah punya jalur yang bekerja tanpa push (Booking Saya, tombol wa.me admin), jadi push gagal tidak menghilangkan informasi apa pun.
+- **Opt-in lewat tombol customer.** `Notification.requestPermission()` yang jalan sendiri saat halaman dibuka dilarang: prompt tak diminta hampir selalu ditolak, dan penolakan itu permanen per browser — sekali mati, tidak bisa diminta ulang lewat kode.
+- Tanpa worker daemon (`CLAUDE.md` §1): push dikirim di dalam request yang sedang terjadi atau lewat command yang dipanggil cron, sama seperti `bookings:expire`.
+- Isi notifikasi dibatasi kode booking, judul trip, dan waktu. NIK/paspor tidak boleh ikut — isi notifikasi melewati server push browser, jadi diperlakukan sebagai kanal luar, aturan yang sama dengan pesan reminder H-1 di D7.6 (d).
+
+Aturan cache D7.6 ditegaskan tidak boleh dilonggarkan saat ini dikerjakan: service worker tetap tidak menyentuh dokumen HTML.
+
+**`CLAUDE.md` §6 — commit & push berkala.** Kapan commit tetap hak pemilik project dan CLI tidak melakukannya tanpa diminta, tapi sekarang CLI **wajib** menyebutkan jumlah berkas belum ter-commit di bagian "Perlu diupdate:"/"Langkah selanjutnya:" begitu tumpukan melewati ~15 berkas atau satu sesi kerja penuh. Alasannya: tumpukan lintas sesi berakhir jadi satu commit raksasa yang tidak bisa di-review, dan begitu ada yang rusak tidak ada titik balik yang jelas.
+
+**Audit form D7.7 — dilaporkan, belum diperbaiki.** Field wajib inti sudah `required` dan field opsional benar tidak memblokir submit. Tiga temuan dicatat di `update.md` bagian "Temuan audit form (belum diputuskan)": `min_pax` tidak `required` padahal kolomnya NOT NULL (berpotensi galat database alih-alih pesan validasi), trip bisa disimpan tanpa satu pun jadwal (relation manager baru muncul setelah trip tersimpan, jadi tidak ada yang menegakkan "minimal 1 jadwal"), dan `trip_schedules.status` masih teks bebas alih-alih Enum. Tidak ada yang disentuh — keputusan perbaikan menunggu pemilik project.
+
+---
+
+
+## 2026-08-27 — Chat widget naik dari Backlog ke D12 + `vendor_id` disembunyikan
+
+**Chat widget (dokumen saja).** Item "In-app chat widget" dipindahkan dari GUIDE "Backlog — Menunggu Giliran" ke fase resmi **D12**, digabung dengan private trip & polish. Selama masih di backlog, item ini tidak punya kriteria selesai dan — lebih penting — tidak punya batasan tertulis, padahal justru batasannya yang menentukan aman-tidaknya. Blok D12 di PLAN.md §7 sekarang memuat: pilih **satu** penyedia embed (Tawk.to atau Crisp, ditentukan saat eksekusi setelah free-tier dicek terhadap trafik nyata), dipasang di layout utama customer supaya berlaku di semua halaman sekaligus, tombol "Lanjut ke WhatsApp" di dalam widget, dan larangan membangun sistem chat sendiri — bukan soal selera, shared hosting tidak bisa menjalankan proses persisten untuk WebSocket.
+
+Dua batasan ditulis eksplisit:
+
+- **Chat umum/CS saja.** Approve/reject pembayaran dan penerbitan tiket tetap wajib lewat layar verifikasi Filament dari D5. Prinsip permanen, sama persis dengan yang dipegang chatbot FAQ-only — jalur uang dan tiket tidak boleh punya pintu belakang lewat kanal chat mana pun.
+- **Data mengalir ke pihak ketiga.** Isi percakapan, nama, dan kontak yang diketik customer sampai ke server penyedia widget, jadi penyedia yang dipilih wajib dicantumkan di `/kebijakan-privasi` bagian pihak ketiga penerima data saat D12 dikerjakan.
+
+Item dihapus dari daftar Backlog supaya tidak hidup di dua tempat sekaligus — masalah yang sama sudah dibereskan untuk push notification di sesi 2026-08-14. `EXECUTION_PROMPTS.md` (Sesi 7) dan checklist D12 di `update.md` ikut menyusul.
+
+**`TripResource.vendor_id` disembunyikan (kode).** Dropdown mitra dicabut dari form trip, diganti `Hidden` + `dehydrated(false)`. Alasannya rujukan, bukan kerapian: di V1 semua trip milik E-GOTO (`vendor_id` null), dan setelah V1.5 kolom ini merujuk `vendors.id` — bukan `users.id` yang dipakai dropdown sebelumnya. Satu klik admin ke user vendor demo sekarang akan jadi rujukan salah begitu tabel `vendors` lahir. Ada TODO di kode + di `update.md` untuk mengaktifkannya kembali lewat `->relationship()` setelah D8/D9, dan test `tidak menyimpan vendor_id yang dikirim dari form trip` menjaga sampai saat itu. Verifikasi: **107 test lulus / 434 assertion**, Pint lulus.
+
+---
+
+
+## 2026-08-27 — D7.7: CRUD trip di panel admin
+
+Gap yang ditemukan 2026-08-24 tertutup. Menambah trip sekarang tidak lagi butuh tinker atau seeder: `TripResource` (hub) + `SchedulesRelationManager` (jadwal, dengan `TripPrice` bersarang lewat `Repeater::relationship()`) + `ImagesRelationManager` (galeri). Polanya mengikuti `CategoryResource` yang sudah tervalidasi — slug otomatis dari judul, label Bahasa Indonesia, tiga Page standar.
+
+Dua hal yang sengaja dibuat berbeda dari bawaan generator:
+
+- **`booked_count` tidak bisa disunting** (`disabled()` + `dehydrated(false)`). Angka itu dikunci `lockForUpdate()` saat booking dibuat (PLAN.md §5); admin yang mengetiknya manual sama dengan menjual kursi dua kali tanpa jejak. Ada test yang mengirim `booked_count: 12` lewat form dan memastikan yang tersimpan tetap 0.
+- **`vendor_id` diisi lewat `->options()`, bukan `->relationship()`.** Tabel `vendors` baru lahir di V1.5 (PLAN.md §4) dan kolom ini akan berpindah induk; relasi Eloquent yang dibuat sekarang hanya akan jadi utang saat itu.
+
+**Temuan pola `Repeater::relationship()`** (belum pernah dipakai di project ini, dan risikonya sudah ditandai di rencana D7.7): data test berbentuk list berindeks angka hanya diterima kalau repeater-nya `defaultItems(0)`. Dengan baris bawaan, Filament menyimpan state berkunci uuid, data test menambah baris kedua, dan baris bawaan yang kosong itu yang gagal validasi. Repeater harga karena itu dipasang `defaultItems(0)` + `minItems(1)` — sekalian menutup jadwal tanpa tingkat harga, yang memang tidak bisa dipesan.
+
+Verifikasi: **106 test lulus / 430 assertion** (5 test baru di `tests/Feature/TripResourceTest.php`), `migrate:fresh --seed` bersih, Pint lulus, tidak ada entri log baru.
+
+---
+
+
+## 2026-08-27 — D7.6: enam penyempurnaan sebelum rilis
+
+Semua item blok D7.6 (PLAN.md §6) masuk ke kode. Test §9 nomor 15-20 hijau.
+
+**PWA installable.** `public/manifest.json` + `public/sw.js` di root domain, registrasi setelah `load` di `resources/js/app.js`. Batas cache-nya sengaja sempit: hanya `/build/` (aset Vite) dan `/icons/`. Navigasi dan request non-GET selalu lewat jaringan — halaman pembayaran yang tersaji dari cache berarti kuota, hitung mundur, dan status verifikasi yang basi, jauh lebih berbahaya daripada halaman yang tidak bisa dibuka offline. Ikon 192/512 dibangkitkan lewat encoder PNG minimal (bidang teal + titik amber) karena ekstensi GD tidak aktif di XAMPP mesin dev; ini penempatan sementara sampai artwork logo asli ditempel.
+
+**Badge verifikasi + estimasi + unduh QRIS.** Badge memakai `PaymentStatus` dan komponen `status-badge` yang sudah ada — tidak ada state baru. Estimasi waktu keluar dari `config('booking.verification_eta')` supaya halaman pembayaran, Booking Saya, dan panel konfirmasi tidak pernah menyebut angka berbeda. Tombol unduh gambar QRIS ditambahkan untuk yang membayar dari perangkat lain.
+
+**Filter level fisik.** Migration `trips.difficulty_level` (enum nullable) + `App\Enums\TripDifficulty` dengan label kalimat manusia ("Cocok untuk pemula"), bukan nama enum. Filternya radio di panel filter kategori yang sudah ada, ditaruh paling atas; di kategori Pendakian ada catatan tambahan. Nilai di luar daftar ditolak validasi, bukan diam-diam diabaikan.
+
+**Pengingat H-1.** Halaman admin `ReminderKeberangkatan` memuat booking `confirmed` yang berangkat besok — dibandingkan lewat `whereDate` pada tanggal jadwal, bukan rentang 24 jam yang akan ikut menyeret keberangkatan lusa dini hari. Pesannya dibangun `MessagingService::remindDayBefore()` di `WhatsAppLinkService` (tanpa service baru), berisi kode booking, titik kumpul, tanggal, itinerary ringkas, dan checklist perlengkapan; **NIK/paspor tidak ikut** — begitu pesan keluar lewat wa.me, isinya di luar kendali kita. Tanpa cron, tanpa queue: admin yang menekan tombolnya.
+
+**Checklist perlengkapan.** Ditampilkan di detail trip dan e-tiket, dibaca utuh dari kolom JSON tanpa query JSON-path. Kategori tanpa checklist tidak meninggalkan judul menggantung — ada test untuk itu.
+
+**Konfirmasi metode pembayaran.** QRIS dan form unggah bukti baru dirender setelah customer menekan "Saya paham, lanjutkan ke pembayaran". Panelnya memuat alur unggah→verifikasi→tiket, estimasi waktu, peringatan eksplisit bahwa verifikasinya manual (bukan instan), dan tautan langsung ke S&K + Kebijakan Privasi. Tandanya disimpan per kode booking, bukan per akun: peringatan itu justru paling perlu dibaca ulang saat orang memesan lagi berbulan-bulan kemudian. Booking yang sudah punya bukti terunggah dianggap sudah lewat panel ini supaya sesi kedaluwarsa tidak mengunci unggah ulang setelah bukti ditolak.
+
+Verifikasi: **101 test lulus / 387 assertion**, `migrate:fresh --seed` bersih, `npm run build` sukses, Pint lulus, tidak ada entri log baru.
+
+---
+
+
+## 2026-08-27 — Blok D7.7 (Filament Resource Trip) masuk PLAN + aturan ikon dekoratif
+
+Dokumen saja, kode tidak disentuh.
+
+`PLAN.md` §6 dapat blok **D7.7 — Filament Resource Trip**, disisipkan setelah D7.6 dan sebelum FASE V1.5. Sebelumnya sisa gap CRUD trip cuma hidup sebagai tiga bullet di `update.md` — tidak punya daftar berkas, bentuk form, maupun kriteria selesai, jadi eksekusinya akan bergantung ingatan sesi lama. Blok baru memuat: berkas yang disentuh (`TripResource` + Pages, `SchedulesRelationManager` dengan `TripPrice` bersarang lewat `Repeater::relationship()`, `ImagesRelationManager`, migration `trips.difficulty_level` + Enum `TripDifficulty` kalau belum lewat D7.6), bentuk form per bagian, dan dua batas scope yang gampang ditabrak: `booked_count` read-only di form (angka itu dikunci `lockForUpdate()` saat booking — admin mengetiknya manual sama dengan overbooking senyap) dan layar mitra mengajukan trip tetap milik D9. Test wajib 21-23 menyusul di §9.
+
+`CLAUDE.md` §10 naik dari tiga ke empat pola pembocor "dibuat AI": tambahan **ikon dekoratif di judul** — emoji/ikon kecil menempel di depan header dilarang, ikon hanya boleh kalau fungsinya jelas dan ada preseden di kode (heroicon navigasi Filament). Ditutup dengan rujukan pola header yang benar: label kapital kecil di atas judul tebal, spacing bernilai beda per jenis jarak.
+
+Environment lokal: database `egoto` + `egoto_testing` dibuat ulang dari kosong, dump database lama `e_goto` disimpan di luar repo. Detail path di `update.md` bagian "Cara menyalakan environment lokal". Verifikasi: **83 test lulus / 314 assertion**, `migrate:fresh --seed` bersih.
+
+---
+
+
+## 2026-08-24 — CategoryResource: CRUD kategori pertama di panel admin
+
+GUIDE.md menjanjikan "Admin: CRUD trip" sejak FASE V1, tapi prompt harian D1-D7 tidak pernah membangun satu pun Filament Resource untuk kategori/trip — dikonfirmasi nihil total (Category, Trip, TripSchedule, TripPrice, TripImage). Operasional trip sebelum ini mustahil tanpa developer buka tinker/seeder manual. Ditutup bertahap, dimulai dari `CategoryResource` karena paling mandiri dan jadi tempat memvalidasi pola sebelum dipakai di `TripResource` yang jauh lebih besar (menyusul di sesi berikutnya).
+
+**Migration baru:** `categories.gear_checklist` (json, nullable) — kolom yang sudah disetujui sejak blok D7.6 tapi belum pernah benar-benar dibuat. Form kategori sekarang punya `Repeater::simple()` untuk mengisinya, dengan `->defaultItems(0)` (bukan default Filament yang 1) karena checklist ini memang opsional.
+
+**Field lain:** `id_requirement` jadi `Select` dari enum `IdType` (bukan input teks bebas), slug auto-terisi dari nama + validasi unique, `is_active` bisa diklik langsung di tabel (`ToggleColumn`).
+
+**Keputusan scope disengaja (bukan lupa):** `icon` tetap `TextInput` polos (belum dipakai satu pun view publik — dicek lewat grep), bukan icon-picker.
+
+Test baru: `tests/Feature/CategoryResourceTest.php` (create lengkap dengan checklist, slug duplikat ditolak). 83 test lulus/314 assertion, `migrate:fresh --seed` bersih, Pint lulus.
+
+Dokumen tersentuh: `update.md` (checklist baru + centang sub-item D7.6 gear_checklist), `CHANGELOG.md`. **Belum:** `TripResource` + `RelationManagers` (Schedule bersarang Price, Image) — direncanakan sesi terpisah karena pola repeater-di-dalam-relation-manager belum pernah dipakai di project ini.
+
+---
+
+## 2026-08-14 (sesi 3) — Penamaan kolom D7.6 difinalkan sebelum ada kodenya
+
+Dua kolom yang dipakai D7.6 diberi nama final selagi masih murni dokumen: `trips.difficulty` menjadi **`trips.difficulty_level`** dengan nilai enum `pemula`/`menengah`/`lanjutan` (sebelumnya `santai`/`sedang`/`menantang`), dan `categories.equipment_checklist` menjadi **`categories.gear_checklist`**. Mengganti nama kolom sekarang gratis; setelah ada migration, model, dan view yang memakainya, harganya jauh lebih mahal.
+
+**Alasan penempatan ditulis permanen, bukan cuma nama yang diganti.** Tingkat kesulitan tinggal di `trips` karena dua trip pendakian dalam kategori yang sama bisa jauh berbeda beratnya — satu cocok untuk pemula, satunya jelas tidak. Menaruhnya di kategori akan memaksa seluruh trip pendakian berbagi satu label, dan label yang salah pada konteks fisik bukan sekadar bikin kecewa. Sebaliknya `gear_checklist` memang seragam per kategori (bawaan pendakian relatif sama antar trip pendakian), jadi cukup ditulis sekali. Tanpa catatan ini di dokumen, orang berikutnya bisa memindahkan salah satunya "supaya konsisten" tanpa tahu kenapa memang tidak boleh.
+
+**Keduanya naik ke tabel skema PLAN §4**, tidak lagi hanya hidup di dalam blok fase D7.6 — pembaca skema tidak perlu tahu nomor fase untuk tahu bentuk tabelnya. Enum `TripDifficulty` masuk daftar enum §4, dan `gear_checklist` masuk paragraf aturan kolom JSON (cast `array`, dilarang query JSON-path karena beda perilaku MariaDB 10.4 dev vs MySQL 8 production — checklist hanya dibaca utuh lalu dirender, tidak pernah dicari isinya).
+
+Dokumen tersentuh: `GUIDE.md`, `PLAN.md`, `update.md`. **Belum ada migration** — seluruh D7.6 masih dokumen, menunggu prompt eksekusi terpisah.
+
+---
+
+## 2026-08-14 (sesi 2) — Refund disederhanakan jadi dua tingkat, blok D7.6 lahir
+
+**Kebijakan refund versi pertama punya lubang.** Tingkatannya melompat dari ">H-7" ke "H-3 sampai H-1", jadi pembatalan di H-6, H-5, dan H-4 tidak diatur sama sekali — sempat ditambal kalimat "diputuskan kasus per kasus". Untuk dokumen yang mengikat, tambalan itu berarti dua hal buruk sekaligus: customer baru bisa tahu haknya setelah bertanya, dan admin memutuskan tanpa pegangan. Sekarang dua tingkat dengan satu batas: **lebih dari H-7** → 50% dikurangi biaya admin Rp25.000; **H-7 ke bawah** → tanpa refund, ditawarkan reschedule kalau vendor punya slot. Trip batal dari sisi penyelenggara tetap 100%, force majeure tetap wajib refund penuh atau reschedule. Batas (b) dan (c) sengaja berdempet di angka yang sama supaya bersambung tanpa celah dan tanpa tumpang tindih.
+
+Kebijakannya dinaikkan ke `GUIDE.md` sebagai bagian tersendiri, bukan dibiarkan hanya di PLAN dan di halaman S&K — ini keputusan *scope* yang menentukan hak customer, dan GUIDE adalah sumber kebenarannya.
+
+**Blok D7.6 lahir**, berisi lima penyempurnaan yang masuk V1 tapi tidak menambah alur baru: PWA installable, badge "Verified Payment" + estimasi waktu verifikasi, filter level fisik, reminder H-1 lewat antrean admin, dan checklist perlengkapan per kategori. Dinamai D7.6 dengan alasan yang sama seperti D7.5 — menjaga penomoran D8–D13 tetap di tempatnya. Reminder H-1 sengaja **tanpa cron dan tanpa queue**: `wa.me` tidak bisa dikirim server, tombolnya diklik admin, konsisten dengan D5 dan dengan prinsip "tidak ada worker daemon di shared hosting". Blok ini membawa satu pengecualian migration yang disetujui eksplisit dan dicatat di dalam bloknya, bukan diterobos diam-diam.
+
+**Catatan jujur yang perlu diingat:** halaman `/syarat-ketentuan` yang sudah tayang **masih memuat tabel refund versi lama**. Dokumen berubah lebih dulu atas permintaan pemilik project, kodenya menyusul di prompt terpisah. Test yang ada **tidak** menangkap ketidaksesuaian ini — `menandai angka refund dan retensi yang belum final` hanya memeriksa keberadaan penanda `[SEMENTARA]`, bukan isi tabelnya. Satu-satunya pengingat adalah item di `update.md` bagian "⚠ Perlu dieksekusi ulang ke kode", bersama satu bug copy di halaman detail trip yang menyebut kuota dikunci setelah pembayaran diverifikasi — padahal PLAN §5.3 menetapkan kuota dikunci sejak booking dibuat.
+
+Dokumen tersentuh: `GUIDE.md`, `PLAN.md`, `update.md`. Nol perubahan kode.
+
+---
+
+## 2026-08-14 — Identitas teal, cap 12 peserta, D7.5 halaman legal
+
+Empat keputusan pemilik project. Sesuai `CLAUDE.md` §6, `GUIDE.md` diperbarui lebih dulu sebagai sumber kebenaran, lalu `PLAN.md` menyesuaikan.
+
+**Design system diganti — teal, mengikuti logo.** Palet "editorial hangat" (sand/forest/terracotta + Fraunces) diganti: `mist` untuk permukaan, `teal` untuk teks & aksen, `amber` **khusus** CTA dan state urgensi. Tiga warna inti diambil langsung dari logo (`#199FA5` / `#077C82` / `#044D4A`), sisanya turunan. Sifat pekerjaannya rename token 1:1 di 20 berkas (413 kemunculan), bukan redesain layout — pola penggantinya `\b(sand|forest|terracotta)-\d` supaya kata biasa di teks salinan tidak ikut terganti. Panel Filament admin & vendor ikut pindah dari `Color::Amber` ke teal logo supaya panel staf dan sisi customer terbaca satu produk.
+
+`amber-600` sengaja dibuat lebih gelap (`#A8630D`) daripada amber "alami": tombol solid berteks putih butuh 4,5:1, dan amber terang `#E08A1E` tidak lolos di sana — yang terang dipakai untuk badge/ikon berteks gelap. Catatan ini ditulis di komentar `app.css` supaya tidak tertukar saat disunting nanti.
+
+**Tipografi: Fraunces (serif) → Plus Jakarta Sans.** Dipilih karena dirancang untuk city branding Jakarta — kontekstual untuk produk wisata Indonesia — dan geometric-humanist-nya cukup berbeda dari Inter yang netral. Konsekuensinya disadari: pasangan lama serif+sans dapat kontras gratis dari perbedaan bentuk huruf, pasangan baru tidak. Kontras itu diganti manual lewat berat + ukuran + tracking (`.text-hero`, heading `font-bold`/`font-extrabold`, tracking negatif), karena tanpa itu halaman jatuh ke kesan template SaaS generik yang dilarang `CLAUDE.md` §10.
+
+**Cap keras 12 peserta per booking.** Angka tunggal di `config('booking.max_pax_per_booking')`, dibaca oleh validasi server, batas repeater Alpine, dan teks halaman — batas yang diketik ulang di beberapa tempat cepat berbeda, dan yang paling longgar yang akhirnya menang. Berlaku walau sisa kuota jauh lebih besar; kuota tetap dicek terpisah, yang lebih kecil yang menang. Ditegakkan di `StoreBookingRequest`, bukan cuma di form — batas yang hanya hidup di UI bisa dilewati POST manual. Pesan validasi dan panel di halaman booking/detail trip mengarahkan ke Request Private Trip (`MessagingService::requestPrivateTrip()`, jalur `wa.me` sementara sampai D12).
+
+**D7.5 — FAQ, Syarat & Ketentuan, Kebijakan Privasi.** Tiga halaman publik tanpa `auth`: justru dibaca orang yang belum punya akun, tepat saat memutuskan mau pesan atau tidak. S&K memuat refund bertingkat — (a) batal penyelenggara/kuota tidak tercapai → 100% otomatis, (b) peserta batal >H-7 → 50% dikurangi admin Rp25.000, (c) H-3 s/d H-1 → tanpa refund, ditawarkan reschedule, (d) force majeure → refund penuh atau reschedule, wajib salah satu — plus pembagian tanggung jawab platform vs mitra. Privasi menyebut eksplisit NIK/paspor terenkripsi, retensi akun aktif + 2 tahun, dan pihak ketiga yang menerima data (mitra penyelenggara untuk perizinan/asuransi, Google saat login, penyedia hosting).
+
+Angka refund, biaya admin, dan retensi masih sementara, jadi ditandai `[SEMENTARA — validasi sebelum publish]` **di dalam teks halaman**, bukan cuma di dokumen internal — supaya angka yang belum divalidasi tidak ikut terbit diam-diam. Ada test yang gagal kalau penanda itu hilang sebelum angkanya final.
+
+**Dua opsi pembayaran (lunas / DP + pelunasan)** dicatat di GUIDE sebagai bagian baru "Keputusan Disetujui — Pelaksanaan Ditunda": sudah disetujui, pasti dikerjakan, tapi baru setelah V1 live. Yang dijaga sekarang hanya satu: jangan berasumsi 1 booking = 1 pembayaran.
+
+**Hasil verifikasi:** `php artisan test` **81 lulus / 302 assertion** (73 lama tetap hijau + 8 baru: cap pax di batas & lewat batas, ajakan private trip, 3 halaman legal untuk guest, tautan footer, penanda `[SEMENTARA]`), `migrate:fresh --seed` bersih, `npm run build` sukses (Plus Jakarta Sans ikut terbundel, Fraunces hilang dari dependencies), Pint lulus, tidak ada entri baru di `storage/logs`.
+
+---
+
 ## 2026-08-11 — D4–D7: booking, pembayaran, tiket, hardening (V1 fungsional selesai)
 
 **Fondasi (dipakai D4–D7).** Tiga interface yang disiapkan sejak D1 akhirnya punya implementasi V1 dan binding di `AppServiceProvider`: `ManualQrisGateway` (QRIS statis + nominal unik, keabsahan ditentukan admin), `WhatsAppLinkService` (URL `wa.me`, tanpa API/worker), `HmacTicketSigner` (HMAC-SHA256, verifikasi `hash_equals`). Angka alur bayar dipusatkan di `config/booking.php` (batas 2 jam, percobaan nominal unik, path QRIS, nomor WA admin, disk bukti). Logika transaksional tinggal di `app/Actions/` — controller dan Filament hanya pemanggil.

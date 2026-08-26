@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Enums\TripDifficulty;
 use App\Enums\TripStatus;
 use App\Models\Category;
 use App\Models\Trip;
@@ -27,6 +28,7 @@ class DemoTripSeeder extends Seeder
             [
                 'category' => 'pendakian',
                 'title' => 'Open Trip Gunung Prau via Patak Banteng',
+                'level' => TripDifficulty::Pemula,
                 'meeting_point' => 'Basecamp Patak Banteng, Wonosobo',
                 'featured' => true,
                 'harga' => [['Reguler', 385_000, 1, null], ['Rombongan 5+', 350_000, 5, null]],
@@ -35,6 +37,7 @@ class DemoTripSeeder extends Seeder
             [
                 'category' => 'pantai',
                 'title' => 'Snorkeling Karimunjawa 3 Hari 2 Malam',
+                'level' => TripDifficulty::Pemula,
                 'meeting_point' => 'Pelabuhan Kartini, Jepara',
                 'featured' => true,
                 'harga' => [['Reguler', 1_450_000, 1, null], ['Rombongan 6+', 1_325_000, 6, null]],
@@ -44,6 +47,7 @@ class DemoTripSeeder extends Seeder
             [
                 'category' => 'domestik',
                 'title' => 'Jelajah Bromo Sunrise dari Malang',
+                'level' => TripDifficulty::Menengah,
                 'meeting_point' => 'Stasiun Malang Kota Baru',
                 'featured' => false,
                 'harga' => [['Reguler', 675_000, 1, null]],
@@ -60,6 +64,7 @@ class DemoTripSeeder extends Seeder
             [
                 'category' => 'aktivitas',
                 'title' => 'Rafting Sungai Elo Setengah Hari',
+                'level' => TripDifficulty::Menengah,
                 'meeting_point' => 'Basecamp Blondo, Magelang',
                 'featured' => true,
                 'harga' => [['Reguler', 275_000, 1, null], ['Rombongan 10+', 240_000, 10, null]],
@@ -76,6 +81,7 @@ class DemoTripSeeder extends Seeder
             [
                 'category' => 'pendakian',
                 'title' => 'Pendakian Gunung Merbabu via Selo',
+                'level' => TripDifficulty::Lanjutan,
                 'meeting_point' => 'Basecamp Selo, Boyolali',
                 'featured' => false,
                 'harga' => [['Reguler', 495_000, 1, null], ['Rombongan 4+', 460_000, 4, null]],
@@ -159,6 +165,7 @@ class DemoTripSeeder extends Seeder
                     'cover_image' => null,
                     'status' => $data['status'] ?? TripStatus::Published,
                     'is_featured' => $data['featured'],
+                    'difficulty_level' => $data['level'] ?? null,
                     'published_at' => now()->subDays(random_int(1, 20)),
                 ]
             );

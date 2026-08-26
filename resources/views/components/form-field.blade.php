@@ -11,10 +11,10 @@
 @php($pesanId = $id.'-pesan')
 
 <div>
-    <label for="{{ $id }}" class="block text-sm font-medium text-forest-800">
+    <label for="{{ $id }}" class="block text-sm font-medium text-teal-800">
         {{ $label }}
         @unless ($required)
-            <span class="ml-1 text-xs font-normal text-forest-500">(opsional)</span>
+            <span class="ml-1 text-xs font-normal text-teal-500">(opsional)</span>
         @endunless
     </label>
 
@@ -22,12 +22,12 @@
         <textarea id="{{ $id }}" name="{{ $name }}" rows="3" @required($required)
                   @error($name) aria-invalid="true" @enderror
                   @if ($help || $errors->has($name)) aria-describedby="{{ $pesanId }}" @endif
-                  {{ $attributes->merge(['class' => 'mt-2 w-full rounded-2xl border border-sand-300 bg-sand-50 px-4 py-2.5 text-sm text-forest-900 placeholder:text-forest-400 focus:border-forest-500']) }}>{{ old($name, $value) }}</textarea>
+                  {{ $attributes->merge(['class' => 'mt-2 w-full rounded-2xl border border-mist-300 bg-mist-50 px-4 py-2.5 text-sm text-teal-900 placeholder:text-teal-400 focus:border-teal-500']) }}>{{ old($name, $value) }}</textarea>
     @elseif ($type === 'select')
         <select id="{{ $id }}" name="{{ $name }}" @required($required)
                 @error($name) aria-invalid="true" @enderror
                 @if ($help || $errors->has($name)) aria-describedby="{{ $pesanId }}" @endif
-                {{ $attributes->merge(['class' => 'mt-2 w-full rounded-2xl border border-sand-300 bg-sand-50 px-4 py-2.5 text-sm text-forest-900 focus:border-forest-500']) }}>
+                {{ $attributes->merge(['class' => 'mt-2 w-full rounded-2xl border border-mist-300 bg-mist-50 px-4 py-2.5 text-sm text-teal-900 focus:border-teal-500']) }}>
             {{ $slot }}
         </select>
     @else
@@ -35,14 +35,14 @@
                value="{{ $type === 'password' ? '' : old($name, $value) }}" @required($required)
                @error($name) aria-invalid="true" @enderror
                @if ($help || $errors->has($name)) aria-describedby="{{ $pesanId }}" @endif
-               {{ $attributes->merge(['class' => 'mt-2 w-full rounded-2xl border border-sand-300 bg-sand-50 px-4 py-2.5 text-sm text-forest-900 placeholder:text-forest-400 focus:border-forest-500']) }}>
+               {{ $attributes->merge(['class' => 'mt-2 w-full rounded-2xl border border-mist-300 bg-mist-50 px-4 py-2.5 text-sm text-teal-900 placeholder:text-teal-400 focus:border-teal-500']) }}>
     @endif
 
     @error($name)
         <p id="{{ $pesanId }}" class="mt-1.5 text-sm text-red-700">{{ $message }}</p>
     @else
         @if ($help)
-            <p id="{{ $pesanId }}" class="mt-1.5 text-xs text-forest-500">{{ $help }}</p>
+            <p id="{{ $pesanId }}" class="mt-1.5 text-xs text-teal-500">{{ $help }}</p>
         @endif
     @enderror
 </div>

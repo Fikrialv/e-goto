@@ -3,10 +3,10 @@
         <x-google-button label="Daftar dengan Google" />
 
         @if (filled(config('services.google.client_id')))
-            <div class="my-6 flex items-center gap-4 text-xs text-forest-500">
-                <span class="h-px flex-1 bg-sand-200"></span>
+            <div class="my-6 flex items-center gap-4 text-xs text-teal-500">
+                <span class="h-px flex-1 bg-mist-200"></span>
                 atau pakai email
-                <span class="h-px flex-1 bg-sand-200"></span>
+                <span class="h-px flex-1 bg-mist-200"></span>
             </div>
         @endif
 
@@ -21,14 +21,14 @@
                           autocomplete="new-password" />
 
             <button type="submit"
-                    class="rounded-full bg-terracotta-600 px-6 py-3 text-sm font-medium text-sand-50 transition-colors hover:bg-terracotta-700">
+                    class="rounded-full bg-amber-600 px-6 py-3 text-sm font-medium text-mist-50 transition-colors hover:bg-amber-700">
                 Daftar
             </button>
         </form>
 
         <x-slot:footer>
             Sudah punya akun?
-            <a href="{{ route('login') }}" class="font-medium text-terracotta-700 underline underline-offset-4">Masuk</a>
+            <a href="{{ route('login') }}" class="font-medium text-amber-700 underline underline-offset-4">Masuk</a>
         </x-slot:footer>
     </x-auth-card>
 </x-layouts.app>

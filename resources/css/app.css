@@ -6,34 +6,39 @@
 @source '../**/*.js';
 
 /*
- * Design system E-GOTO — "editorial hangat".
- * Sand = permukaan, forest = teks & aksen, terracotta = KHUSUS CTA.
- * Terracotta sengaja tidak dipakai untuk dekorasi supaya satu-satunya
- * warna hangat pekat di layar selalu berarti "aksi utama".
+ * Design system E-GOTO — identitas teal (final 2026-08-14, GUIDE.md).
+ * Mist = permukaan, teal = teks & aksen, amber = KHUSUS CTA.
+ * Amber sengaja tidak dipakai untuk dekorasi supaya satu-satunya warna
+ * hangat di layar selalu berarti "aksi utama" atau "perhatikan ini".
  */
 @theme {
     --font-sans: 'Inter Variable', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji';
-    --font-display: 'Fraunces Variable', ui-serif, Georgia, 'Times New Roman', serif;
+    --font-display: 'Plus Jakarta Sans Variable', ui-sans-serif, system-ui, sans-serif;
 
-    --color-sand-50: #fbf8f3;
-    --color-sand-100: #f4eee3;
-    --color-sand-200: #e8ddca;
-    --color-sand-300: #d8c8ad;
-    --color-sand-400: #bda884;
+    --color-mist-50: #f6fafa;
+    --color-mist-100: #eaf3f3;
+    --color-mist-200: #d5e6e7;
+    --color-mist-300: #b4d2d4;
+    --color-mist-400: #8ab6b9;
 
-    --color-forest-50: #f1f5f2;
-    --color-forest-200: #c6d4c9;
-    --color-forest-400: #6d8f78;
-    --color-forest-500: #4e7059;
-    --color-forest-600: #3d5a46;
-    --color-forest-700: #2f4636;
-    --color-forest-800: #223327;
-    --color-forest-900: #16211a;
+    /* teal-400/600/900 diambil langsung dari logo E-GOTO; sisanya turunan. */
+    --color-teal-50: #eff8f9;
+    --color-teal-200: #b6dee0;
+    --color-teal-400: #199fa5;
+    --color-teal-500: #0a8a90;
+    --color-teal-600: #077c82;
+    --color-teal-700: #066165;
+    --color-teal-800: #05575a;
+    --color-teal-900: #044d4a;
 
-    --color-terracotta-100: #f7e3da;
-    --color-terracotta-500: #c4613c;
-    --color-terracotta-600: #a94e2d;
-    --color-terracotta-700: #8a3d22;
+    /* amber-600 sengaja lebih gelap dari amber-500: tombol solid berteks
+       putih butuh 4.5:1 (amber-600 = 4.7:1), sedangkan amber-500 yang lebih
+       terang hanya lolos untuk teks gelap di atasnya — badge & ikon, bukan
+       tombol. Jangan tukar keduanya tanpa mengukur ulang kontras. */
+    --color-amber-100: #fbebd3;
+    --color-amber-500: #e08a1e;
+    --color-amber-600: #a8630d;
+    --color-amber-700: #7f4a08;
 }
 
 @layer base {
@@ -42,15 +47,28 @@
     }
 
     body {
-        background-color: var(--color-sand-50);
-        color: var(--color-forest-800);
+        background-color: var(--color-mist-50);
+        color: var(--color-teal-800);
         -webkit-font-smoothing: antialiased;
     }
 
-    /* Fraunces punya sumbu opsional; "SOFT" dinaikkan sedikit supaya heading
-       besar terbaca hangat, bukan kaku seperti serif koran. */
+    /* Heading dan body sekarang sama-sama sans (Plus Jakarta Sans + Inter),
+       jadi kontras hierarki tidak lagi datang gratis dari perbedaan serif.
+       Berat tebal + tracking negatif inilah penggantinya — tanpa ini halaman
+       jatuh ke kesan template SaaS generik (CLAUDE.md §10, GUIDE.md). */
     .font-display {
-        font-variation-settings: 'SOFT' 30, 'WONK' 1;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+    }
+
+    /* Judul terbesar satu halaman. Ukurannya sengaja melompat jauh dari body,
+       bukan naik selangkah — lompatan itu yang bikin halaman terbaca punya
+       suara, bukan sekadar rapi. */
+    .text-hero {
+        font-size: clamp(2.5rem, 6vw, 4.25rem);
+        font-weight: 800;
+        letter-spacing: -0.03em;
+        line-height: 0.95;
     }
 
     /* Sembunyikan elemen ber-x-show sebelum Alpine sempat jalan — cegah
@@ -60,7 +78,7 @@
     }
 
     :focus-visible {
-        outline: 2px solid var(--color-terracotta-600);
+        outline: 2px solid var(--color-amber-600);
         outline-offset: 2px;
     }
 }

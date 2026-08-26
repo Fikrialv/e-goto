@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\TripStatus;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -26,6 +27,7 @@ class TripSchedule extends Model
         return [
             'start_date' => 'date',
             'end_date' => 'date',
+            'status' => TripStatus::class,
         ];
     }
 

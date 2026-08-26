@@ -26,8 +26,9 @@ class VendorPanelProvider extends PanelProvider
             ->id('vendor')
             ->path('vendor')
             ->login()
+            // Teal logo E-GOTO — sama dengan panel admin, lihat AdminPanelProvider.
             ->colors([
-                'primary' => Color::Amber,
+                'primary' => Color::hex('#077C82'),
             ])
             ->discoverResources(in: app_path('Filament/Vendor/Resources'), for: 'App\\Filament\\Vendor\\Resources')
             ->discoverPages(in: app_path('Filament/Vendor/Pages'), for: 'App\\Filament\\Vendor\\Pages')

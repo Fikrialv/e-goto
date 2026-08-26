@@ -195,3 +195,93 @@ it('tidak membiarkan booking yang sudah kedaluwarsa menerima bukti bayar', funct
 
     expect(Payment::count())->toBe(0);
 });
+
+/*
+ * Konfirmasi metode pembayaran (D7.6 f, test §9 #20). QRIS baru boleh muncul
+ * setelah customer membaca bahwa pembayarannya diverifikasi manusia — bukan
+ * sistem otomatis yang menerbitkan tiket sedetik setelah transfer.
+ */
+it('menyembunyikan kode QRIS sebelum metode pembayaran dikonfirmasi', function () {
+    $booking = bookingSiapBayar();
+
+    $this->actingAs($booking->user)
+        ->get(route('payments.show', $booking))
+        ->assertOk()
+        ->assertSee('Saya paham, lanjutkan ke pembayaran')
+        ->assertSee(config('booking.verification_eta'))
+        ->assertSee(route('pages.privacy'), escape: false)
+        ->assertSee(route('pages.terms'), escape: false)
+        ->assertDontSee('Scan QRIS')
+        ->assertDontSee('Unggah bukti pembayaran');
+});
+
+it('menampilkan QRIS dan form unggah setelah konfirmasi', function () {
+    $booking = bookingSiapBayar();
+
+    $this->actingAs($booking->user)
+        ->post(route('payments.confirm', $booking))
+        ->assertRedirect(route('payments.show', $booking));
+
+    $this->actingAs($booking->user)
+        ->get(route('payments.show', $booking))
+        ->assertOk()
+        ->assertSee('Scan QRIS')
+        ->assertSee('Unduh gambar QRIS')
+        ->assertSee('Unggah bukti pembayaran');
+});
+
+it('meminta konfirmasi ulang untuk booking berikutnya', function () {
+    $user = User::factory()->customer()->create();
+
+    $pertama = bookingSiapBayar($user);
+
+    $this->actingAs($user)->post(route('payments.confirm', $pertama))->assertRedirect();
+
+    $kedua = bookingSiapBayar($user);
+
+    $this->actingAs($user)
+        ->get(route('payments.show', $kedua))
+        ->assertOk()
+        ->assertDontSee('Scan QRIS');
+});
+
+it('menolak konfirmasi metode pembayaran milik orang lain', function () {
+    $booking = bookingSiapBayar();
+
+    $this->actingAs(User::factory()->customer()->create())
+        ->post(route('payments.confirm', $booking))
+        ->assertForbidden();
+});
+
+/*
+ * Badge status + estimasi verifikasi (D7.6 b, test §9 #16). Statusnya diambil
+ * dari PaymentStatus yang sudah ada — tidak ada state baru.
+ */
+it('menampilkan estimasi verifikasi selama pembayaran masih menunggu', function () {
+    $booking = bookingSiapBayar();
+
+    unggahBukti($booking);
+
+    $this->actingAs($booking->user)
+        ->get(route('payments.show', $booking))
+        ->assertOk()
+        ->assertSee('Menunggu verifikasi')
+        ->assertSee(config('booking.verification_eta'));
+});
+
+it('menampilkan badge terverifikasi setelah pembayaran disetujui', function () {
+    $booking = bookingSiapBayar();
+
+    unggahBukti($booking);
+
+    app(VerifyPayment::class)->approve(
+        Payment::firstOrFail(),
+        User::factory()->create(['role' => UserRole::Admin]),
+    );
+
+    $this->actingAs($booking->user)
+        ->get(route('payments.show', $booking))
+        ->assertOk()
+        ->assertSee('Pembayaran terverifikasi')
+        ->assertDontSee('Menunggu verifikasi');
+});

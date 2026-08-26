@@ -6,6 +6,7 @@ use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\PageController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TicketController;
@@ -20,6 +21,15 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/kategori/{category:slug}', [CategoryController::class, 'show'])->name('categories.show');
 Route::get('/trip/{trip:slug}', [TripController::class, 'show'])->name('trips.show');
+
+/*
+ * Halaman legal & bantuan (D7.5). Ikut aturan yang sama: publik, tanpa `auth` —
+ * syarat refund dan kebijakan privasi justru paling sering dibaca orang yang
+ * belum punya akun, tepat saat memutuskan mau pesan atau tidak.
+ */
+Route::get('/faq', [PageController::class, 'faq'])->name('pages.faq');
+Route::get('/syarat-ketentuan', [PageController::class, 'terms'])->name('pages.terms');
+Route::get('/kebijakan-privasi', [PageController::class, 'privacy'])->name('pages.privacy');
 
 /*
  * Auth customer. Nama route `login` wajib persis begitu: middleware `auth`
@@ -66,6 +76,8 @@ Route::middleware(['auth', 'role:customer'])->group(function () {
      * Kepemilikan tetap diperiksa di controller, ini cuma lapis pertama.
      */
     Route::get('/booking/{booking:code}/bayar', [PaymentController::class, 'show'])->name('payments.show');
+    Route::post('/booking/{booking:code}/bayar/konfirmasi', [PaymentController::class, 'confirmMethod'])
+        ->name('payments.confirm');
     Route::post('/booking/{booking:code}/bayar', [PaymentController::class, 'store'])
         ->middleware('throttle:upload-bukti')
         ->name('payments.store');

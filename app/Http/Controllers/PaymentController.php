@@ -33,7 +33,42 @@ class PaymentController extends Controller
             'booking' => $booking,
             'instruksi' => $gateway->createCharge($booking),
             'linkWhatsApp' => $messaging->notifyAdminNewPayment($booking),
+            'sudahKonfirmasi' => $this->sudahKonfirmasiMetode($request, $booking),
         ]);
+    }
+
+    /**
+     * Tanda bahwa customer sudah membaca panel konfirmasi metode pembayaran
+     * (D7.6 f) — QRIS baru dirender sesudah ini.
+     *
+     * Disimpan per kode booking, bukan satu tanda untuk seluruh akun: peringatan
+     * "diverifikasi manusia, bukan instan" justru paling perlu dibaca ulang saat
+     * orang memesan lagi berbulan-bulan kemudian.
+     */
+    public function confirmMethod(Request $request, Booking $booking): RedirectResponse
+    {
+        $this->pastikanPemilik($request, $booking);
+
+        $request->session()->put($this->kunciKonfirmasi($booking), true);
+
+        return redirect()->route('payments.show', $booking);
+    }
+
+    private function sudahKonfirmasiMetode(Request $request, Booking $booking): bool
+    {
+        // Bukti yang sudah diunggah berarti layar konfirmasi pernah dilewati —
+        // sesi yang kedaluwarsa tidak boleh mengunci orang dari unggah ulang
+        // setelah pembayarannya ditolak.
+        if ($booking->latestPayment !== null) {
+            return true;
+        }
+
+        return (bool) $request->session()->get($this->kunciKonfirmasi($booking), false);
+    }
+
+    private function kunciKonfirmasi(Booking $booking): string
+    {
+        return 'payment_method_confirmed.'.$booking->code;
     }
 
     public function store(StorePaymentProofRequest $request, Booking $booking, StorePaymentProof $storeProof): RedirectResponse

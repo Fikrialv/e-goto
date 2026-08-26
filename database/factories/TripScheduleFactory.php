@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\TripStatus;
 use App\Models\Trip;
 use App\Models\TripSchedule;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -26,7 +27,7 @@ class TripScheduleFactory extends Factory
             'end_date' => (clone $start)->modify('+2 days'),
             'quota' => fake()->numberBetween(10, 30),
             'booked_count' => 0,
-            'status' => 'published',
+            'status' => TripStatus::Published,
         ];
     }
 

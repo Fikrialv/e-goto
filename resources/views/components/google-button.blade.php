@@ -9,7 +9,7 @@
 --}}
 @if (filled(config('services.google.client_id')))
     <a href="{{ route('social.redirect') }}"
-       class="flex w-full items-center justify-center gap-3 rounded-full border border-sand-300 bg-sand-50 px-5 py-3 text-sm font-medium text-forest-800 transition-colors hover:border-sand-400 hover:bg-sand-100">
+       class="flex w-full items-center justify-center gap-3 rounded-full border border-mist-300 bg-mist-50 px-5 py-3 text-sm font-medium text-teal-800 transition-colors hover:border-mist-400 hover:bg-mist-100">
         <svg class="size-5" viewBox="0 0 48 48" aria-hidden="true" focusable="false">
             <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
             <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
