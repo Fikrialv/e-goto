@@ -51,6 +51,13 @@ class UserFactory extends Factory
         ]);
     }
 
+    public function vendor(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'role' => UserRole::Vendor,
+        ]);
+    }
+
     /**
      * User hasil login Google: tidak punya password, jadi tidak bisa masuk
      * lewat form login manual.

@@ -4,6 +4,23 @@ Entri ringkas tiap iterasi selesai (aturan `CLAUDE.md` §6). Terbaru di atas.
 
 ---
 
+## 2026-08-27 — D8: onboarding mitra
+
+Halaman publik `/jadi-mitra` (kriteria, benefit, tiga langkah, form pengajuan) tertaut dari footer. Terbuka tanpa login: calon mitra menilai dulu sebelum memutuskan, dan memaksa daftar akun lebih dulu hanya menyaring orang yang belum tahu ini cocok untuknya atau tidak.
+
+**Dokumen pengajuan diperlakukan seperti bukti bayar.** Disimpan di disk non-publik (`config/partner.php`), dibatasi jpg/png/webp/pdf maksimal 4 MB dan lima berkas, dan hanya keluar lewat route ber-`role:admin` — isinya akta usaha dan identitas penanggung jawab. Endpoint kirimnya di-throttle 3/menit per email+IP karena terbuka tanpa login sekaligus menerima unggahan, dua sifat yang membuatnya sasaran empuk.
+
+**Panel admin: `VendorApplicationResource`,** sengaja tanpa form create/edit — barisnya lahir dari form publik, dan yang dilakukan admin cuma menjadwalkan obrolan, menyetujui, atau menolak dengan alasan wajib. Badge navigasi menghitung pengajuan yang masih menunggu.
+
+**`ApproveVendorApplication`** membuat profil `vendors` dan akun panel dalam satu transaksi — kalau pembuatan akun gagal di tengah, pengajuan tidak boleh tertinggal berstatus approved tanpa vendor, karena admin akan mengira urusannya sudah beres padahal mitra tidak bisa masuk. Akun baru dapat password acak yang ditampilkan sekali ke admin untuk diteruskan lewat WhatsApp (tidak ada email transaksional di V1.5); email yang sudah punya akun customer dinaikkan perannya jadi vendor, bukan digandakan — kolom email unik.
+
+Tabel baru: `vendors` (termasuk `commission_percent` yang disiapkan untuk V2 dan sengaja belum punya UI) dan `vendor_applications`.
+
+Verifikasi: **122 test lulus / 524 assertion** (10 test baru di `PartnerOnboardingTest`), `migrate:fresh --seed` bersih, Pint lulus.
+
+---
+
+
 ## 2026-08-27 — Perbaikan hasil audit form + masa sesi login
 
 Empat perbaikan, semuanya berangkat dari temuan audit form D7.7 dan laporan masa sesi login.

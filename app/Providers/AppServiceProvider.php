@@ -76,5 +76,13 @@ class AppServiceProvider extends ServiceProvider
 
         RateLimiter::for('upload-bukti', fn (Request $request) => Limit::perMinute(10)
             ->by((string) $request->user()?->id));
+
+        /*
+         * Pengajuan mitra terbuka tanpa login dan menerima unggahan berkas —
+         * dua sifat yang membuatnya sasaran empuk. Dibatasi per email + IP,
+         * pola yang sama dengan halaman masuk.
+         */
+        RateLimiter::for('pengajuan-mitra', fn (Request $request) => Limit::perMinute(3)
+            ->by(Str::lower((string) $request->input('contact_email')).'|'.$request->ip()));
     }
 }

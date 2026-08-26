@@ -7,6 +7,7 @@ use App\Http\Controllers\BookingController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\PageController;
+use App\Http\Controllers\PartnerController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TicketController;
@@ -30,6 +31,15 @@ Route::get('/trip/{trip:slug}', [TripController::class, 'show'])->name('trips.sh
 Route::get('/faq', [PageController::class, 'faq'])->name('pages.faq');
 Route::get('/syarat-ketentuan', [PageController::class, 'terms'])->name('pages.terms');
 Route::get('/kebijakan-privasi', [PageController::class, 'privacy'])->name('pages.privacy');
+
+/*
+ * Onboarding mitra (D8). Publik juga: calon mitra menilai kriteria dulu sebelum
+ * memutuskan, dan pengiriman formnya di-throttle karena terbuka tanpa login.
+ */
+Route::get('/jadi-mitra', [PartnerController::class, 'show'])->name('partners.show');
+Route::post('/jadi-mitra', [PartnerController::class, 'store'])
+    ->middleware('throttle:pengajuan-mitra')
+    ->name('partners.store');
 
 /*
  * Auth customer. Nama route `login` wajib persis begitu: middleware `auth`
@@ -93,3 +103,12 @@ Route::middleware(['auth', 'role:customer'])->group(function () {
 Route::get('/bukti-bayar/{payment}', [PaymentController::class, 'adminProof'])
     ->middleware(['auth', 'role:admin'])
     ->name('admin.payments.proof');
+
+/*
+ * Dokumen pengajuan mitra untuk layar review admin. Sama seperti bukti bayar:
+ * berkasnya di disk non-publik, jadi Filament tidak bisa menautkannya langsung.
+ */
+Route::get('/dokumen-mitra/{application}/{index}', [PartnerController::class, 'document'])
+    ->whereNumber('index')
+    ->middleware(['auth', 'role:admin'])
+    ->name('admin.partners.document');
