@@ -200,6 +200,59 @@
                 + Tambah peserta
             </button>
 
+            @if ($opsi->isNotEmpty())
+                <section class="mt-10 rounded-3xl border border-mist-200 bg-white/70 p-6">
+                    <h2 class="font-display text-xl font-bold text-teal-900">Tambahan opsional</h2>
+                    <p class="mt-1.5 text-sm text-teal-600">
+                        Harga per orang, boleh dilewati. Jumlahnya tidak boleh melebihi jumlah peserta.
+                    </p>
+
+                    <div class="mt-5 space-y-4">
+                        @foreach ($opsi as $pilihan)
+                            <div class="flex flex-wrap items-center justify-between gap-3 border-b border-mist-200 pb-4 last:border-0 last:pb-0">
+                                <div>
+                                    <p class="text-sm font-medium text-teal-900">{{ $pilihan->name }}</p>
+                                    @if ($pilihan->description)
+                                        <p class="mt-0.5 text-xs leading-relaxed text-teal-600">{{ $pilihan->description }}</p>
+                                    @endif
+                                    <p class="mt-1 text-sm text-teal-700">
+                                        + Rp{{ number_format($pilihan->extra_price, 0, ',', '.') }} / orang
+                                    </p>
+                                </div>
+
+                                <label class="flex items-center gap-2 text-sm text-teal-700">
+                                    <span>Jumlah</span>
+                                    <input type="number" name="options[{{ $pilihan->id }}]" min="0"
+                                           :max="peserta.length" inputmode="numeric"
+                                           value="{{ old('options.'.$pilihan->id, 0) }}"
+                                           class="w-20 rounded-lg border border-mist-300 bg-mist-50 px-3 py-2 text-sm text-teal-900">
+                                </label>
+                            </div>
+                        @endforeach
+                    </div>
+
+                    @error('options')
+                        <p role="alert" class="mt-3 text-xs text-amber-700">{{ $message }}</p>
+                    @enderror
+                </section>
+            @endif
+
+            <div class="mt-8">
+                <label for="voucher" class="block text-sm font-medium text-teal-800">
+                    Kode voucher <span class="ml-1 text-xs font-normal text-teal-500">(opsional)</span>
+                </label>
+                <input id="voucher" name="voucher_code" type="text" maxlength="50"
+                       value="{{ old('voucher_code') }}" autocomplete="off"
+                       placeholder="Punya kode promo? Tulis di sini."
+                       class="mt-2 w-full rounded-2xl border border-mist-300 bg-mist-50 px-4 py-2.5 text-sm tracking-wide text-teal-900 uppercase placeholder:text-teal-400 placeholder:normal-case focus:border-teal-500">
+
+                @error('voucher_code')
+                    <p role="alert" class="mt-2 text-xs text-amber-700">{{ $message }}</p>
+                @enderror
+
+                <p class="mt-1.5 text-xs text-teal-500">Potongan dihitung saat pemesanan disimpan, dan tampil di halaman pembayaran.</p>
+            </div>
+
             <div class="mt-8">
                 <label for="catatan" class="block text-sm font-medium text-teal-800">
                     Catatan untuk penyelenggara <span class="ml-1 text-xs font-normal text-teal-500">(opsional)</span>

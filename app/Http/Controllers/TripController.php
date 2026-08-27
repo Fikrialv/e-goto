@@ -27,6 +27,7 @@ class TripController extends Controller
             'images',
             'schedules' => fn ($query) => $query->upcoming()->orderBy('start_date'),
             'schedules.prices' => fn ($query) => $query->orderBy('min_pax'),
+            'options' => fn ($query) => $query->where('is_active', true),
         ]);
 
         $relatedTrips = Trip::query()

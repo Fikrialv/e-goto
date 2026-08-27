@@ -28,6 +28,13 @@
                 <p class="mt-2 font-display text-3xl font-bold text-teal-900 sm:text-4xl">
                     Rp{{ number_format($instruksi->totalAmount, 0, ',', '.') }}
                 </p>
+                @if ($booking->discount_amount > 0)
+                    <p class="mt-2 text-sm text-teal-600">
+                        Sudah dipotong voucher
+                        <strong class="text-teal-800">Rp{{ number_format($booking->discount_amount, 0, ',', '.') }}</strong>.
+                    </p>
+                @endif
+
                 <p class="mt-2 text-sm leading-relaxed text-teal-600">
                     Sudah termasuk <strong class="text-amber-700">kode unik {{ $instruksi->uniqueCode }}</strong>
                     (harga trip Rp{{ number_format($instruksi->totalAmount - $instruksi->uniqueCode, 0, ',', '.') }}).

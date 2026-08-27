@@ -38,6 +38,12 @@ class StoreBookingRequest extends FormRequest
             'participants.*.dob' => ['nullable', 'date', 'before:today'],
             'participants.*.emergency_contact' => ['nullable', 'string', 'max:255'],
             'notes' => ['nullable', 'string', 'max:500'],
+            // Opsi tambahan dikirim sebagai trip_option_id => qty. Isinya
+            // divalidasi ulang terhadap trip yang dipesan di CreateBooking —
+            // di sini cuma bentuk datanya yang dijaga.
+            'options' => ['nullable', 'array'],
+            'options.*' => ['nullable', 'integer', 'min:0', 'max:'.$this->maxPax()],
+            'voucher_code' => ['nullable', 'string', 'max:50'],
         ];
 
         $aturan['participants.*.id_number'] = match ($this->idRequirement()) {

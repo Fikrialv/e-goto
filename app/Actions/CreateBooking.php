@@ -6,6 +6,7 @@ use App\Enums\BookingStatus;
 use App\Enums\IdType;
 use App\Models\Booking;
 use App\Models\BookingParticipant;
+use App\Models\Trip;
 use App\Models\TripSchedule;
 use App\Models\User;
 use Illuminate\Support\Carbon;
@@ -29,11 +30,17 @@ class CreateBooking
      *
      * @throws ValidationException
      */
-    public function handle(User $user, TripSchedule $schedule, array $participants, ?string $notes = null): Booking
-    {
+    public function handle(
+        User $user,
+        TripSchedule $schedule,
+        array $participants,
+        ?string $notes = null,
+        array $options = [],
+        ?string $voucherCode = null,
+    ): Booking {
         $paxCount = count($participants);
 
-        return DB::transaction(function () use ($user, $schedule, $participants, $paxCount, $notes) {
+        return DB::transaction(function () use ($user, $schedule, $participants, $paxCount, $notes, $options, $voucherCode) {
             /*
              * Baris jadwal dikunci lebih dulu, dan angka kuota dibaca ULANG dari
              * baris terkunci itu — bukan dari model yang sudah dimuat controller.
@@ -56,8 +63,29 @@ class CreateBooking
             }
 
             $hargaSatuan = $this->hargaPerPeserta($terkunci, $paxCount);
-            $subtotal = $hargaSatuan * $paxCount;
-            $uniqueCode = $this->nominalUnik($subtotal);
+            $baris = $this->opsiTerpilih($terkunci->trip, $options, $paxCount);
+
+            /*
+             * Urutan ini penting: opsi tambahan masuk subtotal DULU, potongan
+             * voucher dihitung dari subtotal itu, baru nominal unik ditempel
+             * paling akhir (PLAN.md §5.1) supaya tetap jadi pembeda terakhir
+             * yang dicocokkan admin dengan mutasi bank.
+             */
+            $subtotal = $hargaSatuan * $paxCount + array_sum(array_map(
+                fn (array $item): int => $item['unit_price'] * $item['qty'],
+                $baris
+            ));
+
+            $voucher = null;
+            $potongan = 0;
+
+            if (filled($voucherCode)) {
+                $hasil = app(ApplyVoucher::class)->handle($voucherCode, $user, $terkunci->trip, $subtotal);
+                $voucher = $hasil['voucher'];
+                $potongan = $hasil['potongan'];
+            }
+
+            $uniqueCode = $this->nominalUnik($subtotal - $potongan);
 
             $booking = Booking::create([
                 'code' => $this->kodeBooking(),
@@ -65,9 +93,9 @@ class CreateBooking
                 'trip_schedule_id' => $terkunci->id,
                 'pax_count' => $paxCount,
                 'subtotal' => $subtotal,
-                'discount_amount' => 0,
+                'discount_amount' => $potongan,
                 'unique_code' => $uniqueCode,
-                'total_amount' => $subtotal + $uniqueCode,
+                'total_amount' => $subtotal - $potongan + $uniqueCode,
                 'status' => BookingStatus::PendingPayment,
                 'expires_at' => Carbon::now()->addMinutes((int) config('booking.expiry_minutes')),
                 'notes' => $notes,
@@ -77,6 +105,23 @@ class CreateBooking
 
             foreach (array_values($participants) as $urutan => $peserta) {
                 $this->simpanPeserta($booking, $peserta, $idType, isLeader: $urutan === 0);
+            }
+
+            foreach ($baris as $item) {
+                $booking->options()->create($item);
+            }
+
+            if ($voucher !== null) {
+                // Pemakaian dicatat di dalam transaksi yang sama dengan
+                // booking-nya: kalau salah satunya gagal, kuota voucher
+                // tidak boleh ikut terpakai.
+                $voucher->usages()->create([
+                    'booking_id' => $booking->id,
+                    'user_id' => $user->id,
+                    'amount_cut' => $potongan,
+                ]);
+
+                $voucher->increment('used_count');
             }
 
             /*
@@ -110,6 +155,55 @@ class CreateBooking
             'dob' => $peserta['dob'] ?? null,
             'emergency_contact' => $peserta['emergency_contact'] ?? null,
         ]);
+    }
+
+    /**
+     * Opsi tambahan yang dipilih customer, divalidasi ulang dari database.
+     *
+     * Harga diambil dari kolom `extra_price` saat ini lalu dibekukan di
+     * `booking_options.unit_price` — kalau mitra menaikkan harga besok, total
+     * yang sudah disepakati tidak ikut berubah. Jumlahnya dibatasi jumlah
+     * peserta: opsi dijual per orang, bukan per rombongan.
+     *
+     * @param  array<int, int>  $options  trip_option_id => qty
+     * @return array<int, array{trip_option_id: int, qty: int, unit_price: int}>
+     *
+     * @throws ValidationException
+     */
+    private function opsiTerpilih(Trip $trip, array $options, int $paxCount): array
+    {
+        $dipilih = array_filter($options, fn ($qty): bool => (int) $qty > 0);
+
+        if ($dipilih === []) {
+            return [];
+        }
+
+        $tersedia = $trip->options()->where('is_active', true)->get()->keyBy('id');
+        $baris = [];
+
+        foreach ($dipilih as $optionId => $qty) {
+            $opsi = $tersedia->get((int) $optionId);
+
+            if ($opsi === null) {
+                throw ValidationException::withMessages([
+                    'options' => 'Ada opsi tambahan yang sudah tidak tersedia. Muat ulang halaman lalu coba lagi.',
+                ]);
+            }
+
+            if ((int) $qty > $paxCount) {
+                throw ValidationException::withMessages([
+                    'options' => 'Jumlah opsi "'.$opsi->name.'" tidak boleh melebihi jumlah peserta.',
+                ]);
+            }
+
+            $baris[] = [
+                'trip_option_id' => $opsi->id,
+                'qty' => (int) $qty,
+                'unit_price' => (int) $opsi->extra_price,
+            ];
+        }
+
+        return $baris;
     }
 
     /**

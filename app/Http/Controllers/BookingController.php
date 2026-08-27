@@ -39,8 +39,9 @@ class BookingController extends Controller
         $this->pastikanBisaDipesan($schedule);
 
         $profil = $request->user()->customerProfile;
+        $opsi = $schedule->trip->options()->where('is_active', true)->get();
 
-        return view('pages.booking-create', compact('schedule', 'profil'));
+        return view('pages.booking-create', compact('schedule', 'profil', 'opsi'));
     }
 
     /**
@@ -56,6 +57,8 @@ class BookingController extends Controller
             schedule: $schedule,
             participants: $request->participants(),
             notes: $request->validated('notes'),
+            options: $request->validated('options') ?? [],
+            voucherCode: $request->validated('voucher_code'),
         );
 
         return redirect()->route('payments.show', $booking);

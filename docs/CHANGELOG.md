@@ -4,6 +4,24 @@ Entri ringkas tiap iterasi selesai (aturan `CLAUDE.md` §6). Terbaru di atas.
 
 ---
 
+## 2026-08-27 — D10: voucher & opsi tambahan
+
+Empat tabel baru: `vouchers`, `voucher_usages`, `trip_options`, `booking_options`. Enum `VoucherType` (percent/fixed) dan `VoucherScope` (global/kategori/trip) — nilai yang menentukan cara menghitung uang tidak boleh berupa string bebas.
+
+**Validasi voucher terpusat di `ApplyVoucher`.** Kedaluwarsa, belum berlaku, nonaktif, kuota habis, minimal belanja, cakupan salah, dan dobel pakai per user semuanya diputuskan di satu tempat, jadi checkout tidak bisa punya versi aturan yang berbeda dari layar lain. Form hanya mengirim kode; nilai potongannya dihitung ulang dari database.
+
+**Urutan hitung dikunci dan diuji:** harga opsi masuk `subtotal` → potongan voucher dihitung dari subtotal itu → nominal unik ditempel paling akhir. Kalau urutannya tertukar, nominal unik berhenti menjadi pembeda terakhir yang dicocokkan admin dengan mutasi bank (PLAN.md §5.1). Potongan juga dicap di subtotal — voucher tidak boleh membuat total negatif.
+
+**Harga opsi dibekukan** di `booking_options.unit_price` saat booking dibuat: mitra menaikkan harga besok tidak mengubah total yang sudah disepakati. Pemakaian voucher dicatat di dalam transaksi yang sama dengan booking-nya, dengan unique key `(voucher_id, booking_id)` sebagai penjaga terakhir kalau dua request checkout tiba bersamaan. Booking yang kedaluwarsa, dibatalkan, atau ditolak tidak menghanguskan kesempatan pakai — kesempatannya memang tidak jadi terpakai.
+
+`used_count` sengaja tidak bisa disunting admin: angkanya bergerak bersama transaksi checkout, dan mengetiknya manual akan membuat kuota promo berbeda dari pemakaian sebenarnya.
+
+Opsi tambahan dikelola lewat `OptionsRelationManager` yang dipakai panel admin dan panel mitra sekaligus, tampil di detail trip dan di checkout (jumlah dibatasi jumlah peserta — opsi dijual per orang).
+
+Verifikasi: 15 test baru di `VoucherOptionTest`, Pint lulus.
+
+---
+
 ## 2026-08-27 — D9: loop mitra aktif
 
 Mitra sekarang punya jalurnya sendiri: ajukan trip di panel `/vendor`, admin meninjau, baru tayang.

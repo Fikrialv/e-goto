@@ -107,6 +107,27 @@
                 @endforeach
             </div>
 
+            @if ($trip->options->isNotEmpty())
+                <section class="mt-12">
+                    <h2 class="font-display text-xl font-bold text-teal-900">Tambahan opsional</h2>
+                    <p class="mt-1.5 text-sm text-teal-600">Dipilih saat memesan, harganya per orang.</p>
+
+                    <ul class="mt-5 divide-y divide-mist-200 border-y border-mist-200">
+                        @foreach ($trip->options as $opsi)
+                            <li class="flex flex-wrap items-baseline justify-between gap-2 py-4">
+                                <div>
+                                    <p class="text-sm font-medium text-teal-900">{{ $opsi->name }}</p>
+                                    @if ($opsi->description)
+                                        <p class="mt-0.5 text-xs leading-relaxed text-teal-600">{{ $opsi->description }}</p>
+                                    @endif
+                                </div>
+                                <p class="text-sm text-teal-700">+ Rp{{ number_format($opsi->extra_price, 0, ',', '.') }} / orang</p>
+                            </li>
+                        @endforeach
+                    </ul>
+                </section>
+            @endif
+
             {{-- Checklist perlengkapan menempel di kategori, bukan trip (PLAN.md §4).
                  Kategori tanpa checklist tidak meninggalkan judul menggantung. --}}
             @if (filled($trip->category->gear_checklist))

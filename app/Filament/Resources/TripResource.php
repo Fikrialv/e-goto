@@ -239,6 +239,7 @@ class TripResource extends Resource
     {
         return [
             RelationManagers\SchedulesRelationManager::class,
+            RelationManagers\OptionsRelationManager::class,
             RelationManagers\ImagesRelationManager::class,
         ];
     }
