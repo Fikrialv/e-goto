@@ -4,6 +4,16 @@ Entri ringkas tiap iterasi selesai (aturan `CLAUDE.md` §6). Terbaru di atas.
 
 ---
 
+## 2026-08-27 — D13: QA & berkas deploy
+
+Regression penuh V1 + V1.5 hijau: **170 test / 706 assertion**, `migrate:fresh --seed` bersih, `npm run build` sukses, Pint lulus, dan test penjaga N+1 di `PerformaTest` tetap lolos setelah semua fitur V1.5 masuk.
+
+`docs/hostinger.md` akhirnya ada — berkas yang dirujuk `CLAUDE.md` §17 sejak awal tapi belum pernah ditulis. Isinya langkah bernomor dari PHP 8.3 + ekstensi, database, penempatan kode lewat SSH, document root ke `app/public`, `.env` production, izin folder, cron `schedule:run` tiap menit, redirect URI Google untuk domain production, cache production, sampai daftar periksa manual sesudah rilis. Dua hal ditulis tegas karena akibatnya besar dan sunyi: `APP_DEBUG=false` (dengan `true`, halaman galat menampilkan isi `.env`), dan cron yang wajib ada (tanpa itu `bookings:expire` tidak pernah jalan dan booking kedaluwarsa terus menahan kuota).
+
+Catatan pengujian: sempat muncul satu `testing.ERROR` deadlock MySQL ketika dua proses test berjalan bersamaan di database test yang sama. Bukan bug aplikasi — hilang begitu suite dijalankan tunggal.
+
+---
+
 ## 2026-08-27 — D11 + D12: rating, private trip, widget chat, Web Push opt-in
 
 **D11 — rating & komentar.** Hanya booking `completed` milik sendiri yang bisa dinilai, satu review per booking dengan unique key di database: validasi controller saja kalah balapan kalau tombol ditekan dua kali. Detail trip menampilkan rata-rata dan daftar review yang dipaginasi. Panel mitra melihat rating tripnya sendiri secara read-only — moderasi sengaja hanya ada di admin, supaya penilaian buruk tidak bisa dihapus oleh pihak yang dinilai. Admin bisa menyembunyikan dan menampilkan ulang, tapi tidak ada jalur untuk menyunting isi review: mengubah kalimat orang lain lalu menampilkannya sebagai ucapannya tidak boleh bisa dilakukan dari panel mana pun.
