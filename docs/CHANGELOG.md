@@ -4,6 +4,22 @@ Entri ringkas tiap iterasi selesai (aturan `CLAUDE.md` §6). Terbaru di atas.
 
 ---
 
+## 2026-08-27 — D9: loop mitra aktif
+
+Mitra sekarang punya jalurnya sendiri: ajukan trip di panel `/vendor`, admin meninjau, baru tayang.
+
+**Dua batas yang menentukan keamanannya.** Pertama, `getEloquentQuery()` di `Vendor\Resources\TripResource` menyaring ke `vendor_id` milik user yang masuk — trip mitra lain tidak pernah ditemukan, bukan ditemukan lalu ditolak; penjaga di lapisan query ini juga berlaku saat id diketik langsung di URL. Kedua, pilihan status mitra dibatasi `draft` ↔ `pending_review` dan ditegakkan `Rule::in`, bukan cuma dibatasi daftar `->options()` — pola dari D7.7 berlaku lagi di sini: daftar opsi tidak menolak nilai yang dikirim langsung ke Livewire, dan tanpa aturan itu mitra bisa menayangkan tripnya sendiri lewat request buatan. Kalau mitra bisa mem-publish sendiri, tinjauan admin tidak ada artinya.
+
+**Sisi admin:** aksi Setujui dan Tolak di `TripResource`, badge jumlah pengajuan menunggu. Setujui menolak trip yang belum punya jadwal (penjaga yang sama dengan `EditTrip` — trip tayang tanpa jadwal tidak muncul di kategori dan tidak bisa dipesan). Tolak mewajibkan `review_note`, sama seperti penolakan pembayaran di D5: mitra perlu tahu apa yang harus diperbaiki, dan tanpa itu keputusan lama tidak bisa ditelusuri ulang. Catatan penolakan muncul kembali di form mitra.
+
+**Peserta:** `Vendor\Resources\BookingResource` read-only berisi booking trip miliknya saja. NIK/paspor sengaja tidak ditampilkan — mitra butuh nama dan kontak untuk mengurus keberangkatan, nomor identitas tidak menambah apa pun selain risiko kalau layar itu terbuka di lapangan. Badge navigasi menghitung booking seminggu terakhir; itu bentuk "notifikasi booking baru" di V1.5, karena belum ada kanal push maupun email.
+
+Migration: `trips.review_note`, `reviewed_by`, `reviewed_at`.
+
+Verifikasi: **131 test lulus / 575 assertion** (9 test baru di `VendorTripTest`), Pint lulus.
+
+---
+
 ## 2026-08-27 — D8: onboarding mitra
 
 Halaman publik `/jadi-mitra` (kriteria, benefit, tiga langkah, form pengajuan) tertaut dari footer. Terbuka tanpa login: calon mitra menilai dulu sebelum memutuskan, dan memaksa daftar akun lebih dulu hanya menyaring orang yang belum tahu ini cocok untuknya atau tidak.

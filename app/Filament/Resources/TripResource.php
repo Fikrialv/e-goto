@@ -9,6 +9,7 @@ use App\Filament\Resources\TripResource\RelationManagers;
 use App\Models\Trip;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -28,6 +29,13 @@ class TripResource extends Resource
     protected static ?string $pluralModelLabel = 'trip';
 
     protected static ?int $navigationSort = 1;
+
+    public static function getNavigationBadge(): ?string
+    {
+        $menunggu = static::getModel()::where('status', TripStatus::PendingReview)->count();
+
+        return $menunggu > 0 ? (string) $menunggu : null;
+    }
 
     public static function form(Form $form): Form
     {
@@ -158,6 +166,65 @@ class TripResource extends Resource
                     ->relationship('category', 'name'),
             ])
             ->actions([
+                /*
+                 * Tinjauan pengajuan trip mitra (D9). Approve hanya boleh kalau
+                 * jadwalnya sudah ada — penjaga yang sama dengan EditTrip,
+                 * karena trip tayang tanpa jadwal tidak muncul di kategori dan
+                 * tidak bisa dipesan.
+                 */
+                Tables\Actions\Action::make('setujui')
+                    ->label('Setujui')
+                    ->icon('heroicon-m-check-circle')
+                    ->color('success')
+                    ->requiresConfirmation()
+                    ->visible(fn (Trip $record): bool => $record->status === TripStatus::PendingReview)
+                    ->action(function (Trip $record): void {
+                        if (! $record->schedules()->exists()) {
+                            Notification::make()
+                                ->danger()
+                                ->title('Trip belum punya jadwal')
+                                ->body('Minta mitra menambahkan jadwal keberangkatan dulu — trip tanpa jadwal tidak muncul di halaman kategori dan tidak bisa dipesan.')
+                                ->persistent()
+                                ->send();
+
+                            return;
+                        }
+
+                        $record->update([
+                            'status' => TripStatus::Published,
+                            'published_at' => $record->published_at ?? now(),
+                            'review_note' => null,
+                            'reviewed_by' => auth()->id(),
+                            'reviewed_at' => now(),
+                        ]);
+
+                        Notification::make()->success()->title('Trip tayang')->send();
+                    }),
+
+                Tables\Actions\Action::make('tolak')
+                    ->label('Tolak')
+                    ->icon('heroicon-m-x-circle')
+                    ->color('danger')
+                    ->visible(fn (Trip $record): bool => $record->status === TripStatus::PendingReview)
+                    ->form([
+                        // Alasan wajib, sama seperti penolakan pembayaran di D5:
+                        // mitra perlu tahu apa yang harus diperbaiki.
+                        Forms\Components\Textarea::make('review_note')
+                            ->label('Alasan penolakan')
+                            ->required()
+                            ->rows(3),
+                    ])
+                    ->action(function (Trip $record, array $data): void {
+                        $record->update([
+                            'status' => TripStatus::Rejected,
+                            'review_note' => $data['review_note'],
+                            'reviewed_by' => auth()->id(),
+                            'reviewed_at' => now(),
+                        ]);
+
+                        Notification::make()->danger()->title('Pengajuan trip ditolak')->send();
+                    }),
+
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),
             ])

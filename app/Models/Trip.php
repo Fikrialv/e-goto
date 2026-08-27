@@ -29,6 +29,9 @@ class Trip extends Model
         'is_featured',
         'difficulty_level',
         'published_at',
+        'review_note',
+        'reviewed_by',
+        'reviewed_at',
     ];
 
     protected function casts(): array
@@ -38,6 +41,7 @@ class Trip extends Model
             'difficulty_level' => TripDifficulty::class,
             'is_featured' => 'boolean',
             'published_at' => 'datetime',
+            'reviewed_at' => 'datetime',
         ];
     }
 
@@ -77,6 +81,12 @@ class Trip extends Model
             ->min('price');
 
         return $price !== null ? (int) $price : null;
+    }
+
+    /** @return BelongsTo<User, $this> */
+    public function vendor(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'vendor_id');
     }
 
     /** @return BelongsTo<Category, $this> */
