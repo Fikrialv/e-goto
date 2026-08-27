@@ -42,6 +42,14 @@ class TripController extends Controller
             ->take(3)
             ->get();
 
-        return view('pages.trip-detail', compact('trip', 'relatedTrips'));
+        $reviews = $trip->reviews()
+            ->published()
+            ->with('user:id,name')
+            ->latest()
+            ->paginate(5, pageName: 'ulasan');
+
+        $ratingRata = $trip->reviews()->published()->avg('rating');
+
+        return view('pages.trip-detail', compact('trip', 'relatedTrips', 'reviews', 'ratingRata'));
     }
 }

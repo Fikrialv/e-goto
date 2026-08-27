@@ -59,3 +59,52 @@ self.addEventListener('fetch', (event) => {
         })
     );
 });
+
+/*
+ * Web Push (D12). Ditambahkan di service worker yang sama supaya tidak ada
+ * pendaftaran kedua — aturan cache di atas tidak berubah sedikit pun:
+ * dokumen HTML tetap tidak pernah disajikan dari cache.
+ *
+ * Isi notifikasi datang dari server dan sengaja dibatasi kode booking, judul
+ * trip, dan waktu. Jangan menambahkan data identitas di sini.
+ */
+self.addEventListener('push', (event) => {
+    if (!event.data) {
+        return;
+    }
+
+    let isi = {};
+
+    try {
+        isi = event.data.json();
+    } catch (e) {
+        isi = { title: 'E-GOTO', body: event.data.text() };
+    }
+
+    event.waitUntil(
+        self.registration.showNotification(isi.title || 'E-GOTO', {
+            body: isi.body || '',
+            icon: '/icons/icon-192.png',
+            badge: '/icons/icon-192.png',
+            data: { url: isi.url || '/booking-saya' },
+        })
+    );
+});
+
+self.addEventListener('notificationclick', (event) => {
+    event.notification.close();
+
+    const tujuan = event.notification.data?.url || '/booking-saya';
+
+    event.waitUntil(
+        self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((daftar) => {
+            for (const klien of daftar) {
+                if (klien.url.includes(tujuan) && 'focus' in klien) {
+                    return klien.focus();
+                }
+            }
+
+            return self.clients.openWindow(tujuan);
+        })
+    );
+});

@@ -34,4 +34,18 @@ interface MessagingService
      * form Request Private Trip di D12 jadi.
      */
     public function requestPrivateTrip(Trip $trip): string;
+
+    /**
+     * Kembalikan URL/identifier permintaan private trip dari form ringkas
+     * (D12): tujuan, tanggal, jumlah peserta, dan catatan calon pemesan.
+     *
+     * @param  array{destination: string, depart_on?: ?string, pax?: ?int, notes?: ?string, contact_name: string}  $permintaan
+     */
+    public function requestPrivateTripForm(array $permintaan): string;
+
+    /**
+     * Kembalikan URL/identifier tanya-jawab umum ke admin (D12) — dipakai
+     * tombol "Lanjut ke WhatsApp" di dekat widget chat.
+     */
+    public function generalEnquiry(): string;
 }

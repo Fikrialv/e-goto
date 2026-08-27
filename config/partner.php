@@ -19,4 +19,23 @@ return [
 
     'max_documents' => 5,
 
+    /*
+    |--------------------------------------------------------------------------
+    | Widget chat pihak ketiga (D12)
+    |--------------------------------------------------------------------------
+    |
+    | Kosongkan `chat_widget_id` dan widget tidak dirender sama sekali — pola
+    | yang sama dengan tombol Google sebelum kredensialnya masuk. Widget ini
+    | HANYA untuk tanya-jawab umum/CS: approve/reject pembayaran dan
+    | penerbitan tiket tetap wajib lewat layar verifikasi Filament (D5).
+    |
+    | Penyedia yang dipakai WAJIB dicantumkan di /kebijakan-privasi sebagai
+    | pihak ketiga penerima data — isi percakapan mengalir ke server mereka.
+    |
+    */
+
+    'chat_widget_provider' => env('CHAT_WIDGET_PROVIDER', 'tawkto'),
+
+    'chat_widget_id' => env('CHAT_WIDGET_ID'),
+
 ];

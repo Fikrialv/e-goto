@@ -85,6 +85,39 @@ class WhatsAppLinkService implements MessagingService
         return $this->tautan($pesan);
     }
 
+    public function requestPrivateTripForm(array $permintaan): string
+    {
+        $baris = [
+            'Halo Admin E-GOTO, saya mau menanyakan private trip.',
+            '',
+            'Nama: '.$permintaan['contact_name'],
+            'Tujuan: '.$permintaan['destination'],
+        ];
+
+        if (filled($permintaan['depart_on'] ?? null)) {
+            $baris[] = 'Perkiraan berangkat: '.$permintaan['depart_on'];
+        }
+
+        if (filled($permintaan['pax'] ?? null)) {
+            $baris[] = 'Jumlah peserta: '.$permintaan['pax'].' orang';
+        }
+
+        if (filled($permintaan['notes'] ?? null)) {
+            $baris[] = '';
+            $baris[] = 'Catatan: '.$permintaan['notes'];
+        }
+
+        $baris[] = '';
+        $baris[] = 'Mohon informasinya, terima kasih.';
+
+        return $this->tautan(implode("\n", $baris));
+    }
+
+    public function generalEnquiry(): string
+    {
+        return $this->tautan('Halo Admin E-GOTO, saya mau bertanya.');
+    }
+
     private function tautan(string $pesan, ?string $nomor = null): string
     {
         return 'https://wa.me/'.($nomor ?? config('booking.admin_whatsapp')).'?text='.rawurlencode($pesan);

@@ -4,6 +4,22 @@ Entri ringkas tiap iterasi selesai (aturan `CLAUDE.md` §6). Terbaru di atas.
 
 ---
 
+## 2026-08-27 — D11 + D12: rating, private trip, widget chat, Web Push opt-in
+
+**D11 — rating & komentar.** Hanya booking `completed` milik sendiri yang bisa dinilai, satu review per booking dengan unique key di database: validasi controller saja kalah balapan kalau tombol ditekan dua kali. Detail trip menampilkan rata-rata dan daftar review yang dipaginasi. Panel mitra melihat rating tripnya sendiri secara read-only — moderasi sengaja hanya ada di admin, supaya penilaian buruk tidak bisa dihapus oleh pihak yang dinilai. Admin bisa menyembunyikan dan menampilkan ulang, tapi tidak ada jalur untuk menyunting isi review: mengubah kalimat orang lain lalu menampilkannya sebagai ucapannya tidak boleh bisa dilakukan dari panel mana pun.
+
+**D12 — private trip.** Halaman `/private-trip` merangkai isian jadi pesan WhatsApp lewat `MessagingService` dan tidak menyimpan apa pun ke database — rombongan di atas batas peserta per booking (PLAN.md §5.6) sekarang punya jalur yang jelas. Teaser "Jadi Mitra E-GOTO?" dipasang di homepage dan profil customer.
+
+**D12 — widget chat.** Skrip embed Tawk.to/Crisp dipasang di layout utama, dibungkus config: selama `CHAT_WIDGET_ID` kosong, tidak ada satu baris pun yang dirender — pola yang sama dengan tombol Google sebelum kredensialnya masuk. Tombol "Lanjut ke WhatsApp" berdiri di dekatnya lewat `MessagingService::generalEnquiry()`, bukan URL yang ditulis ulang di view. Batas kerasnya ditulis di komentar komponen dan config: widget ini hanya untuk tanya-jawab umum/CS, approve/reject pembayaran dan penerbitan tiket tetap wajib lewat layar verifikasi Filament D5. Saat widget aktif, penyedianya otomatis muncul di `/kebijakan-privasi` sebagai pihak ketiga penerima data, lengkap dengan peringatan agar NIK dan data pembayaran tidak diketik di kotak chat.
+
+**D12 — Web Push (opt-in).** Tabel `push_subscriptions` (satu baris per browser, endpoint di-hash untuk kunci unik), endpoint daftar/berhenti, dan tombol "Nyalakan notifikasi" di Booking Saya yang hanya muncul setelah kunci VAPID dipasang. Izin browser diminta **hanya** di dalam handler tombol itu — ada test yang menjaga `Notification.requestPermission()` tetap di sana dan tidak dipanggil saat halaman dimuat, karena prompt yang muncul sendiri hampir selalu ditolak dan penolakan itu permanen per browser. Listener `push` dan `notificationclick` ditambahkan ke service worker yang sama tanpa menyentuh aturan cache D7.6; test cache-nya dipertajam supaya memeriksa isi fungsi penentu cache, bukan sekadar mencari kata di seluruh berkas.
+
+**Yang belum jalan:** pengiriman push. `composer require minishlink/web-push` ditolak di mesin dev ini karena `ext-gd` belum aktif di php.ini. Langkahnya: aktifkan ekstensi itu, pasang paketnya, isi `VAPID_PUBLIC_KEY`/`VAPID_PRIVATE_KEY`. Langganan, service worker, dan UI-nya sudah siap menerima.
+
+Verifikasi: **170 test lulus / 706 assertion**, `migrate:fresh --seed` bersih, `npm run build` sukses, Pint lulus.
+
+---
+
 ## 2026-08-27 — D10: voucher & opsi tambahan
 
 Empat tabel baru: `vouchers`, `voucher_usages`, `trip_options`, `booking_options`. Enum `VoucherType` (percent/fixed) dan `VoucherScope` (global/kategori/trip) — nilai yang menentukan cara menghitung uang tidak boleh berupa string bebas.

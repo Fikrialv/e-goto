@@ -56,6 +56,14 @@
             </li>
             <li><span class="font-medium text-teal-900">Google</span> — hanya apabila Anda memilih masuk lewat Google, sebatas proses autentikasi.</li>
             <li><span class="font-medium text-teal-900">Penyedia layanan hosting</span> tempat aplikasi dan basis data ini berjalan.</li>
+            @if (filled(config('partner.chat_widget_id')))
+                <li>
+                    <span class="font-medium text-teal-900">{{ config('partner.chat_widget_provider') === 'crisp' ? 'Crisp' : 'Tawk.to' }}</span>
+                    — penyedia widget chat bantuan di situs ini. Isi percakapan, nama, dan kontak yang Anda ketik di
+                    kotak chat tersimpan di server mereka. Jangan mengirim NIK, nomor paspor, atau data pembayaran
+                    lewat kotak chat; urusan pembayaran dan tiket selalu ditangani lewat halaman pemesanan Anda.
+                </li>
+            @endif
             <li><span class="font-medium text-teal-900">Aparat penegak hukum</span>, apabila ada permintaan resmi yang sah secara hukum.</li>
         </ul>
         <p class="mt-3 text-sm leading-relaxed text-teal-700">

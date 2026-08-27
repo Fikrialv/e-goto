@@ -20,7 +20,7 @@ class BookingController extends Controller
     {
         $bookings = $request->user()
             ->bookings()
-            ->with(['schedule.trip.category', 'latestPayment'])
+            ->with(['schedule.trip.category', 'latestPayment', 'review'])
             ->latest()
             ->paginate(10);
 

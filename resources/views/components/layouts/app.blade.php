@@ -132,6 +132,7 @@
                     <li><a href="{{ route('pages.faq') }}" class="text-teal-700 hover:text-amber-600">FAQ</a></li>
                     <li><a href="{{ route('pages.terms') }}" class="text-teal-700 hover:text-amber-600">Syarat &amp; Ketentuan</a></li>
                     <li><a href="{{ route('pages.privacy') }}" class="text-teal-700 hover:text-amber-600">Kebijakan Privasi</a></li>
+                    <li><a href="{{ route('private-trip.show') }}" class="text-teal-700 hover:text-amber-600">Private Trip</a></li>
                     <li><a href="{{ route('partners.show') }}" class="text-teal-700 hover:text-amber-600">Jadi Mitra E-GOTO</a></li>
                 </ul>
                 <p class="mt-3 text-sm leading-relaxed text-teal-600">
@@ -146,5 +147,6 @@
             </p>
         </div>
     </footer>
+    <x-chat-widget />
 </body>
 </html>

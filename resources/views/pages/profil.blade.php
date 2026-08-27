@@ -58,4 +58,16 @@
             </div>
         </form>
     </div>
+
+        <section class="mt-12 rounded-3xl border border-mist-200 bg-white/70 p-6">
+            <p class="text-xs font-semibold tracking-widest text-teal-500 uppercase">Untuk penyelenggara</p>
+            <h2 class="font-display mt-2 text-xl font-bold text-teal-900">Punya trip sendiri?</h2>
+            <p class="mt-2 text-sm leading-relaxed text-teal-600">
+                Kalau Anda juga rutin membawa rombongan, buka trip Anda di E-GOTO.
+            </p>
+            <a href="{{ route('partners.show') }}"
+               class="mt-4 inline-block rounded-full border border-mist-300 px-5 py-2.5 text-sm text-teal-700 transition-colors hover:border-teal-400">
+                Lihat syaratnya
+            </a>
+        </section>
 </x-layouts.app>

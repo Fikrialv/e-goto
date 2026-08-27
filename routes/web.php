@@ -9,7 +9,10 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\PartnerController;
 use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\PrivateTripController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\PushSubscriptionController;
+use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\TicketController;
 use App\Http\Controllers\TripController;
 use Illuminate\Support\Facades\Route;
@@ -36,6 +39,15 @@ Route::get('/kebijakan-privasi', [PageController::class, 'privacy'])->name('page
  * Onboarding mitra (D8). Publik juga: calon mitra menilai kriteria dulu sebelum
  * memutuskan, dan pengiriman formnya di-throttle karena terbuka tanpa login.
  */
+/*
+ * Request private trip (D12). Publik: rombongan besar sering menanyakannya
+ * sebelum punya akun, dan formnya memang tidak membuat booking.
+ */
+Route::get('/private-trip', [PrivateTripController::class, 'show'])->name('private-trip.show');
+Route::post('/private-trip', [PrivateTripController::class, 'store'])
+    ->middleware('throttle:pengajuan-mitra')
+    ->name('private-trip.store');
+
 Route::get('/jadi-mitra', [PartnerController::class, 'show'])->name('partners.show');
 Route::post('/jadi-mitra', [PartnerController::class, 'store'])
     ->middleware('throttle:pengajuan-mitra')
@@ -93,6 +105,16 @@ Route::middleware(['auth', 'role:customer'])->group(function () {
         ->name('payments.store');
     Route::get('/booking/{booking:code}/bukti', [PaymentController::class, 'proof'])->name('payments.proof');
     Route::get('/booking/{booking:code}/tiket', [TicketController::class, 'show'])->name('tickets.show');
+
+    /*
+     * Langganan Web Push. Dipanggil hanya setelah customer menekan tombol
+     * izin — bukan otomatis saat halaman dibuka.
+     */
+    Route::post('/notifikasi/langganan', [PushSubscriptionController::class, 'store'])->name('push.store');
+    Route::delete('/notifikasi/langganan', [PushSubscriptionController::class, 'destroy'])->name('push.destroy');
+
+    // Penilaian trip: hanya untuk booking milik sendiri yang sudah selesai.
+    Route::post('/booking/{booking:code}/penilaian', [ReviewController::class, 'store'])->name('reviews.store');
 });
 
 /*

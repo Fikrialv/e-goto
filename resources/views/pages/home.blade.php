@@ -142,4 +142,21 @@
             @endforeach
         </div>
     </section>
+
+    <section class="border-t border-mist-200 bg-mist-100">
+        <div class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-6 px-4 py-12 sm:px-6 lg:px-8">
+            <div class="max-w-xl">
+                <p class="text-xs font-semibold tracking-[0.18em] text-amber-600 uppercase">Untuk penyelenggara</p>
+                <h2 class="font-display mt-3 text-2xl font-bold text-teal-900 sm:text-3xl">Punya trip sendiri?</h2>
+                <p class="mt-2 text-sm leading-relaxed text-teal-700">
+                    Buka trip Anda di E-GOTO. Kami yang urus halaman, pemesanan, dan pembayaran.
+                </p>
+            </div>
+
+            <a href="{{ route('partners.show') }}"
+               class="rounded-full bg-teal-800 px-6 py-3 text-sm font-medium text-mist-50 transition-colors hover:bg-teal-900">
+                Jadi Mitra E-GOTO
+            </a>
+        </div>
+    </section>
 </x-layouts.app>

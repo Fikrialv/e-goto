@@ -69,6 +69,12 @@ class Booking extends Model
         return $this->hasMany(Payment::class);
     }
 
+    /** @return HasOne<Review, $this> */
+    public function review(): HasOne
+    {
+        return $this->hasOne(Review::class);
+    }
+
     /** @return HasMany<BookingOption, $this> */
     public function options(): HasMany
     {

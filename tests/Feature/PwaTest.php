@@ -1,5 +1,7 @@
 <?php
 
+use Illuminate\Support\Str;
+
 /**
  * PWA installable (D7.6 a, test §9 #15).
  *
@@ -36,9 +38,17 @@ it('tidak pernah menyajikan dokumen dari cache service worker', function () {
     // masuk cache. Kalau suatu saat ada yang melonggarkan ini, test ini gagal.
     expect($sw)->toContain("event.request.mode === 'navigate'")
         ->and($sw)->toContain("url.pathname.startsWith('/build/')")
-        ->and($sw)->not->toContain('/booking')
         ->and($sw)->not->toContain('/bayar')
         ->and($sw)->not->toContain('/tiket');
+
+    // Daftar putih cache hanya dua prefiks. Jalur aplikasi (mis. tujuan klik
+    // notifikasi Web Push di D12) boleh disebut di berkas ini, asal tidak ikut
+    // masuk ke dalam fungsi penentu cache.
+    $penentu = Str::before(Str::after($sw, 'function bolehDicache'), '}');
+
+    expect($penentu)->toContain('/build/')
+        ->and($penentu)->toContain('/icons/')
+        ->and($penentu)->not->toContain('/booking');
 });
 
 it('halaman pembayaran tidak boleh disimpan cache bersama', function () {

@@ -101,6 +101,12 @@ class Trip extends Model
         return $this->hasMany(TripImage::class)->orderBy('sort_order');
     }
 
+    /** @return HasMany<Review, $this> */
+    public function reviews(): HasMany
+    {
+        return $this->hasMany(Review::class);
+    }
+
     /** @return HasMany<TripOption, $this> */
     public function options(): HasMany
     {

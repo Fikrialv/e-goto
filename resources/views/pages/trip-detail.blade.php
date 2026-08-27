@@ -148,6 +148,36 @@
                 </section>
             @endif
 
+            <section class="mt-14">
+                <h2 class="font-display text-2xl font-bold text-teal-900">Kata peserta</h2>
+
+                @if ($reviews->isEmpty())
+                    <p class="mt-3 text-sm text-teal-600">Belum ada penilaian untuk trip ini.</p>
+                @else
+                    <p class="mt-2 text-sm text-teal-700">
+                        Rata-rata <strong class="text-teal-900">{{ number_format($ratingRata, 1, ',', '.') }}</strong> dari 5
+                        &middot; {{ $reviews->total() }} penilaian
+                    </p>
+
+                    <ul class="mt-6 space-y-5">
+                        @foreach ($reviews as $ulasan)
+                            <li class="rounded-2xl border border-mist-200 bg-white/70 p-5">
+                                <p class="text-sm font-medium text-teal-900">
+                                    {{ $ulasan->user?->name ?? 'Peserta' }}
+                                    <span class="ml-2 text-xs font-normal text-teal-600">{{ $ulasan->rating }}/5</span>
+                                </p>
+                                @if ($ulasan->comment)
+                                    <p class="mt-2 text-sm leading-relaxed text-teal-700">{{ $ulasan->comment }}</p>
+                                @endif
+                                <p class="mt-2 text-xs text-teal-500">{{ $ulasan->created_at->translatedFormat('j F Y') }}</p>
+                            </li>
+                        @endforeach
+                    </ul>
+
+                    <div class="mt-6">{{ $reviews->links() }}</div>
+                @endif
+            </section>
+
             @if ($relatedTrips->isNotEmpty())
                 <section class="mt-14">
                     <h2 class="font-display text-2xl font-bold text-teal-900">Trip lain di {{ $trip->category->name }}</h2>
