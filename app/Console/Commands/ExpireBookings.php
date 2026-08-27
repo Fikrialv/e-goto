@@ -39,6 +39,18 @@ class ExpireBookings extends Command
              * memblokir pemesanan yang sedang berjalan.
              */
             $berhasil = DB::transaction(function () use ($booking) {
+                /*
+                 * Urutan kunci: JADWAL DULU, baru booking — sama persis dengan
+                 * CreateBooking. Dua alur yang menyentuh pasangan baris yang
+                 * sama tapi menguncinya dengan urutan terbalik adalah resep
+                 * deadlock: yang satu memegang jadwal sambil menunggu booking,
+                 * yang lain sebaliknya. Jangan tukar urutan ini.
+                 */
+                $jadwal = TripSchedule::query()
+                    ->whereKey($booking->trip_schedule_id)
+                    ->lockForUpdate()
+                    ->first();
+
                 $terkunci = Booking::query()
                     ->whereKey($booking->getKey())
                     ->lockForUpdate()
@@ -49,11 +61,6 @@ class ExpireBookings extends Command
                 if (! $terkunci || $terkunci->status !== BookingStatus::PendingPayment) {
                     return false;
                 }
-
-                $jadwal = TripSchedule::query()
-                    ->whereKey($terkunci->trip_schedule_id)
-                    ->lockForUpdate()
-                    ->first();
 
                 $terkunci->update(['status' => BookingStatus::Expired]);
 

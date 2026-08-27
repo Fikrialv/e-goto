@@ -92,8 +92,21 @@ BOOKING_PROOF_DISK=local
 PARTNER_DOC_DISK=local
 ```
 
-`APP_DEBUG=false` bukan formalitas: dengan `true`, halaman galat menampilkan
-isi `.env` termasuk kredensial database.
+**`APP_ENV=production` + `APP_DEBUG=false` wajib diisi sebelum situs dibuka ke
+publik.** Ini diuji langsung pada 2026-08-27, bukan diasumsikan:
+
+- Dengan `APP_DEBUG=true`, satu galat 500 menghasilkan halaman ±870 KB berisi
+  jejak tumpukan, **potongan kode sumber**, dan **jalur berkas** (mis.
+  `routes/web.php`) beserta versi framework. Nilai `.env` sendiri tidak ikut
+  tercetak di versi Laravel ini, tapi peta berkas dan potongan kode sudah cukup
+  untuk memandu percobaan berikutnya.
+- Dengan `APP_DEBUG=false`, galat yang sama menghasilkan halaman "Server Error"
+  ±13 KB tanpa jalur berkas, tanpa nama kelas pengecualian, dan tanpa pesan
+  aslinya. Detailnya hanya masuk `storage/logs/laravel.log`.
+
+Periksa ulang setelah `config:cache` (langkah 9) — config yang ter-cache tidak
+membaca `.env` lagi, jadi mengubah `APP_DEBUG` tanpa mengulang cache tidak
+berpengaruh.
 
 Lalu:
 

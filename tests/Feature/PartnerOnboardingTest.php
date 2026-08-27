@@ -4,6 +4,7 @@ use App\Actions\ApproveVendorApplication;
 use App\Enums\UserRole;
 use App\Enums\VendorStatus;
 use App\Filament\Resources\VendorApplicationResource\Pages\ListVendorApplications;
+use App\Models\Trip;
 use App\Models\User;
 use App\Models\Vendor;
 use App\Models\VendorApplication;
@@ -156,4 +157,20 @@ it('menyimpan jadwal ngobrol dari panel admin', function () {
 
     expect($pengajuan->fresh()->meeting_at->toDateTimeString())->toBe($waktu->toDateTimeString())
         ->and($pengajuan->fresh()->status)->toBe(VendorStatus::Pending);
+});
+
+it('menghubungkan profil mitra ke trip lewat akun panelnya', function () {
+    $pengajuan = pengajuanMitra(['contact_email' => 'relasi@contoh.test']);
+    $admin = User::factory()->create(['role' => UserRole::Admin]);
+
+    $hasil = app(ApproveVendorApplication::class)->handle($pengajuan, $admin);
+
+    // `trips.vendor_id` menyimpan users.id, bukan vendors.id — relasi
+    // Vendor::trips() harus mengikuti itu, bukan mencocokkan primary key
+    // vendors dan diam-diam mengembalikan trip milik orang lain.
+    $milikMitra = Trip::factory()->create(['vendor_id' => $hasil['user']->id]);
+    $milikOrangLain = Trip::factory()->create(['vendor_id' => null]);
+
+    expect($hasil['vendor']->trips()->pluck('id')->all())->toBe([$milikMitra->id])
+        ->and($hasil['vendor']->trips()->pluck('id')->all())->not->toContain($milikOrangLain->id);
 });

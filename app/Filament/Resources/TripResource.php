@@ -62,15 +62,18 @@ class TripResource extends Resource
                             ->preload()
                             ->required(),
                         /*
-                         * TODO (D8/D9): aktifkan kembali sebagai
-                         * Select::make('vendor_id')->relationship('vendor', 'business_name')
-                         * begitu tabel `vendors` ada (PLAN.md §4 V1.5).
+                         * Sengaja tidak bisa diisi admin dari layar ini.
                          *
-                         * Disembunyikan di V1 — bukan sekadar opsional. Semua trip
-                         * sekarang milik E-GOTO (vendor_id null), dan kolom ini
-                         * nanti merujuk `vendors.id`, bukan `users.id`. Kalau admin
-                         * sempat memilih user vendor demo dari sini, angkanya jadi
-                         * rujukan salah begitu tabel `vendors` dibuat.
+                         * Sejak D9, `trips.vendor_id` diisi dari sesi mitra yang
+                         * membuat tripnya (`users.id`, lihat
+                         * Vendor\Resources\TripResource\Pages\CreateTrip).
+                         * Kepemilikan trip mengikuti siapa yang mengajukan, bukan
+                         * dipindah-pindah lewat dropdown — memindahkannya diam-diam
+                         * akan mengubah trip siapa yang muncul di panel mitra dan
+                         * siapa yang melihat data pesertanya.
+                         *
+                         * Kalau nanti perlu pemindahan kepemilikan, buat aksi
+                         * tersendiri yang tercatat, bukan field bebas di form.
                          */
                         Forms\Components\Hidden::make('vendor_id')
                             ->default(null)
