@@ -334,6 +334,55 @@ Warna semantik: teal = sukses/kursi tersedia, amber = pending/hampir habis, `mis
 
 Prinsip visual: setiap elemen (3D object, animasi, ilustrasi) harus fungsional, tidak boleh terlihat "dibuat AI". Token warna & font didefinisikan di `resources/css/app.css` (`@theme`).
 
+### Ikon — Lucide lewat komponen Blade
+
+Ditetapkan 2026-08-28 (Sesi 9). Ikon dirender **PHP-side lewat komponen Blade**, bukan icon font dan bukan library ikon JavaScript — bundle JS tidak bertambah sama sekali.
+
+- **Lucide** (`mallardduck/blade-lucide-icons`, prefix `lucide`) — seluruh sisi customer. Contoh: `<x-lucide-mountain />`.
+- **Heroicons** (`blade-ui-kit/blade-heroicons`) — **hanya** panel admin/vendor, karena Filament sudah memakainya untuk ikon navigasi.
+
+Paket `codeat3/blade-lucide-icons` yang sempat direncanakan sudah tidak ada di Packagist; `mallardduck` adalah penerusnya. Daftar lengkap ikon per konteks ada di `docs/DESIGN_SYSTEM.md`.
+
+Kolom `categories.icon` sekarang dipakai (sebelumnya ditandai "belum dipakai"): isinya nama ikon Lucide dan field-nya di panel admin berupa daftar tertutup `Category::ICON_OPTIONS` — nama bebas ditolak, karena ikon yang tidak ada akan meledak di halaman publik, bukan di panel tempat mengetiknya.
+
+### Prinsip animasi
+
+Halus dan pendek. Tidak ada particle, gradient-shift, parallax, atau efek 3D. Semuanya CSS `transition` atau Alpine `x-transition` — **tidak ada library animasi JavaScript** (bukan GSAP, bukan framer-motion, bukan Lottie).
+
+| Elemen | Gerakan | Durasi |
+|---|---|---|
+| Tombol & kartu (hover) | `scale`/angkat 2px + bayangan naik | 200ms ease-out |
+| Modal / panel | fade + geser naik 4px | 200ms ease-out |
+| Carousel review | fade + geser kecil (Alpine) | 250ms |
+| Loading screen | pulsing scale 0.95→1→0.95, loop | 1,6s |
+
+`prefers-reduced-motion: reduce` ditangani global di `app.css`. Animasi **berulang** (loading screen) dimatikan penuh di media query itu, bukan sekadar dipercepat — yang berdenyut cepat lebih mengganggu daripada yang berdenyut pelan.
+
+### Dua berkas logo — jangan tertukar
+
+| Berkas | Isi | Dipakai di |
+|---|---|---|
+| `public/images/Logo1.svg` | wordmark lengkap bertuliskan "e-goto" | footer, panel hero halaman masuk/daftar, brand logo panel Filament |
+| `public/images/logo2.svg` | bentuk saja, tanpa tulisan | loading screen, overlay saat submit booking/unggah bukti |
+
+Alasan pemisahan: wordmark tidak terbaca kalau diperkecil atau dianimasikan; bentuk saja tetap jelas di ukuran kecil. Kedua berkas sudah dioptimasi dan diberi `viewBox` supaya bisa diskalakan.
+
+### Fallback state — saat foto belum ada
+
+Ditetapkan 2026-08-28. Sampul trip diunggah mitra belakangan, jadi bidang foto yang kosong adalah keadaan normal, bukan kerusakan. Satu komponen menangani semuanya: `x-media-fallback`, dipakai di kartu trip, hero homepage, panel kanan halaman masuk, dan seksi "Jadi Mitra".
+
+Bentuknya: gradasi lembut token brand (`mist-100` → `mist-200` → `teal-200`) + satu ikon Lucide besar (48–64px) beropasitas rendah di tengah, ikonnya menyesuaikan konteks (gunung untuk hero, peta untuk panel masuk, kamera untuk kartu trip, jabat tangan untuk seksi mitra).
+
+Dua hal yang **dilarang** di posisi ini:
+- **Foto stok** dari sumber mana pun (Unsplash dan sejenisnya). Foto stok generik adalah ciri paling cepat terbaca "dibuat AI" — larangan yang sama dengan bagian Standar Desain di `CLAUDE.md` §10.
+- **Abu-abu polos atau bidang kosong**, yang membuat halaman terbaca rusak, bukan sedang menunggu konten.
+
+Gradasi di sini adalah **satu-satunya pengecualian** dari larangan gradient di `docs/DESIGN_SYSTEM.md` — justru gradasi itu yang membedakan bidang fallback dari kartu berlatar solid di sekitarnya, jadi tidak tertukar dengan konten asli.
+
+### Hubungan dengan `docs/DESIGN_SYSTEM.md`
+
+Bagian ini adalah **ringkasan keputusan**; detail teknisnya (daftar ikon per konteks lengkap dengan nama komponen, skala spasi, spesifikasi loading screen, daftar komponen Blade) ada di `docs/DESIGN_SYSTEM.md`. Kalau keduanya berbeda, **GUIDE menang** dan DESIGN_SYSTEM yang diperbaiki — aturan yang sama dengan GUIDE vs PLAN di `CLAUDE.md` §0.
+
 ## Yang Masih Perlu Dikonfirmasi
 
 - [ ] Trip internasional: aktifkan dummy untuk uji coba, atau tetap tutup?

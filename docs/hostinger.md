@@ -24,7 +24,18 @@ Tugas periodik jalan lewat cron `schedule:run`.
 2. **Advanced → PHP Configuration**: pilih **PHP 8.3**.
 3. Di tab **PHP extensions**, pastikan aktif: `pdo_mysql`, `mbstring`,
    `openssl`, `fileinfo`, `gd`, `zip`, `bcmath`.
-   `gd` juga syarat kalau nanti memasang `minishlink/web-push` (D12).
+
+   **`gd` wajib dicek betulan, jangan dianggap pasti aktif.** Di laptop
+   pengembangan, `ext-gd` ternyata masih mati di `C:\xampp\php\php.ini` sampai
+   2026-08-28 — akibatnya Composer menolak memasang paket **apa pun**, karena
+   `simplesoftwareio/simple-qrcode` (dipakai QR e-tiket sejak D6) mensyaratkannya.
+   Pesan galatnya menyebut paket yang sedang dipasang, bukan `simple-qrcode`, jadi
+   penyebabnya tidak langsung kelihatan. Ini juga yang menggagalkan
+   `minishlink/web-push` di sesi 15.
+
+   Cek di server sesudah SSH aktif: `php -m | grep -i '^gd$'` harus mengeluarkan
+   satu baris `gd`. Kalau kosong, nyalakan dulu di hPanel sebelum menjalankan
+   `composer install` — bukan sesudahnya.
 4. **Advanced → SSH Access**: aktifkan, catat host/port/user.
 
 ## 2. Database

@@ -4,6 +4,52 @@ Entri ringkas tiap iterasi selesai (aturan `CLAUDE.md` §6). Terbaru di atas.
 
 ---
 
+## 2026-08-28 — Sesi 10: fallback state + rekonsiliasi dokumen desain
+
+Lanjutan Sesi 9. **184 test / 747 assertion** hijau (3 test baru), Pint lulus, `npm run build` sukses (CSS 109 KB, JS 95 KB — tidak berubah, fallback murni CSS).
+
+**Fallback state.** Sampul trip diunggah mitra belakangan, jadi bidang foto kosong adalah keadaan normal — bukan kerusakan, tapi sebelumnya terbaca begitu: hero, panel halaman masuk, dan seksi mitra sama sekali tidak dirender kalau belum ada foto, menyisakan halaman yang terlihat setengah jadi. Sekarang satu komponen menanganinya di empat titik: `x-media-fallback` — gradasi `mist-100 → mist-200 → teal-200` plus satu ikon Lucide 48–64px beropasitas `text-teal-700/25`, ikonnya menyesuaikan konteks (gunung di hero, peta di panel masuk, kamera di kartu trip, jabat tangan di seksi mitra).
+
+Yang sengaja tidak dipakai: foto stok dari sumber mana pun, dan abu-abu polos. Yang pertama adalah ciri paling cepat terbaca "dibuat AI" (`CLAUDE.md` §10); yang kedua membuat halaman terbaca rusak alih-alih sedang menunggu konten. Ada test yang menjaga keduanya — `assertDontSee('unsplash')` dan pemeriksaan kelas gradasi + opasitas ikon.
+
+Konsekuensi kecil yang perlu dicatat: hero homepage sekarang **selalu** merender kolom fotonya (jatuh ke fallback kalau kosong), dan `x-trip-image` tidak lagi menggambar ilustrasi pegunungannya sendiri — cabang kosongnya diserahkan ke komponen bersama supaya kekosongan terlihat sebagai satu keputusan, bukan empat tambalan berbeda.
+
+**Gradient dapat satu pengecualian.** `docs/DESIGN_SYSTEM.md` melarang gradient; bidang fallback adalah satu-satunya tempat ia diizinkan, karena justru gradasi itu yang membedakan bidang yang memang dirancang kosong dari kartu berlatar solid di sekitarnya. Pengecualiannya ditulis eksplisit di kedua dokumen, bukan dibiarkan jadi kebiasaan tak tertulis.
+
+**Rekonsiliasi dokumen.** Bagian Design System di `docs/GUIDE.md` masih berhenti di keputusan 2026-08-14 (warna + tipografi) dan belum menyebut apa pun dari Sesi 9. Sekarang ditambah empat sub-bagian: sistem ikon (Lucide lewat Blade, dan kenapa `codeat3` diganti `mallardduck`), prinsip animasi lengkap dengan aturan `prefers-reduced-motion` untuk animasi berulang, pemakaian dua berkas logo, dan fallback state. Ditutup penegasan hubungan kedua dokumen: GUIDE ringkasan keputusan, DESIGN_SYSTEM detail teknis, dan kalau bentrok **GUIDE yang menang**.
+
+Tiga bagian `DESIGN_SYSTEM.md` yang ternyata sudah tidak cocok dengan kodenya ikut diperbaiki: splash dilepas pada `DOMContentLoaded` (dokumennya masih menulis `window.load`), `Logo1.svg` juga dipakai sebagai `brandLogo` panel Filament, dan panel kanan halaman masuk sekarang punya jalur fallback.
+
+**`docs/hostinger.md`** — catatan `ext-gd` di Langkah 1. Bukan sekadar "pastikan aktif", tapi kenapa: `simplesoftwareio/simple-qrcode` (QR e-tiket sejak D6) mensyaratkannya, dan tanpa itu Composer menolak memasang paket apa pun sambil menyebut nama paket yang salah di pesan galatnya. Ditambah perintah pemeriksaannya di server (`php -m | grep -i '^gd$'`) dan urutannya: nyalakan sebelum `composer install`, bukan sesudah.
+
+---
+
+## 2026-08-28 — Sesi 9: redesign visual & component system
+
+Sesi tampilan murni. Tidak ada alur, logic, atau skema transaksi yang berubah — **181 test / 737 assertion** hijau (170 lama + 11 baru), `migrate:fresh --seed` bersih, `npm run build` sukses, Pint lulus.
+
+**Ikon.** `codeat3/blade-lucide-icons` yang direncanakan sudah tidak ada di Packagist; penggantinya `mallardduck/blade-lucide-icons` 2.0.8 (prefix `lucide`). `blade-ui-kit/blade-icons` dan `blade-heroicons` ternyata sudah ikut terpasang lewat Filament, jadi tidak ada dependensi ikon kedua yang perlu ditambah. Ikon dirender PHP-side lewat komponen Blade — bundle JS tidak bertambah sama sekali (95 KB, gzip 35 KB).
+
+Kolom `categories.icon` yang sejak D7 ditandai "belum dipakai" akhirnya dipakai: jadi ikon di grid kategori homepage. Field-nya di `CategoryResource` diubah dari teks bebas jadi `Select` berbasis `Category::ICON_OPTIONS` — daftar tertutup, karena nilai karangan akan melempar `SvgNotFound` di halaman publik, bukan di panel tempat mengetiknya.
+
+**Komponen baru.** `x-badge-chip` (chip di atas foto kartu trip), `x-icon-circle`, `x-stat-bar`, `x-avatar-cluster` (inisial, bukan foto — kolom foto profil belum ada), `x-glass-input` (khusus halaman masuk/daftar; form booking tetap `x-form-field` supaya form transaksi seragam), `x-auth-split`, `x-loading-splash`, `x-submit-overlay`, plus layout `x-layouts.auth`.
+
+**Halaman masuk & daftar** jadi dua kolom di desktop, satu kolom di ponsel. Panel kanan memuat foto trip terbit dan kutipan review asli lewat View composer — kalau database masih kosong, bagian itu hilang sendiri, tidak diisi contoh karangan. Toggle tampil/sembunyi kata sandi pakai Alpine, bukan komponen React dari referensi. Logic Socialite tidak disentuh.
+
+**Baris statistik homepage** menghitung tiga angka dari database (jadwal lampau yang punya booking terkonfirmasi, mitra `approved`, peserta pada booking terkonfirmasi/selesai) dan **menyembunyikan seksinya kalau salah satu masih nol** — ada test yang menjaga keduanya. Rata-rata rating di kartu trip datang dari `withCount`/`withAvg` sebagai subquery; kartu di halaman yang tidak menghitungnya tidak menampilkan apa-apa, jadi tidak ada query per kartu yang menyelinap masuk.
+
+**Carousel review** di detail trip pakai Alpine `x-transition` (fade + geser kecil). Seluruh ulasan halaman itu tetap ada di DOM supaya terbaca pembaca layar dan ketemu Ctrl+F; paginasi lama tetap di bawahnya. Daftar "Sudah/Belum termasuk" dipecah per baris dengan ikon check/x — rencana perjalanan sengaja dibiarkan paragraf utuh.
+
+**Loading screen** memakai logo bentuk (`logo2.svg`) dengan pulsing scale. Bukan stroke-dasharray: berkas logonya hasil trace berisi ratusan path *fill*, bukan garis, jadi teknik "menggambar garis" tidak berlaku. Splash dilepas pada `DOMContentLoaded` (bukan `window.load` yang menunggu semua gambar), punya `<noscript>` penyembunyi dan timer penjaga, dan animasinya dimatikan penuh — bukan dipercepat — saat `prefers-reduced-motion` aktif.
+
+**Panel Filament.** `AccountWidget` dan `FilamentInfoWidget` dicabut dari dashboard admin dan mitra (yang kedua memajang versi Filament + tautan dokumentasi ke staf yang tidak berkepentingan). Panel dapat `brandName`, `brandLogo`, dan favicon E-GOTO. Sembilan Resource dapat empty state kontekstual — ikon, judul, dan kalimat langkah berikutnya per layar, menggantikan satu ikon generik yang sama di mana-mana.
+
+**Aset logo.** Berkas SVG dari trace 343 KB dan 384 KB dioptimasi jadi ±74 KB dan ±79 KB dengan `viewBox` ditambahkan supaya bisa diskalakan; salinan asli disimpan di luar repo.
+
+**Catatan lingkungan:** `ext-gd` diaktifkan di `C:\xampp\php\php.ini` (backup `php.ini.bak-20260828`) — tanpa itu Composer menolak memasang paket apa pun karena `simplesoftwareio/simple-qrcode` mensyaratkannya. Ini juga blocker yang menggagalkan `minishlink/web-push` di sesi sebelumnya.
+
+---
+
 ## 2026-08-27 — D13: QA & berkas deploy
 
 Regression penuh V1 + V1.5 hijau: **170 test / 706 assertion**, `migrate:fresh --seed` bersih, `npm run build` sukses, Pint lulus, dan test penjaga N+1 di `PerformaTest` tetap lolos setelah semua fitur V1.5 masuk.
