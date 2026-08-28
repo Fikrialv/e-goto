@@ -4,6 +4,30 @@ Entri ringkas tiap iterasi selesai (aturan `CLAUDE.md` §6). Terbaru di atas.
 
 ---
 
+## 2026-08-28 — Sesi 11: latar putih, hero slider, aturan desain permanen
+
+**190 test / 786 assertion** hijau (6 test baru), Pint lulus, `npm run build` sukses. CSS turun **109 KB → 94 KB** (gzip 19,4 → 15,5) karena `welcome.blade.php` dibuang; JS tetap 95 KB.
+
+**Latar jadi putih murni.** Token `--color-background: #ffffff` ditambahkan dan `body` memakainya, menggantikan `mist-50`. Semua kartu `bg-white/70` → `bg-white` di 11 berkas: transparansi 70% di atas permukaan bertint itulah yang bikin kartu terbaca kotor, bukan lembut. Input dan dropdown ikut putih. Pita `mist-100` **dipertahankan** untuk selang-seling seksi — token `mist` sudah dingin (bertint teal), jadi ia memberi jeda tanpa menghangatkan halaman.
+
+**Satu blok krem betulan ditemukan dan diperbaiki:** `pages/payment.blade.php` memakai `bg-amber-50/60`. `amber-50` tidak ada di blok `@theme` project, jadi Tailwind memakai palet bawaannya yang hangat kekuningan — persis kesan yang dilarang. Panelnya jadi `bg-white` + border amber; perhatian sekarang datang dari garis dan eyebrow, bukan dari bidang kuning muda. Dua aside peringatan di halaman S&K dan Kebijakan Privasi mendapat perlakuan sama.
+
+**`backdrop-blur` dibatasi ke panel halaman masuk.** Sebelumnya bocor ke header sticky, chip di atas foto kartu trip, dan caption hero. Blur yang bertebaran adalah penanda cepat "template generik". Chip juga ganti tone: info netral sekarang `teal-50`, urgensi tetap amber solid.
+
+**`resources/views/welcome.blade.php` dihapus.** Berkas bawaan Laravel yang tidak pernah dirutekan (`/` mengarah ke `HomeController` sejak D1), isinya dump CSS Tailwind lengkap dengan violet/purple/indigo. Ini satu-satunya sumber temuan grep warna terlarang selain blok amber-50 di atas.
+
+**Hero slider** (`x-hero-slider`) — satu-satunya bangunan baru sesi ini. Slide dari trip `is_featured` terbit, maksimal 5. Di bawah 2 slide komponennya merender hero statis, bukan slider berdot tunggal yang tidak menuju ke mana-mana. Auto-advance 5 detik, transisi fade + geser 4px (250ms), berhenti saat hover **dan** saat ada elemen di dalamnya menerima fokus keyboard. Auto-advance **tidak pernah menyala** kalau `prefers-reduced-motion` aktif — dot tetap bisa diklik manual, jadi mematikan gerakan tidak berarti mematikan isinya. Alpine + CSS saja; nol library carousel pihak ketiga.
+
+Selama sampul belum diunggah, tiap slide memakai ikon fallback dari `categories.icon` masing-masing — lima slide tidak tampil sebagai lima bidang kembar. Ada test yang memeriksa dua path SVG berbeda benar-benar hadir di halaman.
+
+**`x-icon-circle`** dapat hover lift (angkat 2px + bayangan naik) yang dipasang di komponennya, bukan diulang di tiap pemanggil.
+
+**Favicon** memakai `logo2.svg` lewat `<link rel="icon" type="image/svg+xml">` di kedua layout dan di kedua panel Filament, dipasang di atas tautan PNG lama supaya browser modern memakainya. Ikon PWA di `manifest.json` masih PNG 192/512 bawaan D7.6 — manifest butuh raster, dan merasterisasi SVG butuh Imagick (GD tidak bisa membaca SVG). Tidak ada berkas logo ketiga di repo; peran ikon persegi diambil `logo2.svg` sesuai keputusan pemilik project.
+
+**Aturan permanen masuk `CLAUDE.md` §10** supaya sesi berikutnya tidak mengulang: latar wajib putih + daftar token krem yang dilarang berikut alasan teknisnya, larangan violet/purple/indigo sebagai elemen dominan (moodboard hanya untuk pola layout — warnanya selalu diganti token E-GOTO), aturan pemilihan berkas logo per konteks, dan larangan library carousel/animasi pihak ketiga. Perintah grep verifikasinya ditulis langsung di aturan itu. `docs/DESIGN_SYSTEM.md` dan bagian Design System `docs/GUIDE.md` disesuaikan.
+
+---
+
 ## 2026-08-28 — Sesi 10: fallback state + rekonsiliasi dokumen desain
 
 Lanjutan Sesi 9. **184 test / 747 assertion** hijau (3 test baru), Pint lulus, `npm run build` sukses (CSS 109 KB, JS 95 KB — tidak berubah, fallback murni CSS).

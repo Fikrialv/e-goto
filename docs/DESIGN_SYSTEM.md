@@ -11,7 +11,8 @@ Sumber tunggal: `resources/css/app.css`. Jangan tulis nilai hex langsung di Blad
 
 | Peran | Token | Dipakai untuk |
 |---|---|---|
-| Permukaan | `mist-50` … `mist-400` | latar halaman, kartu, garis pemisah |
+| Latar halaman | `--color-background` (#FFFFFF) | latar `body` semua halaman customer |
+| Permukaan | `mist-50` … `mist-400` | pita seksi, kartu, garis pemisah |
 | Teks & aksen | `teal-50` … `teal-900` | judul, teks isi, tautan, ikon informatif |
 | Aksi utama | `amber-500` / `amber-600` / `amber-700` | tombol CTA, eyebrow, fokus |
 
@@ -26,6 +27,32 @@ Gradient tidak dipakai. Kalau butuh kedalaman, pakai perbedaan `mist` bertingkat
 **Satu pengecualian:** bidang fallback gambar (`x-media-fallback`, lihat bagian
 "Fallback state" di bawah). Justru gradasi itu yang membedakan bidang kosong yang
 disengaja dari kartu berlatar solid di sekitarnya. Di luar itu, gradient tetap dilarang.
+
+### Latar wajib putih — dan kenapa krem dilarang
+
+Latar utama halaman customer adalah **putih murni** (`--color-background`, #FFFFFF).
+Kartu memakai `bg-white` penuh, bukan `bg-white/70` — transparansi di atas permukaan
+bertint membuat kartu terbaca kotor, bukan lembut.
+
+Pita `mist-100` **tetap boleh** untuk selang-seling seksi (Jadwal Terdekat, footer, seksi
+mitra). Token `mist` sudah dingin (#F6FAFA / #EAF3F3, bertint teal), jadi ia memberi jeda
+tanpa menghangatkan halaman.
+
+Yang **dilarang** sebagai latar: `amber-50`, `orange-50`, `stone-50`, `yellow-50`,
+`neutral-50`, dan hex apa pun yang condong kuning/coklat muda. Alasan teknisnya penting
+diingat: token-token itu **tidak** didefinisikan di blok `@theme`, jadi begitu dipakai,
+Tailwind memakai palet bawaannya yang hangat — hasilnya krem di samping teal, persis
+kesan "template generik" yang dilarang `CLAUDE.md` §10.
+
+`amber-100` (token brand, #FBEBD3) tetap boleh untuk **bidang kecil** — badge peringatan,
+lingkaran ikon aksen. Untuk panel atau aside berukuran besar, pakai `bg-white` dengan
+border amber: perhatian datang dari garis dan label, bukan dari bidang kuning muda.
+
+### Efek glass (`backdrop-blur`)
+
+Hanya di **kartu kutipan panel halaman masuk** (`x-auth-split`). Di luar itu dilarang —
+header, chip di atas foto, dan caption hero memakai latar solid. Blur yang bertebaran
+adalah salah satu penanda tercepat "template generik".
 
 ## Tipografi
 
@@ -144,10 +171,16 @@ Jangan tertukar — beda bentuk, beda tempat.
 | Berkas | Isi | Dipakai di |
 |---|---|---|
 | `public/images/Logo1.svg` | wordmark lengkap bertuliskan "e-goto" | footer, panel hero halaman masuk/daftar, `brandLogo` panel Filament |
-| `public/images/logo2.svg` | bentuk saja tanpa tulisan | loading screen, overlay submit |
+| `public/images/logo2.svg` | bentuk saja tanpa tulisan | loading screen, overlay submit, favicon tab |
 
 Alasan pemisahan: wordmark jadi tidak terbaca kalau diperkecil atau dianimasikan; bentuk
 saja tetap jelas di ukuran kecil.
+
+Tidak ada berkas logo ketiga. Peran "ikon persegi" (favicon, ikon aplikasi) diambil
+`logo2.svg`, dipasang sebagai `<link rel="icon" type="image/svg+xml">` **di atas** tautan
+PNG lama supaya browser modern memakainya. Ikon PWA di `manifest.json` masih PNG 192/512
+bawaan D7.6 — manifest butuh raster, dan merasterisasi SVG butuh Imagick (GD tidak bisa
+membaca SVG), jadi penggantiannya menunggu ekspor raster dari berkas asli.
 
 Kedua berkas sudah dioptimasi (presisi koordinat dipangkas, `viewBox` ditambahkan) — dari
 343 KB/384 KB turun ke ±74 KB/79 KB. Keduanya dipanggil lewat `<img>`, bukan di-inline ke
@@ -188,6 +221,23 @@ Ditambahkan pada sesi redesign:
 `x-glass-input` sengaja bukan pengganti `x-form-field`. Form booking dan form panel tetap
 memakai `x-form-field` — konsistensi form transaksi lebih penting daripada seragam dengan
 halaman masuk.
+
+## Hero slider
+
+Sumber slide: trip `is_featured` yang sudah terbit, **maksimal 5**.
+
+- **Kurang dari 2 slide → hero statis.** Slider satu slide dengan satu dot yang tidak
+  menuju ke mana-mana hanya menambah bingung.
+- Auto-advance **5 detik**, transisi **fade** + geser 4px (250ms) — bukan geser horizontal.
+- Berhenti saat kursor di atasnya (`mouseenter`) dan saat ada elemen di dalamnya menerima
+  fokus keyboard (`focusin`).
+- **Tidak pernah menyala** kalau `prefers-reduced-motion: reduce` aktif — dot tetap bisa
+  diklik manual, jadi mematikan gerakan tidak berarti mematikan isinya.
+- Dot indicator di bawah, dot aktif melebar; tiap dot punya teks `sr-only` berisi judul
+  tripnya, bukan sekadar nomor.
+- **Tanpa library carousel pihak ketiga.** Alpine `x-data` + `x-transition` + CSS saja.
+- Selama sampul belum diunggah, tiap slide memakai ikon fallback dari `categories.icon`
+  masing-masing — supaya lima slide tidak tampil sebagai lima bidang kembar.
 
 ## Fallback state — saat foto belum ada
 

@@ -307,6 +307,16 @@ Menggantikan arah "editorial hangat (sand/forest/terracotta)" yang diputuskan 20
 | Teks & aksen | **teal** (`teal-200` … `teal-900`) | Heading, body, tautan, badge sukses, kursi tersedia |
 | CTA & urgensi | **amber** (`amber-500/600/700`) | **Hanya** untuk aksi utama, state pending, dan "hampir habis" — tidak untuk dekorasi, supaya satu-satunya warna hangat di layar selalu berarti "klik ini" atau "perhatikan ini" |
 
+**Latar halaman wajib putih murni (#FFFFFF)** — ditetapkan 2026-08-28. Pita `mist-100`
+tetap dipakai untuk selang-seling seksi karena warnanya dingin (bertint teal), tapi latar
+utama dan kartu tidak boleh bertint. Dilarang keras sebagai latar: `amber-50`,
+`orange-50`, `stone-50`, `yellow-50`, `neutral-50`, dan hex apa pun yang condong kuning/
+coklat muda — token itu tidak ada di `@theme` project, jadi Tailwind memakai palet
+bawaannya yang hangat dan hasilnya krem di samping teal.
+
+Efek glass (`backdrop-blur`) **hanya** untuk kartu kutipan di panel halaman masuk. Di
+tempat lain latar solid — blur yang bertebaran adalah penanda cepat "template generik".
+
 Tiga warna inti diambil langsung dari logo:
 
 | Token | Hex | Peran |
@@ -358,14 +368,23 @@ Halus dan pendek. Tidak ada particle, gradient-shift, parallax, atau efek 3D. Se
 
 `prefers-reduced-motion: reduce` ditangani global di `app.css`. Animasi **berulang** (loading screen) dimatikan penuh di media query itu, bukan sekadar dipercepat — yang berdenyut cepat lebih mengganggu daripada yang berdenyut pelan.
 
+### Hero slider homepage
+
+Slide dari trip `is_featured` terbit, maksimal 5. Kurang dari 2 slide → hero statis, bukan
+slider berdot tunggal. Auto-advance 5 detik, transisi fade, berhenti saat hover/fokus, dan
+**tidak menyala sama sekali** kalau `prefers-reduced-motion` aktif (dot tetap bisa diklik).
+
+**Dilarang memasang library carousel pihak ketiga** (Swiper, Slick, Glide, dan sejenisnya).
+Alpine + CSS sudah cukup, dan tiap library tambahan melawan aturan performa di `CLAUDE.md` §9.
+
 ### Dua berkas logo — jangan tertukar
 
 | Berkas | Isi | Dipakai di |
 |---|---|---|
 | `public/images/Logo1.svg` | wordmark lengkap bertuliskan "e-goto" | footer, panel hero halaman masuk/daftar, brand logo panel Filament |
-| `public/images/logo2.svg` | bentuk saja, tanpa tulisan | loading screen, overlay saat submit booking/unggah bukti |
+| `public/images/logo2.svg` | bentuk saja, tanpa tulisan | loading screen, overlay submit, favicon tab (SVG) |
 
-Alasan pemisahan: wordmark tidak terbaca kalau diperkecil atau dianimasikan; bentuk saja tetap jelas di ukuran kecil. Kedua berkas sudah dioptimasi dan diberi `viewBox` supaya bisa diskalakan.
+Alasan pemisahan: wordmark tidak terbaca kalau diperkecil atau dianimasikan; bentuk saja tetap jelas di ukuran kecil. Kedua berkas sudah dioptimasi dan diberi `viewBox` supaya bisa diskalakan. **Tidak ada berkas ketiga** — peran ikon persegi (favicon) diambil `logo2.svg`; ikon PWA masih PNG bawaan D7.6 karena manifest butuh raster.
 
 ### Fallback state — saat foto belum ada
 
