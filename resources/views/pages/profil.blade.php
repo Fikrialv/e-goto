@@ -66,7 +66,8 @@
                 Kalau Anda juga rutin membawa rombongan, buka trip Anda di E-GOTO.
             </p>
             <a href="{{ route('partners.show') }}"
-               class="mt-4 inline-block rounded-full border border-mist-300 px-5 py-2.5 text-sm text-teal-700 transition-colors hover:border-teal-400">
+               class="mt-5 inline-flex items-center gap-2 rounded-full border border-mist-300 px-5 py-2.5 text-sm text-teal-700 transition duration-200 ease-out hover:-translate-y-0.5 hover:border-teal-400 hover:shadow-md hover:shadow-teal-900/5">
+                <x-lucide-handshake class="size-4" aria-hidden="true" />
                 Lihat syaratnya
             </a>
         </section>

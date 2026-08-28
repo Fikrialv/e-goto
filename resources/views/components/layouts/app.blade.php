@@ -17,6 +17,8 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="min-h-screen bg-mist-50 text-teal-800 font-sans">
+    <x-loading-splash />
+
     <a href="#konten" class="sr-only focus:not-sr-only focus:absolute focus:top-3 focus:left-3 focus:z-50 focus:rounded-full focus:bg-teal-800 focus:px-4 focus:py-2 focus:text-mist-50">
         Lompat ke konten
     </a>

@@ -188,6 +188,8 @@
             @enderror
 
             <form method="POST" action="{{ route('payments.store', $booking) }}" enctype="multipart/form-data" class="mt-5">
+                <x-submit-overlay message="Mengunggah bukti bayar…" />
+
                 @csrf
 
                 <label for="bukti" class="block text-sm font-medium text-teal-800">Berkas bukti transfer</label>

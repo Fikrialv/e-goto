@@ -6,6 +6,8 @@ use App\Contracts\MessagingService;
 use App\Contracts\PaymentGateway;
 use App\Contracts\TicketSigner;
 use App\Models\Category;
+use App\Models\Review;
+use App\Models\Trip;
 use App\Services\Messaging\WhatsAppLinkService;
 use App\Services\Payment\ManualQrisGateway;
 use App\Services\Ticket\HmacTicketSigner;
@@ -52,6 +54,28 @@ class AppServiceProvider extends ServiceProvider
                 now()->addHour(),
                 fn () => Category::query()->active()->orderBy('sort_order')->get()
             ));
+        });
+
+        /*
+         * Panel kanan halaman masuk/daftar. Isinya foto trip terbit + kutipan
+         * review asli — kalau database masih kosong, komponennya menyembunyikan
+         * bagian itu sendiri, bukan diisi contoh karangan. Di-cache karena dua
+         * halaman ini sering dibuka dan isinya jarang berubah.
+         */
+        View::composer('components.auth-split', function ($view) {
+            $view->with(Cache::remember('auth.hero', now()->addHour(), fn () => [
+                'heroTrip' => Trip::query()->published()
+                    ->whereNotNull('cover_image')
+                    ->latest('published_at')
+                    ->first(),
+                'heroReviews' => Review::query()->published()
+                    ->whereNotNull('comment')
+                    ->where('rating', '>=', 4)
+                    ->with('user:id,name')
+                    ->latest()
+                    ->take(2)
+                    ->get(),
+            ]));
         });
 
         /*

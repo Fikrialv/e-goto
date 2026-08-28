@@ -83,6 +83,54 @@
     }
 }
 
+/*
+ * Splash awal + overlay saat submit. Ditulis sebagai CSS biasa, bukan utility
+ * Tailwind, karena keduanya harus sudah bergaya benar sebelum satu baris
+ * JavaScript pun jalan — kalau tidak, logonya berkedip sebesar layar dulu.
+ */
+.splash {
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    display: grid;
+    place-items: center;
+    background-color: var(--color-mist-50);
+    transition: opacity 250ms ease-out;
+}
+
+.splash-mark {
+    width: clamp(5rem, 16vw, 8.5rem);
+    height: auto;
+    animation: splash-pulse 1.6s ease-in-out infinite;
+}
+
+/* Kelas dipasang app.js sesaat sebelum elemennya dibuang dari DOM. */
+.splash.splash-selesai {
+    opacity: 0;
+    pointer-events: none;
+}
+
+@keyframes splash-pulse {
+    0%, 100% { transform: scale(0.95); }
+    50% { transform: scale(1); }
+}
+
+.overlay-kirim {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    display: grid;
+    place-items: center;
+    background-color: color-mix(in srgb, var(--color-mist-50) 82%, transparent);
+    backdrop-filter: blur(2px);
+}
+
+.overlay-kirim-mark {
+    width: 3.5rem;
+    height: auto;
+    animation: splash-pulse 1.6s ease-in-out infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
     html {
         scroll-behavior: auto;
@@ -93,5 +141,12 @@
     *::after {
         animation-duration: 0.01ms !important;
         transition-duration: 0.01ms !important;
+    }
+
+    /* Animasi berulang tidak cukup dipercepat — yang berdenyut cepat justru
+       lebih mengganggu daripada yang berdenyut pelan. Dimatikan penuh. */
+    .splash-mark,
+    .overlay-kirim-mark {
+        animation: none !important;
     }
 }

@@ -28,15 +28,32 @@
             <p class="text-xs font-semibold tracking-[0.18em] text-amber-600 uppercase">{{ $trip->category->name }}</p>
             <h1 class="font-display mt-3 text-4xl leading-[1.05] font-extrabold tracking-[-0.03em] text-teal-900 sm:text-5xl">{{ $trip->title }}</h1>
 
-            @if ($trip->meeting_point)
-                <p class="mt-4 text-sm text-teal-600">Titik kumpul: <span class="text-teal-800">{{ $trip->meeting_point }}</span></p>
-            @endif
+            <div class="mt-5 flex flex-wrap items-center gap-x-6 gap-y-3 text-sm text-teal-600">
+                @if ($trip->meeting_point)
+                    <p class="inline-flex items-center gap-2">
+                        <x-lucide-map-pin class="size-4 shrink-0 text-teal-500" aria-hidden="true" />
+                        Titik kumpul: <span class="text-teal-800">{{ $trip->meeting_point }}</span>
+                    </p>
+                @endif
+
+                @if ($trip->difficulty_level)
+                    <p class="inline-flex items-center gap-2">
+                        <x-lucide-mountain class="size-4 shrink-0 text-teal-500" aria-hidden="true" />
+                        <span class="font-medium text-teal-800">{{ $trip->difficulty_level->label() }}</span>
+                    </p>
+                @endif
+
+                @if ($reviews->total() > 0)
+                    <p class="inline-flex items-center gap-2">
+                        <x-lucide-star class="size-4 shrink-0 fill-current text-amber-500" aria-hidden="true" />
+                        <span class="font-medium text-teal-800">{{ number_format((float) $ratingRata, 1, ',', '.') }}</span>
+                        dari {{ $reviews->total() }} penilaian
+                    </p>
+                @endif
+            </div>
 
             @if ($trip->difficulty_level)
-                <p class="mt-3 text-sm text-teal-600">
-                    <span class="font-medium text-teal-800">{{ $trip->difficulty_level->label() }}</span>
-                    &middot; {{ $trip->difficulty_level->description() }}
-                </p>
+                <p class="mt-3 text-sm leading-relaxed text-teal-600">{{ $trip->difficulty_level->description() }}</p>
             @endif
         </header>
     </div>
@@ -101,7 +118,31 @@
                             </button>
                         </h2>
                         <div x-show="terbuka === '{{ $kunci }}'" x-transition.opacity class="pb-6">
-                            <p class="leading-relaxed whitespace-pre-line text-teal-700">{{ $isi }}</p>
+                            {{-- Daftar fasilitas diisi mitra satu baris satu item, jadi
+                                 dipecah per baris supaya tiap poin dapat penanda ada/
+                                 tidak ada. Rencana perjalanan tetap paragraf utuh —
+                                 memecahnya per baris akan merusak alur ceritanya. --}}
+                            @if (in_array($kunci, ['includes', 'excludes'], true))
+                                <ul class="grid gap-2.5">
+                                    @foreach (preg_split('/
+
+|
+|
+/', trim($isi)) as $baris)
+                                        @continue (blank($baris))
+                                        <li class="flex items-start gap-2.5 text-sm leading-relaxed text-teal-700">
+                                            @if ($kunci === 'includes')
+                                                <x-lucide-check class="mt-0.5 size-4 shrink-0 text-teal-600" aria-hidden="true" />
+                                            @else
+                                                <x-lucide-x class="mt-0.5 size-4 shrink-0 text-teal-400" aria-hidden="true" />
+                                            @endif
+                                            {{ ltrim($baris, "-* 	") }}
+                                        </li>
+                                    @endforeach
+                                </ul>
+                            @else
+                                <p class="leading-relaxed whitespace-pre-line text-teal-700">{{ $isi }}</p>
+                            @endif
                         </div>
                     </section>
                 @endforeach
@@ -149,30 +190,87 @@
             @endif
 
             <section class="mt-14">
-                <h2 class="font-display text-2xl font-bold text-teal-900">Kata peserta</h2>
+                <x-section-heading eyebrow="Kata peserta" title="Yang bilang sudah ikut" />
 
                 @if ($reviews->isEmpty())
-                    <p class="mt-3 text-sm text-teal-600">Belum ada penilaian untuk trip ini.</p>
+                    <x-empty-state class="mt-8"
+                        title="Belum ada penilaian"
+                        message="Penilaian baru bisa ditulis peserta setelah tripnya selesai.">
+                        <x-slot:icon><x-lucide-message-circle class="size-6" /></x-slot:icon>
+                    </x-empty-state>
                 @else
-                    <p class="mt-2 text-sm text-teal-700">
-                        Rata-rata <strong class="text-teal-900">{{ number_format($ratingRata, 1, ',', '.') }}</strong> dari 5
-                        &middot; {{ $reviews->total() }} penilaian
-                    </p>
+                    {{-- Carousel, bukan daftar panjang: satu ulasan sekali baca lebih
+                         mungkin benar-benar dibaca. Indeks disimpan Alpine; semua
+                         ulasan halaman ini tetap ada di DOM supaya bisa dibaca
+                         pembaca layar dan tetap ketemu Ctrl+F. --}}
+                    <div x-data="{ aktif: 0, jumlah: {{ $reviews->count() }} }" class="mt-8">
+                        <div class="flex flex-wrap items-center justify-between gap-4">
+                            <x-avatar-cluster :names="$reviews->pluck('user.name')->filter()->all()"
+                                              :total="$reviews->total()">
+                                Dipercaya {{ $reviews->total() }} peserta
+                            </x-avatar-cluster>
 
-                    <ul class="mt-6 space-y-5">
-                        @foreach ($reviews as $ulasan)
-                            <li class="rounded-2xl border border-mist-200 bg-white/70 p-5">
-                                <p class="text-sm font-medium text-teal-900">
-                                    {{ $ulasan->user?->name ?? 'Peserta' }}
-                                    <span class="ml-2 text-xs font-normal text-teal-600">{{ $ulasan->rating }}/5</span>
+                            <p class="inline-flex items-center gap-2 text-sm text-teal-700">
+                                <x-lucide-star class="size-4 fill-current text-amber-500" aria-hidden="true" />
+                                Rata-rata <strong class="text-teal-900">{{ number_format((float) $ratingRata, 1, ',', '.') }}</strong> dari 5
+                            </p>
+                        </div>
+
+                        <div class="relative mt-6 min-h-56">
+                            @foreach ($reviews as $indeks => $ulasan)
+                                <figure x-show="aktif === {{ $indeks }}"
+                                        @if (! $loop->first) x-cloak @endif
+                                        x-transition:enter="transition duration-250 ease-out"
+                                        x-transition:enter-start="opacity-0 translate-y-2"
+                                        x-transition:enter-end="opacity-100 translate-y-0"
+                                        class="rounded-3xl border border-mist-200 bg-white/70 p-6 sm:p-8">
+                                    <div class="flex items-center gap-1 text-amber-500" aria-hidden="true">
+                                        @for ($bintang = 1; $bintang <= $ulasan->rating; $bintang++)
+                                            <x-lucide-star class="size-4 fill-current" />
+                                        @endfor
+                                    </div>
+                                    <span class="sr-only">{{ $ulasan->rating }} dari 5 bintang</span>
+
+                                    @if ($ulasan->comment)
+                                        <blockquote class="font-display mt-4 text-lg leading-relaxed text-teal-800">
+                                            {{ $ulasan->comment }}
+                                        </blockquote>
+                                    @endif
+
+                                    <figcaption class="mt-5 flex items-center gap-3 border-t border-mist-200 pt-4 text-sm">
+                                        <span class="flex size-9 items-center justify-center rounded-full bg-teal-700 text-xs font-semibold text-mist-50">
+                                            {{ Str::upper(Str::substr($ulasan->user?->name ?? 'P', 0, 1)) }}
+                                        </span>
+                                        <span>
+                                            <span class="block font-medium text-teal-900">{{ $ulasan->user?->name ?? 'Peserta' }}</span>
+                                            <span class="block text-xs text-teal-500">{{ $ulasan->created_at->translatedFormat('j F Y') }}</span>
+                                        </span>
+                                    </figcaption>
+                                </figure>
+                            @endforeach
+                        </div>
+
+                        @if ($reviews->count() > 1)
+                            <div class="mt-5 flex items-center justify-between gap-4">
+                                <p class="text-xs text-teal-500">
+                                    <span x-text="aktif + 1">1</span> dari {{ $reviews->count() }} di halaman ini
                                 </p>
-                                @if ($ulasan->comment)
-                                    <p class="mt-2 text-sm leading-relaxed text-teal-700">{{ $ulasan->comment }}</p>
-                                @endif
-                                <p class="mt-2 text-xs text-teal-500">{{ $ulasan->created_at->translatedFormat('j F Y') }}</p>
-                            </li>
-                        @endforeach
-                    </ul>
+
+                                <div class="flex gap-2">
+                                    <button type="button" @click="aktif = (aktif - 1 + jumlah) % jumlah"
+                                            class="flex size-10 items-center justify-center rounded-full border border-mist-300 text-teal-700 transition duration-200 ease-out hover:-translate-x-0.5 hover:border-teal-400 hover:text-amber-600">
+                                        <span class="sr-only">Ulasan sebelumnya</span>
+                                        <x-lucide-arrow-left class="size-4" aria-hidden="true" />
+                                    </button>
+                                    <button type="button" @click="aktif = (aktif + 1) % jumlah"
+                                            class="flex size-10 items-center justify-center rounded-full border border-mist-300 text-teal-700 transition duration-200 ease-out hover:translate-x-0.5 hover:border-teal-400 hover:text-amber-600">
+                                        <span class="sr-only">Ulasan berikutnya</span>
+                                        <x-lucide-arrow-right class="size-4" aria-hidden="true" />
+                                    </button>
+                                </div>
+                            </div>
+                        @endif
+                    </div>
 
                     <div class="mt-6">{{ $reviews->links() }}</div>
                 @endif

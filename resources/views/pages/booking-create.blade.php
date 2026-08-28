@@ -99,6 +99,7 @@
                   hapus(i) { if (this.peserta.length > 1) this.peserta.splice(i, 1) },
               }">
             @csrf
+            <x-submit-overlay message="Menyiapkan booking…" />
 
             <div class="flex flex-wrap items-end justify-between gap-3">
                 <div>

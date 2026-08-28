@@ -12,6 +12,25 @@ class Category extends Model
 {
     use HasFactory;
 
+    /**
+     * Ikon Lucide yang boleh dipilih admin, dipakai di grid kategori homepage.
+     * Daftar tertutup supaya nilai di database selalu punya berkas SVG-nya —
+     * nama karangan akan melempar SvgNotFound di halaman publik.
+     *
+     * @var array<string, string>
+     */
+    public const ICON_OPTIONS = [
+        'mountain' => 'Gunung',
+        'waves' => 'Laut / pantai',
+        'building-2' => 'Kota',
+        'tent' => 'Kemah',
+        'map' => 'Domestik',
+        'globe' => 'Internasional',
+        'compass' => 'Umum / aktivitas',
+        'footprints' => 'Jalan kaki',
+        'camera' => 'Wisata foto',
+    ];
+
     protected $fillable = [
         'name',
         'slug',

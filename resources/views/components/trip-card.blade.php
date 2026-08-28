@@ -17,19 +17,55 @@
         : ($schedule?->relationLoaded('prices') ? $schedule->prices->min('price') : null);
 
     $remaining = $schedule?->remainingQuota();
+
+    /*
+     * Rating hanya tampil kalau query pemanggil sudah menyertakan withAvg/
+     * withCount — atribut agregat, bukan relasi. Tanpa penjaga ini, kartu di
+     * halaman yang belum menghitungnya akan memicu satu query per kartu.
+     */
+    $ratingRata = $trip->reviews_avg_rating ?? null;
+    $jumlahUlasan = $trip->reviews_count ?? 0;
 @endphp
 
-<article {{ $attributes->merge(['class' => 'group flex h-full flex-col overflow-hidden rounded-2xl border border-mist-200 bg-white/70 transition-colors hover:border-mist-400']) }}>
-    <a href="{{ route('trips.show', $trip) }}" class="block" tabindex="-1" aria-hidden="true">
-        <x-trip-image :src="$trip->cover_image" :alt="$trip->title" :caption="$trip->category->name" class="aspect-[4/3] w-full" />
-    </a>
+<article {{ $attributes->merge(['class' => 'group flex h-full flex-col overflow-hidden rounded-2xl border border-mist-200 bg-white/70 transition duration-200 ease-out hover:-translate-y-0.5 hover:border-mist-400 hover:shadow-lg hover:shadow-teal-900/5']) }}>
+    <div class="relative">
+        <a href="{{ route('trips.show', $trip) }}" class="block" tabindex="-1" aria-hidden="true">
+            <x-trip-image :src="$trip->cover_image" :alt="$trip->title" :caption="$trip->category->name" class="aspect-[4/3] w-full" />
+        </a>
+
+        {{-- Chip ditempel di atas foto: status kuota adalah alasan orang klik
+             atau tidak, jadi harus terbaca sebelum mata turun ke teks. --}}
+        <div class="pointer-events-none absolute inset-x-3 top-3 flex items-start justify-between gap-2">
+            @if ($schedule)
+                <x-badge-chip>
+                    <x-lucide-calendar class="size-3.5" aria-hidden="true" />
+                    {{ $schedule->start_date->translatedFormat('j M') }}
+                </x-badge-chip>
+            @else
+                <x-badge-chip tone="muted">Jadwal menyusul</x-badge-chip>
+            @endif
+
+            @if ($remaining !== null)
+                @if ($remaining === 0)
+                    <x-badge-chip tone="muted">Kuota habis</x-badge-chip>
+                @elseif ($remaining <= 3)
+                    <x-badge-chip tone="urgent">
+                        <x-lucide-armchair class="size-3.5" aria-hidden="true" />
+                        Sisa {{ $remaining }}
+                    </x-badge-chip>
+                @endif
+            @endif
+        </div>
+    </div>
 
     <div class="flex flex-1 flex-col gap-3 p-5">
         <div class="flex items-center gap-2 text-xs text-teal-500">
             <span class="tracking-wide uppercase">{{ $trip->category->name }}</span>
             @if ($trip->meeting_point)
-                <span aria-hidden="true">&middot;</span>
-                <span class="truncate">{{ $trip->meeting_point }}</span>
+                <span class="inline-flex min-w-0 items-center gap-1">
+                    <x-lucide-map-pin class="size-3.5 shrink-0" aria-hidden="true" />
+                    <span class="truncate">{{ $trip->meeting_point }}</span>
+                </span>
             @endif
         </div>
 
@@ -39,30 +75,21 @@
             </a>
         </h3>
 
-        <div class="mt-auto flex flex-wrap items-center gap-2">
-            @if ($schedule)
-                <x-status-badge tone="neutral">
-                    {{ $schedule->start_date->translatedFormat('j M Y') }}
-                </x-status-badge>
+        @if ($ratingRata && $jumlahUlasan > 0)
+            <p class="flex items-center gap-1.5 text-sm text-teal-600">
+                <x-lucide-star class="size-4 fill-current text-amber-500" aria-hidden="true" />
+                <span class="font-medium text-teal-800">{{ number_format((float) $ratingRata, 1, ',', '.') }}</span>
+                <span class="text-teal-500">&middot; {{ $jumlahUlasan }} ulasan</span>
+            </p>
+        @endif
 
-                @if ($remaining === 0)
-                    <x-status-badge tone="danger">Kuota habis</x-status-badge>
-                @elseif ($remaining <= 3)
-                    <x-status-badge tone="warning">Sisa {{ $remaining }} kursi</x-status-badge>
-                @else
-                    <x-status-badge tone="success">Sisa {{ $remaining }} kursi</x-status-badge>
-                @endif
-            @else
-                <x-status-badge tone="neutral">Jadwal menyusul</x-status-badge>
-            @endif
-        </div>
-
-        <div class="flex items-end justify-between gap-3 border-t border-mist-200 pt-4">
+        <div class="mt-auto flex items-end justify-between gap-3 border-t border-mist-200 pt-4">
             <x-price-tag :amount="$startingPrice" label="mulai dari" size="sm" />
 
             <a href="{{ route('trips.show', $trip) }}"
-               class="text-sm font-medium text-teal-700 transition-colors hover:text-amber-600">
-                Lihat detail &rarr;
+               class="inline-flex items-center gap-1 text-sm font-medium text-teal-700 transition-colors hover:text-amber-600">
+                Lihat detail
+                <x-lucide-arrow-right class="size-4 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
             </a>
         </div>
     </div>

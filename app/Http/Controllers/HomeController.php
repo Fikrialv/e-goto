@@ -2,9 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\BookingStatus;
+use App\Enums\VendorStatus;
+use App\Models\BookingParticipant;
 use App\Models\Category;
 use App\Models\Trip;
 use App\Models\TripSchedule;
+use App\Models\Vendor;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Cache;
 
@@ -29,6 +33,10 @@ class HomeController extends Controller
                     'schedules' => fn ($query) => $query->upcoming()->orderBy('start_date'),
                     'schedules.prices',
                 ])
+                // Agregat rating ikut ditarik sebagai subquery supaya kartu bisa
+                // memajang bintang tanpa satu query tambahan per kartu.
+                ->withCount(['reviews' => fn ($query) => $query->published()])
+                ->withAvg(['reviews' => fn ($query) => $query->published()], 'rating')
                 ->latest('published_at')
                 ->take(6)
                 ->get();
@@ -53,6 +61,35 @@ class HomeController extends Controller
                 ->get();
         });
 
-        return view('pages.home', compact('featuredTrips', 'upcomingSchedules', 'categories'));
+        /*
+         * Angka di baris statistik. Semuanya hasil hitung nyata — kalau salah
+         * satunya masih nol, blade menyembunyikan seksinya daripada memajang
+         * angka yang tidak berarti (docs/DESIGN_SYSTEM.md).
+         *
+         * Cache 15 menit: tiga COUNT ini tidak berubah secepat daftar trip,
+         * dan homepage adalah halaman yang paling sering dibuka.
+         */
+        $stats = Cache::remember('home.stats', now()->addMinutes(15), function () {
+            return [
+                'tripTerlaksana' => TripSchedule::query()
+                    ->whereDate('start_date', '<', now()->toDateString())
+                    ->whereHas('bookings', fn ($query) => $query->whereIn('status', [
+                        BookingStatus::Confirmed,
+                        BookingStatus::Completed,
+                    ]))
+                    ->count(),
+                'mitraAktif' => Vendor::query()
+                    ->where('status', VendorStatus::Approved)
+                    ->count(),
+                'pesertaTerlayani' => BookingParticipant::query()
+                    ->whereHas('booking', fn ($query) => $query->whereIn('status', [
+                        BookingStatus::Confirmed,
+                        BookingStatus::Completed,
+                    ]))
+                    ->count(),
+            ];
+        });
+
+        return view('pages.home', compact('featuredTrips', 'upcomingSchedules', 'categories', 'stats'));
     }
 }

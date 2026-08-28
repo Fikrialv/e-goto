@@ -38,6 +38,8 @@ class CategoryController extends Controller
             ->whereHas('schedules', fn (Builder $query) => $this->applyScheduleFilters($query, $filters))
             ->withMin(['schedules as tanggal_terdekat' => fn ($query) => $query->upcoming()], 'start_date')
             ->addSelect(['harga_mulai' => $this->startingPriceSubquery()])
+            ->withCount(['reviews' => fn (Builder $query) => $query->published()])
+            ->withAvg(['reviews' => fn (Builder $query) => $query->published()], 'rating')
             // Closure eager-load menerima Relation, bukan Eloquent\Builder —
             // karena itu tanpa type hint di blok `with` ini.
             ->with([
