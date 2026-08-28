@@ -10,7 +10,7 @@
         <p class="mt-2 text-sm leading-relaxed text-teal-600">{{ $subtitle }}</p>
     @endif
 
-    <div class="mt-8 rounded-3xl border border-mist-200 bg-white/70 p-6 sm:p-8">
+    <div class="mt-8 rounded-3xl border border-mist-200 bg-white p-6 sm:p-8">
         {{ $slot }}
     </div>
 

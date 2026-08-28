@@ -9,7 +9,7 @@
 
     {{-- Peringatan angka sementara ditaruh di halaman, bukan cuma di dokumen
          internal — supaya angka yang belum divalidasi tidak ikut terbit diam-diam. --}}
-    <aside class="rounded-2xl border border-amber-500 bg-amber-100 px-5 py-4">
+    <aside class="rounded-2xl border border-amber-500 bg-white px-5 py-4">
         <p class="text-sm leading-relaxed text-teal-900">
             <span class="font-semibold">[SEMENTARA — validasi sebelum publish]</span>
             Persentase pengembalian dana dan biaya administrasi di halaman ini masih angka kerja

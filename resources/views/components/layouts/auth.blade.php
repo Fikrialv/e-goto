@@ -16,10 +16,13 @@
     <title>{{ $title ? $title.' — E-GOTO' : 'E-GOTO — Jalan bareng, urusannya beres' }}</title>
     <meta name="description" content="{{ $description }}">
     <meta name="theme-color" content="#077C82">
+    {{-- SVG lebih dulu: browser modern memakainya dan tetap tajam di semua
+         ukuran tab. PNG di bawahnya untuk browser lama dan ikon PWA. --}}
+    <link rel="icon" href="{{ asset('images/logo2.svg') }}" type="image/svg+xml">
     <link rel="icon" href="{{ asset('icons/icon-192.png') }}" sizes="192x192" type="image/png">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="min-h-screen bg-mist-50 text-teal-800 font-sans">
+<body class="min-h-screen bg-white text-teal-800 font-sans">
     <x-loading-splash />
 
     <main>

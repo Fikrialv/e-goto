@@ -34,7 +34,7 @@
                value="{{ $isPassword ? '' : old($name, $value) }}" @required($required)
                @error($name) aria-invalid="true" @enderror
                @if ($help || $errors->has($name)) aria-describedby="{{ $pesanId }}" @endif
-               {{ $attributes->merge(['class' => 'w-full rounded-2xl border border-mist-300 bg-mist-50/80 px-4 py-3 text-sm text-teal-900 transition-shadow placeholder:text-teal-400 focus:border-teal-400 focus:bg-mist-50 focus:ring-4 focus:ring-teal-400/15 focus:outline-none'.($isPassword ? ' pr-12' : '')]) }}>
+               {{ $attributes->merge(['class' => 'w-full rounded-2xl border border-mist-300 bg-white px-4 py-3 text-sm text-teal-900 transition-shadow placeholder:text-teal-400 focus:border-teal-400 focus:ring-4 focus:ring-teal-400/15 focus:outline-none'.($isPassword ? ' pr-12' : '')]) }}>
 
         @if ($isPassword)
             <button type="button" @click="terlihat = !terlihat"

@@ -12,18 +12,21 @@
     <meta name="description" content="{{ $description }}">
     <link rel="manifest" href="{{ asset('manifest.json') }}">
     <meta name="theme-color" content="#077C82">
+    {{-- SVG lebih dulu: browser modern memakainya dan tetap tajam di semua
+         ukuran tab. PNG di bawahnya untuk browser lama dan ikon PWA. --}}
+    <link rel="icon" href="{{ asset('images/logo2.svg') }}" type="image/svg+xml">
     <link rel="icon" href="{{ asset('icons/icon-192.png') }}" sizes="192x192" type="image/png">
     <link rel="apple-touch-icon" href="{{ asset('icons/icon-192.png') }}">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="min-h-screen bg-mist-50 text-teal-800 font-sans">
+<body class="min-h-screen bg-white text-teal-800 font-sans">
     <x-loading-splash />
 
     <a href="#konten" class="sr-only focus:not-sr-only focus:absolute focus:top-3 focus:left-3 focus:z-50 focus:rounded-full focus:bg-teal-800 focus:px-4 focus:py-2 focus:text-mist-50">
         Lompat ke konten
     </a>
 
-    <header x-data="{ menuTerbuka: false }" class="sticky top-0 z-40 border-b border-mist-200 bg-mist-50/90 backdrop-blur">
+    <header x-data="{ menuTerbuka: false }" class="sticky top-0 z-40 border-b border-mist-200 bg-white">
         <div class="mx-auto flex max-w-6xl items-center justify-between gap-6 px-4 py-4 sm:px-6 lg:px-8">
             <a href="{{ route('home') }}" class="font-display text-2xl font-bold tracking-tight text-teal-900">
                 E<span class="text-amber-600">·</span>GOTO
@@ -54,7 +57,7 @@
                         </button>
 
                         <div x-show="akunTerbuka" x-cloak x-transition.opacity @click.outside="akunTerbuka = false"
-                             class="absolute right-0 z-50 mt-2 w-48 rounded-2xl border border-mist-200 bg-mist-50 p-1.5 shadow-sm">
+                             class="absolute right-0 z-50 mt-2 w-48 rounded-2xl border border-mist-200 bg-white p-1.5 shadow-sm">
                             <a href="{{ route('profile.edit') }}" class="block rounded-xl px-3 py-2 text-sm text-teal-700 hover:bg-mist-100">Profil</a>
                             <a href="{{ route('bookings.index') }}" class="block rounded-xl px-3 py-2 text-sm text-teal-700 hover:bg-mist-100">Booking Saya</a>
                             <form method="POST" action="{{ route('logout') }}">

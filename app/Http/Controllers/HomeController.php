@@ -38,7 +38,9 @@ class HomeController extends Controller
                 ->withCount(['reviews' => fn ($query) => $query->published()])
                 ->withAvg(['reviews' => fn ($query) => $query->published()], 'rating')
                 ->latest('published_at')
-                ->take(6)
+                // Lima adalah batas slide hero (docs/DESIGN_SYSTEM.md); daftar
+                // ini juga yang mengisi grid "Trip populer" di bawahnya.
+                ->take(5)
                 ->get();
         });
 

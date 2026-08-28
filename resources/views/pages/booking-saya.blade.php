@@ -45,7 +45,7 @@
                         }
                     },
                  }"
-                 class="mt-6 rounded-2xl border border-mist-200 bg-white/70 px-5 py-4">
+                 class="mt-6 rounded-2xl border border-mist-200 bg-white px-5 py-4">
                 <p class="text-sm text-teal-700">
                     Mau diberi tahu saat pembayaran diverifikasi dan sehari sebelum berangkat?
                 </p>
@@ -77,7 +77,7 @@
         @else
             <ul class="mt-10 space-y-4">
                 @foreach ($bookings as $booking)
-                    <li class="rounded-2xl border border-mist-200 bg-white/70 p-5">
+                    <li class="rounded-2xl border border-mist-200 bg-white p-5">
                         <div class="flex flex-wrap items-start justify-between gap-3">
                             <div>
                                 <p class="font-display text-lg font-bold text-teal-900">

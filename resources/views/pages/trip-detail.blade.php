@@ -172,7 +172,7 @@
             {{-- Checklist perlengkapan menempel di kategori, bukan trip (PLAN.md §4).
                  Kategori tanpa checklist tidak meninggalkan judul menggantung. --}}
             @if (filled($trip->category->gear_checklist))
-                <section class="mt-12 rounded-3xl border border-mist-200 bg-white/70 p-6 sm:p-7">
+                <section class="mt-12 rounded-3xl border border-mist-200 bg-white p-6 sm:p-7">
                     <h2 class="font-display text-xl font-bold text-teal-900">Yang perlu Anda bawa</h2>
                     <p class="mt-1.5 text-sm text-teal-600">
                         Daftar bawaan standar untuk trip {{ Str::lower($trip->category->name) }}. Cek lagi H-1 sebelum berangkat.
@@ -223,7 +223,7 @@
                                         x-transition:enter="transition duration-250 ease-out"
                                         x-transition:enter-start="opacity-0 translate-y-2"
                                         x-transition:enter-end="opacity-100 translate-y-0"
-                                        class="rounded-3xl border border-mist-200 bg-white/70 p-6 sm:p-8">
+                                        class="rounded-3xl border border-mist-200 bg-white p-6 sm:p-8">
                                     <div class="flex items-center gap-1 text-amber-500" aria-hidden="true">
                                         @for ($bintang = 1; $bintang <= $ulasan->rating; $bintang++)
                                             <x-lucide-star class="size-4 fill-current" />
@@ -291,7 +291,7 @@
         {{-- Kolom kanan: jadwal, kuota, harga bertingkat, CTA --}}
         <aside id="jadwal" class="mt-12 lg:col-span-5 lg:mt-0">
             <div class="lg:sticky lg:top-24">
-                <div class="rounded-3xl border border-mist-200 bg-white/70 p-6">
+                <div class="rounded-3xl border border-mist-200 bg-white p-6">
                     <x-price-tag :amount="$hargaTermurah" label="mulai dari" size="lg" />
 
                     <h2 class="mt-6 text-xs font-semibold tracking-wide text-teal-500 uppercase">Jadwal tersedia</h2>

@@ -211,3 +211,100 @@ it('memasang fallback yang sama di panel halaman masuk', function () {
     $response->assertSee('from-mist-100', false);
     $response->assertDontSee('unsplash', false);
 });
+
+it('memakai latar putih, bukan off-white hangat, di halaman customer', function () {
+    tripPublished();
+
+    $home = $this->get(route('home'));
+    $masuk = $this->get(route('login'));
+
+    foreach ([$home, $masuk] as $response) {
+        $response->assertOk();
+        $response->assertSee('bg-white', false);
+        // Latar krem/off-white hangat dilarang (CLAUDE.md §10).
+        $response->assertDontSee('bg-amber-50', false);
+        $response->assertDontSee('bg-orange-50', false);
+        $response->assertDontSee('bg-stone-50', false);
+        $response->assertDontSee('bg-yellow-50', false);
+        $response->assertDontSee('bg-neutral-50', false);
+    }
+});
+
+it('tidak memakai warna di luar palet brand di halaman customer', function () {
+    tripPublished();
+
+    foreach ([route('home'), route('login'), route('register')] as $url) {
+        $response = $this->get($url);
+
+        $response->assertOk();
+        $response->assertDontSee('violet', false);
+        $response->assertDontSee('purple', false);
+        $response->assertDontSee('indigo', false);
+    }
+});
+
+it('membatasi efek glass ke panel halaman masuk saja', function () {
+    $trip = tripPublished();
+
+    // Halaman customer biasa: tidak ada backdrop-blur sama sekali.
+    $this->get(route('home'))->assertOk()->assertDontSee('backdrop-blur', false);
+
+    /*
+     * Kartu kutipan di halaman masuk baru dirender kalau ada review terbit —
+     * di situlah satu-satunya efek glass yang diizinkan berada.
+     */
+    $booking = bookingUntukStatistik($trip->schedules()->first(), BookingStatus::Completed, pax: 1);
+
+    Review::factory()->create([
+        'booking_id' => $booking->id,
+        'trip_id' => $trip->id,
+        'user_id' => $booking->user_id,
+        'rating' => 5,
+        'comment' => 'Panitianya sigap.',
+        'status' => ReviewStatus::Published,
+    ]);
+
+    $this->get(route('login'))->assertOk()->assertSee('backdrop-blur', false);
+});
+
+it('menjalankan hero slider saat trip pilihan dua atau lebih', function () {
+    foreach (range(1, 3) as $urutan) {
+        tripPublished()->update(['is_featured' => true]);
+    }
+
+    $response = $this->get(route('home'));
+
+    $response->assertOk();
+    $response->assertSee('aria-roledescription="carousel"', false);
+    $response->assertSee('Tampilkan trip ke-1');
+    // Auto-advance mati sendiri kalau pengguna minta gerakan dikurangi.
+    $response->assertSee('prefers-reduced-motion', false);
+});
+
+it('merender hero statis saat trip pilihan cuma satu', function () {
+    tripPublished()->update(['is_featured' => true]);
+
+    $response = $this->get(route('home'));
+
+    $response->assertOk();
+    $response->assertDontSee('aria-roledescription="carousel"', false);
+});
+
+it('membedakan ikon fallback tiap slide mengikuti kategorinya', function () {
+    $gunung = Category::factory()->create(['icon' => 'mountain', 'is_active' => true]);
+    $pantai = Category::factory()->create(['icon' => 'waves', 'is_active' => true]);
+
+    tripPublished($gunung)->update(['is_featured' => true]);
+    tripPublished($pantai)->update(['is_featured' => true]);
+
+    $response = $this->get(route('home'));
+
+    $response->assertOk();
+
+    // Dua berkas SVG berbeda harus sama-sama hadir di halaman.
+    $jalur = 'vendor/mallardduck/blade-lucide-icons/resources/svg/icons/';
+    foreach (['mountain', 'waves'] as $ikon) {
+        preg_match('/ d="([^"]+)"/', file_get_contents(base_path($jalur.$ikon.'.svg')), $cocok);
+        $response->assertSee(substr($cocok[1], 0, 30), false);
+    }
+});

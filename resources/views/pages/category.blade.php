@@ -47,7 +47,7 @@
                 {{-- Kelas toggle, bukan x-show: tanpa JS pun panel tetap tampil di desktop. --}}
                 <form id="panel-filter" method="GET" action="{{ route('categories.show', $category) }}"
                       :class="filterTerbuka ? 'block' : 'hidden lg:block'"
-                      class="mt-3 hidden space-y-5 rounded-2xl border border-mist-200 bg-white/70 p-5 lg:mt-0 lg:block">
+                      class="mt-3 hidden space-y-5 rounded-2xl border border-mist-200 bg-white p-5 lg:mt-0 lg:block">
                     {{--
                         Level fisik ditaruh paling atas: di kategori pendakian inilah
                         yang paling menentukan orang jadi ikut atau tidak, jauh di atas

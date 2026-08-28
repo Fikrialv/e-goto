@@ -13,7 +13,7 @@
         </p>
 
         <div class="mt-8 grid gap-6 md:grid-cols-2">
-            <div class="rounded-3xl border border-mist-200 bg-white/70 p-6">
+            <div class="rounded-3xl border border-mist-200 bg-white p-6">
                 <p class="text-xs font-semibold tracking-widest text-teal-500 uppercase">Kode booking</p>
                 <p class="mt-2 font-mono text-3xl font-semibold tracking-tight text-teal-900 sm:text-4xl">
                     {{ $booking->code }}
@@ -62,7 +62,7 @@
             </div>
 
             @if ($sudahKonfirmasi)
-                <div class="rounded-3xl border border-mist-200 bg-white/70 p-6">
+                <div class="rounded-3xl border border-mist-200 bg-white p-6">
                     <p class="text-xs font-semibold tracking-widest text-teal-500 uppercase">Scan QRIS</p>
                     <p class="mt-1 text-sm text-teal-600">{{ $instruksi->merchantName }}</p>
 
@@ -87,7 +87,7 @@
                 {{-- Konfirmasi metode pembayaran (D7.6 f). QRIS & form unggah baru
                      dirender setelah tombol di bawah ditekan — orang perlu tahu
                      lebih dulu bahwa pembayarannya diperiksa manusia. --}}
-                <div class="rounded-3xl border border-amber-500/40 bg-amber-50/60 p-6">
+                <div class="rounded-3xl border border-amber-500/40 bg-white p-6">
                     <p class="text-xs font-semibold tracking-widest text-amber-700 uppercase">Sebelum bayar</p>
 
                     <h2 class="mt-2 font-display text-xl font-bold text-teal-900">Begini cara pembayarannya diproses</h2>
@@ -99,7 +99,7 @@
                         <li>4. Setelah disetujui, e-tiket terbit otomatis untuk semua peserta.</li>
                     </ol>
 
-                    <p class="mt-4 rounded-2xl bg-white/70 px-4 py-3 text-sm leading-relaxed text-teal-700">
+                    <p class="mt-4 rounded-2xl bg-white px-4 py-3 text-sm leading-relaxed text-teal-700">
                         <strong class="text-teal-900">Pembayaran tidak langsung terkonfirmasi.</strong>
                         QRIS ini diverifikasi manual oleh admin, bukan sistem otomatis — jadi tiket tidak terbit
                         sedetik setelah Anda transfer.
@@ -164,7 +164,7 @@
         @endif
 
         @if ($sudahKonfirmasi)
-        <div class="mt-8 rounded-3xl border border-mist-200 bg-white/70 p-6 sm:p-8">
+        <div class="mt-8 rounded-3xl border border-mist-200 bg-white p-6 sm:p-8">
             <h2 class="font-display text-2xl font-bold text-teal-900">Unggah bukti pembayaran</h2>
             <p class="mt-1 text-sm leading-relaxed text-teal-600">
                 Unggah tangkapan layar atau foto struk transfer. Berkas disimpan tertutup dan hanya bisa dilihat

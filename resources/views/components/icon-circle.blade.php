@@ -17,7 +17,9 @@
     };
 @endphp
 
-<span {{ $attributes->merge(['class' => "inline-flex shrink-0 items-center justify-center rounded-full $sizeClass $toneClass"]) }}
+{{-- Angkat 2px + bayangan naik saat kartu induknya di-hover. Dipasang di sini,
+     bukan di tiap pemanggil, supaya gerakannya sama di semua grid. --}}
+<span {{ $attributes->merge(['class' => "inline-flex shrink-0 items-center justify-center rounded-full transition duration-200 ease-out group-hover:-translate-y-0.5 group-hover:shadow-md group-hover:shadow-teal-900/10 $sizeClass $toneClass"]) }}
       aria-hidden="true">
     {{ $slot }}
 </span>

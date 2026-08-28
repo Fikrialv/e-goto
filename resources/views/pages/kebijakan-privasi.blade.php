@@ -3,7 +3,7 @@
     title="Kebijakan Privasi"
     intro="Data apa yang kami kumpulkan, kenapa, berapa lama disimpan, dan siapa saja yang bisa melihatnya.">
 
-    <aside class="rounded-2xl border border-amber-500 bg-amber-100 px-5 py-4">
+    <aside class="rounded-2xl border border-amber-500 bg-white px-5 py-4">
         <p class="text-sm leading-relaxed text-teal-900">
             <span class="font-semibold">[SEMENTARA — validasi sebelum publish]</span>
             Jangka waktu penyimpanan data di halaman ini masih angka kerja dan belum final.

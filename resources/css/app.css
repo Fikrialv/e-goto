@@ -12,6 +12,12 @@
  * hangat di layar selalu berarti "aksi utama" atau "perhatikan ini".
  */
 @theme {
+    /* Latar halaman customer wajib putih murni. Off-white hangat (amber-50,
+       stone-50, dan sejenisnya) terbaca krem/kotor di samping teal, dan token
+       seperti itu tidak didefinisikan di sini — kalau dipakai, Tailwind memakai
+       palet bawaannya yang hangat. Lihat CLAUDE.md §10. */
+    --color-background: #ffffff;
+
     --font-sans: 'Inter Variable', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji';
     --font-display: 'Plus Jakarta Sans Variable', ui-sans-serif, system-ui, sans-serif;
 
@@ -47,7 +53,7 @@
     }
 
     body {
-        background-color: var(--color-mist-50);
+        background-color: var(--color-background);
         color: var(--color-teal-800);
         -webkit-font-smoothing: antialiased;
     }

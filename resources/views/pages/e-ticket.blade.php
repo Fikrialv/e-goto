@@ -88,7 +88,7 @@
         </div>
 
         @if (filled($trip->category->gear_checklist))
-            <section class="mt-10 rounded-3xl border border-mist-200 bg-white/70 p-6 sm:p-7">
+            <section class="mt-10 rounded-3xl border border-mist-200 bg-white p-6 sm:p-7">
                 <h2 class="font-display text-xl font-bold text-teal-900">Checklist sebelum berangkat</h2>
                 <p class="mt-1.5 text-sm text-teal-600">Bawaan standar trip {{ Str::lower($trip->category->name) }}.</p>
 

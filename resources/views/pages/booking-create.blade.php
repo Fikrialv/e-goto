@@ -36,7 +36,7 @@
             {{ $schedule->trip->title }}
         </h1>
 
-        <div class="mt-8 rounded-3xl border border-mist-200 bg-white/70 p-6 sm:p-8">
+        <div class="mt-8 rounded-3xl border border-mist-200 bg-white p-6 sm:p-8">
             <dl class="grid gap-5 sm:grid-cols-3">
                 <div>
                     <dt class="text-xs tracking-wide text-teal-500 uppercase">Tanggal berangkat</dt>
@@ -129,7 +129,7 @@
 
             <div class="mt-6 space-y-5">
                 <template x-for="(orang, i) in peserta" :key="i">
-                    <fieldset class="rounded-3xl border border-mist-200 bg-white/70 p-5 sm:p-6">
+                    <fieldset class="rounded-3xl border border-mist-200 bg-white p-5 sm:p-6">
                         <legend class="px-2 text-xs font-semibold tracking-widest text-teal-500 uppercase"
                                 x-text="i === 0 ? 'Ketua rombongan' : 'Peserta ' + (i + 1)"></legend>
 
@@ -202,7 +202,7 @@
             </button>
 
             @if ($opsi->isNotEmpty())
-                <section class="mt-10 rounded-3xl border border-mist-200 bg-white/70 p-6">
+                <section class="mt-10 rounded-3xl border border-mist-200 bg-white p-6">
                     <h2 class="font-display text-xl font-bold text-teal-900">Tambahan opsional</h2>
                     <p class="mt-1.5 text-sm text-teal-600">
                         Harga per orang, boleh dilewati. Jumlahnya tidak boleh melebihi jumlah peserta.

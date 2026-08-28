@@ -18,7 +18,7 @@
             <p class="mt-6 rounded-2xl bg-teal-50 px-4 py-3 text-sm text-teal-700">{{ session('status') }}</p>
         @endif
 
-        <form method="POST" action="{{ route('profile.update') }}" class="mt-8 grid gap-5 rounded-3xl border border-mist-200 bg-white/70 p-6 sm:p-8">
+        <form method="POST" action="{{ route('profile.update') }}" class="mt-8 grid gap-5 rounded-3xl border border-mist-200 bg-white p-6 sm:p-8">
             @csrf
             @method('PUT')
 
@@ -59,7 +59,7 @@
         </form>
     </div>
 
-        <section class="mt-12 rounded-3xl border border-mist-200 bg-white/70 p-6">
+        <section class="mt-12 rounded-3xl border border-mist-200 bg-white p-6">
             <p class="text-xs font-semibold tracking-widest text-teal-500 uppercase">Untuk penyelenggara</p>
             <h2 class="font-display mt-2 text-xl font-bold text-teal-900">Punya trip sendiri?</h2>
             <p class="mt-2 text-sm leading-relaxed text-teal-600">

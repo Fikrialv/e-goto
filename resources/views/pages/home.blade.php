@@ -42,22 +42,7 @@
             </div>
 
             <div class="lg:col-span-6">
-                <figure class="relative overflow-hidden rounded-3xl">
-                    <x-trip-image :src="$heroTrip?->cover_image" :alt="$heroTrip?->title ?? ''"
-                                  :caption="$heroTrip?->category->name ?? 'Foto trip menyusul'"
-                                  fallback-icon="mountain" eager
-                                  class="aspect-[4/3] w-full sm:aspect-[16/10]" />
-
-                    @if ($heroTrip)
-                        <figcaption class="absolute inset-x-4 bottom-4">
-                            <a href="{{ route('trips.show', $heroTrip) }}"
-                               class="inline-flex items-center gap-2 rounded-full bg-mist-50/95 px-4 py-2 text-sm font-medium text-teal-800 shadow-sm backdrop-blur-[2px] transition-colors hover:text-amber-600">
-                                <x-lucide-camera class="size-4" aria-hidden="true" />
-                                {{ Str::limit($heroTrip->title, 40) }}
-                            </a>
-                        </figcaption>
-                    @endif
-                </figure>
+                <x-hero-slider :trips="$featuredTrips" />
             </div>
         </div>
 
@@ -202,7 +187,7 @@
         <div class="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             @foreach ($categories as $category)
                 <a href="{{ route('categories.show', $category) }}"
-                   class="group flex items-center gap-4 rounded-2xl border border-mist-200 bg-white/70 px-6 py-6 transition duration-200 ease-out hover:-translate-y-0.5 hover:border-amber-500 hover:shadow-lg hover:shadow-teal-900/5">
+                   class="group flex items-center gap-4 rounded-2xl border border-mist-200 bg-white px-6 py-6 transition duration-200 ease-out hover:-translate-y-0.5 hover:border-amber-500 hover:shadow-lg hover:shadow-teal-900/5">
                     <x-icon-circle class="transition-colors group-hover:bg-amber-100 group-hover:text-amber-700">
                         @svg('lucide-'.($category->icon ?: 'compass'))
                     </x-icon-circle>

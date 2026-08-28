@@ -40,7 +40,7 @@
             </section>
         </div>
 
-        <section class="mt-14 rounded-3xl border border-mist-200 bg-white/70 p-6 sm:p-9">
+        <section class="mt-14 rounded-3xl border border-mist-200 bg-white p-6 sm:p-9">
             <p class="text-xs font-semibold tracking-widest text-teal-500 uppercase">Langkahnya</p>
 
             <ol class="mt-4 grid gap-4 text-sm leading-relaxed text-teal-700 sm:grid-cols-3">

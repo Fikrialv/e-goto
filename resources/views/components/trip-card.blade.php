@@ -27,7 +27,7 @@
     $jumlahUlasan = $trip->reviews_count ?? 0;
 @endphp
 
-<article {{ $attributes->merge(['class' => 'group flex h-full flex-col overflow-hidden rounded-2xl border border-mist-200 bg-white/70 transition duration-200 ease-out hover:-translate-y-0.5 hover:border-mist-400 hover:shadow-lg hover:shadow-teal-900/5']) }}>
+<article {{ $attributes->merge(['class' => 'group flex h-full flex-col overflow-hidden rounded-2xl border border-mist-200 bg-white transition duration-200 ease-out hover:-translate-y-0.5 hover:border-mist-400 hover:shadow-lg hover:shadow-teal-900/5']) }}>
     <div class="relative">
         <a href="{{ route('trips.show', $trip) }}" class="block" tabindex="-1" aria-hidden="true">
             <x-trip-image :src="$trip->cover_image" :alt="$trip->title" :caption="$trip->category->name" class="aspect-[4/3] w-full" />
