@@ -41,6 +41,9 @@ class PaymentResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->emptyStateIcon('heroicon-o-banknotes')
+            ->emptyStateHeading('Tidak ada pembayaran menunggu')
+            ->emptyStateDescription('Antrean bersih. Bukti bayar baru akan muncul di sini begitu customer mengunggahnya.')
             ->defaultSort('created_at', 'desc')
             ->columns([
                 Tables\Columns\TextColumn::make('booking.code')

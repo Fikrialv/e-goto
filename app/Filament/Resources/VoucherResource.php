@@ -124,6 +124,9 @@ class VoucherResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->emptyStateIcon('heroicon-o-ticket')
+            ->emptyStateHeading('Belum ada voucher')
+            ->emptyStateDescription('Buat voucher untuk promo tanggal tertentu atau kategori tertentu.')
             ->defaultSort('created_at', 'desc')
             ->columns([
                 Tables\Columns\TextColumn::make('code')->label('Kode')->searchable()->copyable(),

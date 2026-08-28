@@ -47,6 +47,9 @@ class VendorApplicationResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->emptyStateIcon('heroicon-o-inbox-arrow-down')
+            ->emptyStateHeading('Belum ada pengajuan mitra')
+            ->emptyStateDescription('Pengajuan dari halaman /jadi-mitra akan masuk ke sini.')
             ->defaultSort('created_at', 'desc')
             ->columns([
                 Tables\Columns\TextColumn::make('business_name')

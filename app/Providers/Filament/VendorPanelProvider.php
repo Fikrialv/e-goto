@@ -10,7 +10,6 @@ use Filament\Pages;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
-use Filament\Widgets;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
@@ -27,6 +26,10 @@ class VendorPanelProvider extends PanelProvider
             ->path('vendor')
             ->login()
             // Teal logo E-GOTO — sama dengan panel admin, lihat AdminPanelProvider.
+            ->brandName('E-GOTO')
+            ->brandLogo(asset('images/Logo1.svg'))
+            ->brandLogoHeight('1.6rem')
+            ->favicon(asset('icons/icon-192.png'))
             ->colors([
                 'primary' => Color::hex('#077C82'),
             ])
@@ -36,10 +39,13 @@ class VendorPanelProvider extends PanelProvider
                 Pages\Dashboard::class,
             ])
             ->discoverWidgets(in: app_path('Filament/Vendor/Widgets'), for: 'App\\Filament\\Vendor\\Widgets')
-            ->widgets([
-                Widgets\AccountWidget::class,
-                Widgets\FilamentInfoWidget::class,
-            ])
+            /*
+             * Widget bawaan starter kit dicabut: FilamentInfoWidget memajang
+             * versi Filament + tautan dokumentasi/GitHub ke staf yang tidak
+             * punya urusan dengan itu, dan AccountWidget mengulang identitas
+             * yang sudah ada di pojok kanan atas.
+             */
+            ->widgets([])
             ->middleware([
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,

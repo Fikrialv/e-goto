@@ -60,6 +60,9 @@ class BookingResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->emptyStateIcon('heroicon-o-clipboard-document-list')
+            ->emptyStateHeading('Belum ada pemesanan')
+            ->emptyStateDescription('Pemesanan trip Anda akan tampil di sini beserta kontak pesertanya.')
             ->defaultSort('created_at', 'desc')
             ->modifyQueryUsing(fn (Builder $query) => $query->with(['schedule.trip', 'user']))
             ->columns([

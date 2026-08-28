@@ -127,6 +127,9 @@ class TripResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->emptyStateIcon('heroicon-o-map')
+            ->emptyStateHeading('Belum ada trip')
+            ->emptyStateDescription('Ajukan trip baru — admin meninjau sebelum tayang.')
             ->defaultSort('created_at', 'desc')
             ->columns([
                 Tables\Columns\TextColumn::make('title')

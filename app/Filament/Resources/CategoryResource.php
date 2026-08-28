@@ -57,10 +57,16 @@ class CategoryResource extends Resource
                     ->required()
                     ->numeric()
                     ->default(0),
-                Forms\Components\TextInput::make('icon')
+                /*
+                 * Daftar tertutup, bukan teks bebas: nilainya dirender langsung
+                 * jadi komponen <x-lucide-*> di grid kategori homepage, dan nama
+                 * ikon yang tidak ada akan melempar SvgNotFound di halaman publik.
+                 */
+                Forms\Components\Select::make('icon')
                     ->label('Ikon')
-                    ->maxLength(255)
-                    ->helperText('Nama heroicon, mis. heroicon-o-sun — belum dipakai di tampilan publik.'),
+                    ->options(Category::ICON_OPTIONS)
+                    ->native(false)
+                    ->helperText('Tampil di grid kategori homepage. Kosongkan untuk memakai ikon kompas.'),
                 Forms\Components\Repeater::make('gear_checklist')
                     ->label('Checklist perlengkapan')
                     ->simple(
@@ -79,6 +85,9 @@ class CategoryResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->emptyStateIcon('heroicon-o-rectangle-stack')
+            ->emptyStateHeading('Belum ada kategori')
+            ->emptyStateDescription('Tambahkan kategori dulu — trip selalu menempel ke salah satunya.')
             ->defaultSort('sort_order')
             ->columns([
                 Tables\Columns\TextColumn::make('name')

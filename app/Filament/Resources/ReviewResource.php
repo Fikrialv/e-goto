@@ -35,6 +35,9 @@ class ReviewResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->emptyStateIcon('heroicon-o-chat-bubble-left-right')
+            ->emptyStateHeading('Belum ada penilaian')
+            ->emptyStateDescription('Penilaian muncul setelah peserta menyelesaikan tripnya.')
             ->defaultSort('created_at', 'desc')
             ->modifyQueryUsing(fn (Builder $query) => $query->with(['trip:id,title', 'user:id,name']))
             ->columns([
