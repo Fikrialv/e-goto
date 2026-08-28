@@ -31,7 +31,7 @@ class AdminPanelProvider extends PanelProvider
             ->brandName('E-GOTO')
             ->brandLogo(asset('images/Logo1.svg'))
             ->brandLogoHeight('1.6rem')
-            ->favicon(asset('icons/icon-192.png'))
+            ->favicon(asset('images/logo2.svg'))
             ->colors([
                 'primary' => Color::hex('#077C82'),
             ])
