@@ -17,9 +17,22 @@ class SecurityHeaders
     {
         $response = $next($request);
 
-        // Versi PHP persis adalah hadiah gratis buat siapa pun yang memindai
-        // target: ia memetakan langsung ke daftar CVE yang tinggal dicoba.
+        /*
+         * Versi PHP persis adalah hadiah gratis buat siapa pun yang memindai
+         * target: ia memetakan langsung ke daftar CVE yang tinggal dicoba.
+         *
+         * Dua panggilan, bukan satu, karena headernya bisa datang dari dua
+         * tempat. `expose_php=On` membuat PHP menambahkannya sendiri di level
+         * SAPI, di luar jangkauan HeaderBag Symfony — itu hanya bisa dicabut
+         * `header_remove()`. Membuangnya di satu tempat saja terlihat berhasil
+         * di test (di sana PHP tidak menambahkannya) sambil tetap bocor di
+         * server sungguhan.
+         */
         $response->headers->remove('X-Powered-By');
+
+        if (! headers_sent()) {
+            header_remove('X-Powered-By');
+        }
 
         $response->headers->set('X-Content-Type-Options', 'nosniff');
         $response->headers->set('X-Frame-Options', 'SAMEORIGIN');

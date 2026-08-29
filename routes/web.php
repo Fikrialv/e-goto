@@ -3,6 +3,7 @@
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\GoogleLoginController;
 use App\Http\Controllers\Auth\RegisteredUserController;
+use App\Http\Controllers\Auth\TwoFactorChallengeController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\HomeController;
@@ -14,6 +15,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PushSubscriptionController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\TicketController;
+use App\Http\Controllers\TransactionHistoryController;
 use App\Http\Controllers\TripController;
 use App\Http\Controllers\VendorProfileController;
 use Illuminate\Support\Facades\Route;
@@ -82,6 +84,19 @@ Route::post('/keluar', [AuthenticatedSessionController::class, 'destroy'])
  * Area customer. `role:customer` menolak admin/vendor dengan 403 (bukan
  * redirect) — halaman ini memang bukan milik mereka.
  */
+/*
+ * Tantangan verifikasi dua langkah untuk akun staf (D14+).
+ *
+ * Route web biasa, BUKAN halaman Filament: kalau ia hidup di dalam panel, ia
+ * ikut tertahan middleware panel yang justru sedang menahan orangnya, dan
+ * hasilnya pengalihan tanpa henti. Karena itu juga ia tidak boleh dipasangi
+ * RequireTwoFactor.
+ */
+Route::middleware(['auth', 'role:admin,vendor'])->group(function () {
+    Route::get('/verifikasi-dua-langkah', [TwoFactorChallengeController::class, 'create'])->name('two-factor.challenge');
+    Route::post('/verifikasi-dua-langkah', [TwoFactorChallengeController::class, 'store'])->name('two-factor.challenge.store');
+});
+
 Route::middleware(['auth', 'role:customer'])->group(function () {
     Route::get('/profil/lengkapi', [ProfileController::class, 'complete'])->name('profile.complete');
     Route::get('/profil/lewati', [ProfileController::class, 'skip'])->name('profile.skip');
@@ -89,6 +104,17 @@ Route::middleware(['auth', 'role:customer'])->group(function () {
     Route::put('/profil', [ProfileController::class, 'update'])->name('profile.update');
 
     Route::get('/booking-saya', [BookingController::class, 'index'])->name('bookings.index');
+
+    /*
+     * Riwayat Transaksi terpisah dari Booking Saya dengan sengaja: yang satu
+     * menjawab "trip saya apa saja", yang satu "uang saya ke mana saja".
+     * Pengajuan refund di-throttle karena ia membuat baris baru dari kiriman
+     * form, sama seperti pembuatan booking.
+     */
+    Route::get('/riwayat-transaksi', [TransactionHistoryController::class, 'index'])->name('transactions.index');
+    Route::post('/booking/{booking:code}/refund', [TransactionHistoryController::class, 'store'])
+        ->middleware('throttle:booking')
+        ->name('refunds.store');
     Route::get('/booking/{schedule}', [BookingController::class, 'create'])->name('bookings.create');
     Route::post('/booking/{schedule}', [BookingController::class, 'store'])
         ->middleware('throttle:booking')

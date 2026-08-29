@@ -2,6 +2,7 @@
 
 namespace App\Providers\Filament;
 
+use App\Http\Middleware\RequireTwoFactor;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -61,6 +62,11 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->authMiddleware([
                 Authenticate::class,
+                // Berjalan setelah Authenticate, jadi user pasti sudah dikenali.
+                // Akun yang belum menyalakan 2FA lewat begitu saja — memaksanya
+                // ke seluruh akun staf sekaligus akan mengunci pemilik project
+                // keluar begitu migration jalan.
+                RequireTwoFactor::class,
             ]);
     }
 }

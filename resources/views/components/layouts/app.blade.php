@@ -64,6 +64,7 @@
                              class="absolute right-0 z-50 mt-2 w-48 rounded-2xl border border-mist-200 bg-white p-1.5 shadow-sm">
                             <a href="{{ route('profile.edit') }}" class="block rounded-xl px-3 py-2 text-sm text-teal-700 hover:bg-mist-100">Profil</a>
                             <a href="{{ route('bookings.index') }}" class="block rounded-xl px-3 py-2 text-sm text-teal-700 hover:bg-mist-100">Booking Saya</a>
+                            <a href="{{ route('transactions.index') }}" class="block rounded-xl px-3 py-2 text-sm text-teal-700 hover:bg-mist-100">Riwayat Transaksi</a>
                             <form method="POST" action="{{ route('logout') }}">
                                 @csrf
                                 <button type="submit" class="w-full rounded-xl px-3 py-2 text-left text-sm text-teal-700 hover:bg-mist-100">Keluar</button>
@@ -100,6 +101,7 @@
                     <div class="grid gap-1">
                         <a href="{{ route('profile.edit') }}" class="rounded-lg px-3 py-2 text-sm text-teal-700 hover:bg-mist-100">Profil</a>
                         <a href="{{ route('bookings.index') }}" class="rounded-lg px-3 py-2 text-sm text-teal-700 hover:bg-mist-100">Booking Saya</a>
+                        <a href="{{ route('transactions.index') }}" class="rounded-lg px-3 py-2 text-sm text-teal-700 hover:bg-mist-100">Riwayat Transaksi</a>
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
                             <button type="submit" class="w-full rounded-lg px-3 py-2 text-left text-sm text-teal-700 hover:bg-mist-100">Keluar</button>

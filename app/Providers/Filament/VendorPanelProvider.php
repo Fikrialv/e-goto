@@ -2,6 +2,8 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Pages\Keamanan;
+use App\Http\Middleware\RequireTwoFactor;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -37,6 +39,11 @@ class VendorPanelProvider extends PanelProvider
             ->discoverPages(in: app_path('Filament/Vendor/Pages'), for: 'App\\Filament\\Vendor\\Pages')
             ->pages([
                 Pages\Dashboard::class,
+                // Kelas yang sama dengan panel admin, didaftarkan eksplisit
+                // karena discoverPages panel ini hanya menyapu folder Vendor.
+                // Mitra melihat data peserta dan menjalankan check-in, jadi
+                // akunnya juga pantas punya langkah kedua.
+                Keamanan::class,
             ])
             ->discoverWidgets(in: app_path('Filament/Vendor/Widgets'), for: 'App\\Filament\\Vendor\\Widgets')
             /*
@@ -59,6 +66,11 @@ class VendorPanelProvider extends PanelProvider
             ])
             ->authMiddleware([
                 Authenticate::class,
+                // Berjalan setelah Authenticate, jadi user pasti sudah dikenali.
+                // Akun yang belum menyalakan 2FA lewat begitu saja — memaksanya
+                // ke seluruh akun staf sekaligus akan mengunci pemilik project
+                // keluar begitu migration jalan.
+                RequireTwoFactor::class,
             ]);
     }
 }

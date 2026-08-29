@@ -40,6 +40,8 @@ class User extends Authenticatable implements FilamentUser
         'password',
         'remember_token',
         'provider_id',
+        'two_factor_secret',
+        'two_factor_recovery_codes',
     ];
 
     /**
@@ -52,7 +54,18 @@ class User extends Authenticatable implements FilamentUser
             'password' => 'hashed',
             'role' => UserRole::class,
             'admin_scope' => AdminScope::class,
+            // Rahasia TOTP tersimpan polos membuat dump database setara kunci
+            // ke seluruh akun staf — aturan enkripsi yang sama dengan NIK.
+            'two_factor_secret' => 'encrypted',
+            'two_factor_recovery_codes' => 'encrypted:array',
+            'two_factor_confirmed_at' => 'datetime',
         ];
+    }
+
+    /** Verifikasi dua langkah sudah aktif dan terbukti bisa dipakai. */
+    public function twoFactorAktif(): bool
+    {
+        return $this->two_factor_secret !== null && $this->two_factor_confirmed_at !== null;
     }
 
     /**
