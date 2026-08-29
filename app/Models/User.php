@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\AdminScope;
 use App\Enums\UserRole;
 use Database\Factories\UserFactory;
 use Filament\Models\Contracts\FilamentUser;
@@ -25,6 +26,7 @@ class User extends Authenticatable implements FilamentUser
         'email',
         'password',
         'role',
+        'admin_scope',
         'phone',
         'avatar',
         'provider',
@@ -49,7 +51,25 @@ class User extends Authenticatable implements FilamentUser
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'role' => UserRole::class,
+            'admin_scope' => AdminScope::class,
         ];
+    }
+
+    /**
+     * Apakah admin ini boleh mengurus bidang tertentu di panel admin.
+     *
+     * Tiga hal yang ditegakkan sekaligus, dan urutannya penting:
+     * non-admin selalu ditolak (scope tidak pernah memberi akses ke yang
+     * rolenya bukan admin), admin tanpa scope berakses penuh (keadaan pemilik
+     * project), dan admin ber-scope hanya cocok dengan scope-nya sendiri.
+     */
+    public function bolehMengurus(AdminScope $scope): bool
+    {
+        if ($this->role !== UserRole::Admin) {
+            return false;
+        }
+
+        return $this->admin_scope === null || $this->admin_scope === $scope;
     }
 
     /**
@@ -72,6 +92,19 @@ class User extends Authenticatable implements FilamentUser
     public function customerProfile(): HasOne
     {
         return $this->hasOne(CustomerProfile::class);
+    }
+
+    /**
+     * Profil usaha mitra.
+     *
+     * `trips.vendor_id` menyimpan `users.id`, jadi jalan dari trip ke profil
+     * usahanya selalu lewat sini — bukan lewat `vendors.id`.
+     *
+     * @return HasOne<Vendor, $this>
+     */
+    public function vendorProfile(): HasOne
+    {
+        return $this->hasOne(Vendor::class);
     }
 
     /** @return HasMany<Booking, $this> */

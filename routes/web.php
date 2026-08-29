@@ -15,6 +15,7 @@ use App\Http\Controllers\PushSubscriptionController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\TicketController;
 use App\Http\Controllers\TripController;
+use App\Http\Controllers\VendorProfileController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -25,6 +26,7 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/kategori/{category:slug}', [CategoryController::class, 'show'])->name('categories.show');
 Route::get('/trip/{trip:slug}', [TripController::class, 'show'])->name('trips.show');
+Route::get('/mitra/{vendor:slug}', [VendorProfileController::class, 'show'])->name('vendors.show');
 
 /*
  * Halaman legal & bantuan (D7.5). Ikut aturan yang sama: publik, tanpa `auth` —

@@ -2,7 +2,9 @@
 
 namespace App\Filament\Resources;
 
+use App\Enums\AdminScope;
 use App\Enums\IdType;
+use App\Filament\Concerns\DibatasiScopeAdmin;
 use App\Filament\Resources\CategoryResource\Pages;
 use App\Models\Category;
 use Filament\Forms;
@@ -14,6 +16,13 @@ use Illuminate\Support\Str;
 
 class CategoryResource extends Resource
 {
+    use DibatasiScopeAdmin;
+
+    public static function scopeAdmin(): AdminScope
+    {
+        return AdminScope::TripManager;
+    }
+
     protected static ?string $model = Category::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';

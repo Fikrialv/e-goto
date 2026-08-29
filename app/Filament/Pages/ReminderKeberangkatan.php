@@ -3,7 +3,9 @@
 namespace App\Filament\Pages;
 
 use App\Contracts\MessagingService;
+use App\Enums\AdminScope;
 use App\Enums\BookingStatus;
+use App\Filament\Concerns\DibatasiScopeAdmin;
 use App\Models\Booking;
 use Filament\Pages\Page;
 use Filament\Tables\Actions\Action;
@@ -22,6 +24,13 @@ use Illuminate\Database\Eloquent\Builder;
  */
 class ReminderKeberangkatan extends Page implements HasTable
 {
+    use DibatasiScopeAdmin;
+
+    public static function scopeAdmin(): AdminScope
+    {
+        return AdminScope::PaymentCs;
+    }
+
     use InteractsWithTable;
 
     protected static ?string $navigationIcon = 'heroicon-o-bell-alert';

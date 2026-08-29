@@ -25,6 +25,16 @@
      */
     $ratingRata = $trip->reviews_avg_rating ?? null;
     $jumlahUlasan = $trip->reviews_count ?? 0;
+
+    /*
+     * Nama mitra hanya tampil kalau pemanggilnya sudah meng-eager-load
+     * `vendor.vendorProfile` — penjaga yang sama dengan rating di atas. Di
+     * halaman profil mitra sendiri relasi ini sengaja tidak di-load: mengulang
+     * nama yang sudah jadi judul halaman cuma menambah kebisingan.
+     */
+    $mitra = $trip->relationLoaded('vendor') && $trip->vendor?->relationLoaded('vendorProfile')
+        ? $trip->vendor->vendorProfile
+        : null;
 @endphp
 
 <article {{ $attributes->merge(['class' => 'group flex h-full flex-col overflow-hidden rounded-2xl border border-mist-200 bg-white transition duration-200 ease-out hover:-translate-y-0.5 hover:border-mist-400 hover:shadow-lg hover:shadow-teal-900/5']) }}>
@@ -80,6 +90,16 @@
                 <x-lucide-star class="size-4 fill-current text-teal-700" aria-hidden="true" />
                 <span class="font-medium text-teal-800">{{ number_format((float) $ratingRata, 1, ',', '.') }}</span>
                 <span class="text-teal-500">&middot; {{ $jumlahUlasan }} ulasan</span>
+            </p>
+        @endif
+
+        @if ($mitra?->slug)
+            <p class="text-sm text-teal-600">
+                oleh
+                <a href="{{ route('vendors.show', $mitra) }}"
+                   class="font-medium text-teal-800 underline underline-offset-4 transition-colors hover:text-amber-600">
+                    {{ $mitra->business_name }}
+                </a>
             </p>
         @endif
 

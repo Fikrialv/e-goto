@@ -44,6 +44,9 @@ class CategoryController extends Controller
             // karena itu tanpa type hint di blok `with` ini.
             ->with([
                 'category',
+                // Dua query tetap untuk seluruh halaman, bukan dua per kartu —
+                // penjaganya PerformaTest.
+                'vendor.vendorProfile',
                 'schedules' => fn ($query) => $query->upcoming()->orderBy('start_date'),
                 'schedules.prices',
             ])

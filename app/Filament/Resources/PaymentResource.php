@@ -2,7 +2,9 @@
 
 namespace App\Filament\Resources;
 
+use App\Enums\AdminScope;
 use App\Enums\PaymentStatus;
+use App\Filament\Concerns\DibatasiScopeAdmin;
 use App\Filament\Resources\PaymentResource\Pages;
 use App\Models\Payment;
 use Filament\Forms\Form;
@@ -21,6 +23,13 @@ use Illuminate\Database\Eloquent\Builder;
  */
 class PaymentResource extends Resource
 {
+    use DibatasiScopeAdmin;
+
+    public static function scopeAdmin(): AdminScope
+    {
+        return AdminScope::PaymentCs;
+    }
+
     protected static ?string $model = Payment::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-banknotes';

@@ -2,8 +2,10 @@
 
 namespace App\Filament\Resources;
 
+use App\Enums\AdminScope;
 use App\Enums\TripDifficulty;
 use App\Enums\TripStatus;
+use App\Filament\Concerns\DibatasiScopeAdmin;
 use App\Filament\Resources\TripResource\Pages;
 use App\Filament\Resources\TripResource\RelationManagers;
 use App\Models\Trip;
@@ -18,6 +20,13 @@ use Illuminate\Validation\Rule;
 
 class TripResource extends Resource
 {
+    use DibatasiScopeAdmin;
+
+    public static function scopeAdmin(): AdminScope
+    {
+        return AdminScope::TripManager;
+    }
+
     protected static ?string $model = Trip::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-map';

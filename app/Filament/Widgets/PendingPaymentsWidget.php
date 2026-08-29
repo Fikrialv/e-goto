@@ -2,6 +2,7 @@
 
 namespace App\Filament\Widgets;
 
+use App\Enums\AdminScope;
 use App\Enums\BookingStatus;
 use App\Enums\PaymentStatus;
 use App\Filament\Resources\PaymentResource;
@@ -20,6 +21,17 @@ use Filament\Widgets\StatsOverviewWidget\Stat;
 class PendingPaymentsWidget extends StatsOverviewWidget
 {
     protected static ?int $sort = -1;
+
+    /**
+     * Widget ini memajang angka antrean pembayaran dan menautkan ke layarnya.
+     * Manajer Trip & Mitra tidak punya urusan dengan antrean itu — memajang
+     * hitungannya di dashboard mereka cuma memberi tautan ke halaman yang akan
+     * menolaknya dengan 403.
+     */
+    public static function canView(): bool
+    {
+        return auth()->user()?->bolehMengurus(AdminScope::PaymentCs) ?? false;
+    }
 
     protected function getStats(): array
     {

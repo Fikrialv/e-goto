@@ -2,7 +2,9 @@
 
 namespace App\Filament\Resources;
 
+use App\Enums\AdminScope;
 use App\Enums\ReviewStatus;
+use App\Filament\Concerns\DibatasiScopeAdmin;
 use App\Filament\Resources\ReviewResource\Pages;
 use App\Models\Review;
 use Filament\Notifications\Notification;
@@ -20,6 +22,13 @@ use Illuminate\Database\Eloquent\Builder;
  */
 class ReviewResource extends Resource
 {
+    use DibatasiScopeAdmin;
+
+    public static function scopeAdmin(): AdminScope
+    {
+        return AdminScope::PaymentCs;
+    }
+
     protected static ?string $model = Review::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-star';

@@ -3,7 +3,9 @@
 namespace App\Filament\Resources;
 
 use App\Actions\ApproveVendorApplication;
+use App\Enums\AdminScope;
 use App\Enums\VendorStatus;
+use App\Filament\Concerns\DibatasiScopeAdmin;
 use App\Filament\Resources\VendorApplicationResource\Pages;
 use App\Models\VendorApplication;
 use Filament\Forms;
@@ -25,6 +27,13 @@ use Illuminate\Support\Str;
  */
 class VendorApplicationResource extends Resource
 {
+    use DibatasiScopeAdmin;
+
+    public static function scopeAdmin(): AdminScope
+    {
+        return AdminScope::PaymentCs;
+    }
+
     protected static ?string $model = VendorApplication::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-briefcase';

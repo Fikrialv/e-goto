@@ -50,6 +50,20 @@
                         dari {{ $reviews->total() }} penilaian
                     </p>
                 @endif
+
+                {{-- Siapa yang benar-benar membawa rombongan ini adalah bagian
+                     dari keputusan pesan/tidak, jadi ditaruh sebaris dengan
+                     titik kumpul dan rating — bukan di bawah lipatan. --}}
+                @if ($trip->vendor?->vendorProfile?->slug)
+                    <p class="inline-flex items-center gap-2">
+                        <x-lucide-handshake class="size-4 shrink-0 text-teal-500" aria-hidden="true" />
+                        Diselenggarakan
+                        <a href="{{ route('vendors.show', $trip->vendor->vendorProfile) }}"
+                           class="font-medium text-teal-800 underline underline-offset-4 transition-colors hover:text-amber-600">
+                            {{ $trip->vendor->vendorProfile->business_name }}
+                        </a>
+                    </p>
+                @endif
             </div>
 
             @if ($trip->difficulty_level)

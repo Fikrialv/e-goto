@@ -2,8 +2,10 @@
 
 namespace App\Filament\Resources;
 
+use App\Enums\AdminScope;
 use App\Enums\VoucherScope;
 use App\Enums\VoucherType;
+use App\Filament\Concerns\DibatasiScopeAdmin;
 use App\Filament\Resources\VoucherResource\Pages;
 use App\Models\Category;
 use App\Models\Trip;
@@ -25,6 +27,13 @@ use Illuminate\Validation\Rule;
  */
 class VoucherResource extends Resource
 {
+    use DibatasiScopeAdmin;
+
+    public static function scopeAdmin(): AdminScope
+    {
+        return AdminScope::TripManager;
+    }
+
     protected static ?string $model = Voucher::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-ticket';

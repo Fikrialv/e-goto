@@ -24,6 +24,7 @@ class TripController extends Controller
         // sengaja tanpa type hint di sini.
         $trip->load([
             'category',
+            'vendor.vendorProfile',
             'images',
             'schedules' => fn ($query) => $query->upcoming()->orderBy('start_date'),
             'schedules.prices' => fn ($query) => $query->orderBy('min_pax'),
@@ -36,6 +37,7 @@ class TripController extends Controller
             ->whereKeyNot($trip->getKey())
             ->with([
                 'category',
+                'vendor.vendorProfile',
                 'schedules' => fn ($query) => $query->upcoming()->orderBy('start_date'),
                 'schedules.prices',
             ])
