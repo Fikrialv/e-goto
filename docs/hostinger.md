@@ -38,6 +38,13 @@ Tugas periodik jalan lewat cron `schedule:run`.
    `composer install` — bukan sesudahnya.
 4. **Advanced → SSH Access**: aktifkan, catat host/port/user.
 
+### `expose_php`
+
+Kalau hPanel mengizinkan mengubah `expose_php`, matikan (`Off`). Aplikasi sudah
+membuang header `X-Powered-By` lewat middleware, tapi mematikannya di level PHP
+menutup jalur yang sama satu lapis lebih awal — versi PHP persis memetakan
+langsung ke daftar CVE yang tinggal dicoba.
+
 ## 2. Database
 
 1. hPanel → **Databases → MySQL Databases**: buat database + user, beri hak penuh.
@@ -152,6 +159,11 @@ hPanel → **Advanced → Cron Jobs**, tambah satu entri **tiap menit**:
 Tanpa ini, `bookings:expire` tidak pernah jalan dan booking kedaluwarsa terus
 menahan kuota — kursi habis padahal tidak ada yang membayar.
 
+Satu entri itu sudah cukup untuk **semua** pekerjaan terjadwal, termasuk
+`db:backup` harian 03:15 — Laravel yang memutuskan mana yang jalan menit itu.
+Jangan buat entri cron kedua untuk backup; dua penjadwal untuk satu perintah
+berarti dua dump bersamaan yang berebut I/O.
+
 ## 8. Google OAuth production
 
 1. Google Cloud Console → Credentials → OAuth client yang sudah ada.
@@ -180,6 +192,19 @@ ter-cache tidak membaca `.env` lagi.
 - [ ] Ganti password akun admin/vendor demo kalau sempat ikut ter-seed.
 - [ ] Tempel berkas QRIS merchant asli menggantikan `qris-placeholder.svg`.
 - [ ] Ganti ikon PWA (`public/icons/`) dengan artwork logo asli.
+- [ ] `curl -sI https://nama-domain/` — pastikan `X-Frame-Options`,
+      `X-Content-Type-Options`, dan `Strict-Transport-Security` muncul, dan
+      `X-Powered-By` **tidak** muncul.
+- [ ] Buka `/admin` dan `/vendor` dengan console browser terbuka, catat
+      pelanggaran `Content-Security-Policy-Report-Only`. Kalau bersih, baru
+      set `SECURITY_CSP_ENFORCE=true` lalu `php artisan config:cache`.
+- [ ] Nyalakan verifikasi dua langkah di akun admin lewat "Keamanan Akun",
+      **simpan 8 kode pemulihannya** — ia hanya ditampilkan sekali.
+- [ ] `php artisan db:backup` sekali manual, pastikan `.sql.gz` muncul.
+- [ ] Pastikan `LOG_STACK=daily` di `.env` produksi — tanpa itu
+      `storage/logs/laravel.log` tumbuh tanpa batas sampai kuota habis.
+- [ ] Tetapkan pembagian tugas admin kedua:
+      `php artisan admin:scope email@contoh.test payment_cs`.
 
 ## 11. Backup
 
@@ -187,6 +212,55 @@ Hostinger punya backup otomatis, tapi **aktif tidak sama dengan bisa
 di-restore**. Sekali di awal: minta restore ke staging/subdomain lain dan
 pastikan datanya benar-benar kembali. Selama itu belum diuji, anggap belum ada
 backup.
+
+### Backup mandiri (`db:backup`)
+
+Pelengkap, bukan pengganti. Backup yang hanya ada di panel penyedia punya titik
+gagal yang sama dengan servernya: kalau akunnya bermasalah, backup-nya ikut
+tidak bisa diambil.
+
+Perintahnya sudah terjadwal harian 03:15 lewat cron `schedule:run` di bagian 7.
+Yang perlu diperiksa di server:
+
+```bash
+# mysqldump ada di PATH Hostinger, jadi MYSQLDUMP_BINARY tidak perlu diisi
+which mysqldump
+
+# jalankan sekali manual untuk memastikan kredensialnya benar
+php artisan db:backup
+ls -la storage/app/backups
+```
+
+`.env` yang relevan:
+
+```
+# kosong = storage/app/backups. Isi hanya kalau mau di luar folder project.
+BACKUP_PATH=
+BACKUP_KEEP_DAYS=14
+```
+
+**Salin dump keluar server secara berkala.** Retensi 14 hari di mesin yang sama
+tidak menolong saat mesin itulah yang bermasalah — itu justru kasus yang paling
+sering membuat orang butuh backup.
+
+Berkas dump memuat seluruh isi tabel, termasuk hash password dan kolom NIK
+terenkripsi. Ia disimpan di `storage/`, **di luar `public_html`**, jadi tidak
+bisa diunduh siapa pun yang menebak URL. Kalau `BACKUP_PATH` diubah, pastikan
+tujuannya juga di luar document root.
+
+### Mode maintenance
+
+Untuk perawatan terjadwal, pakai halaman bermerek E-GOTO, bukan halaman default
+Laravel:
+
+```bash
+php artisan down --render="errors::503" --retry=60
+# ... kerjakan perawatannya ...
+php artisan up
+```
+
+`--render` menyiapkan halamannya lebih dulu, jadi ia tetap tampil walaupun
+aplikasinya sedang tidak bisa boot.
 
 ## Belum berlaku sekarang
 

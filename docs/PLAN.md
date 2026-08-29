@@ -371,7 +371,21 @@ Pola wajib mengikuti `app/Filament/Resources/CategoryResource.php` yang sudah te
 - Regression test full alur, cek responsive ulang semua halaman baru, Pint, deploy
 - ✅ **Output V1.5:** multi-mitra jalan, promo aktif, rating aktif, jalur private trip ada
 
-**D14 — Metode pembayaran kedua: Transfer Bank** (dipindahkan dari GUIDE "Backlog — Menunggu Giliran" ke fase resmi, 2026-08-29)
+**D14 — Riwayat Transaksi & Refund** (2026-08-29)
+
+Menjalankan kebijakan refund yang **sudah tertulis** di `GUIDE.md` bagian "Kebijakan Refund" — bukan membuat kebijakan baru. Tiga opsi saat trip dibatalkan penyelenggara, kuota minimum tidak tercapai, atau force majeure: refund 100%, pindah trip/jadwal, atau masuk waitlist.
+
+- **Halaman customer "Riwayat Transaksi"** (`/riwayat-transaksi`), terpisah dari Booking Saya dengan sengaja: Booking Saya menjawab "trip saya apa saja dan statusnya bagaimana", halaman ini menjawab "uang saya ke mana saja". Dua pertanyaan berbeda — yang pertama dibuka sebelum berangkat, yang kedua saat ada yang perlu dicocokkan atau disengketakan.
+- **Tabel `refund_requests`**: `booking_id`, `type` (Enum `RefundType`: `refund_100`/`ganti_trip`/`waitlist`), `status` (Enum `RefundStatus`: `diajukan`/`disetujui`/`ditolak`/`selesai`), `customer_note`, `admin_note`, `processed_by`, `processed_at`, timestamps.
+  - **`disetujui` terpisah dari `selesai`** dengan sengaja: menyetujui adalah keputusan, mengirim uang adalah pekerjaan. Menggabungkannya menghapus daftar "sudah disetujui tapi uangnya belum ditransfer" — persis daftar yang paling mahal kalau terlewat.
+  - **Tanpa unique index pada `booking_id`**: booking yang pengajuan pertamanya ditolak harus tetap bisa mengajukan ulang dengan opsi berbeda. Pencegahan pengajuan ganda dilakukan di Action dengan `lockForUpdate()`, bukan di skema.
+- **`RefundRequestResource` di panel admin** — aksi Setujui / Tolak / Tandai selesai. Alasan **wajib** saat menolak (penjaga yang sama dengan penolakan bukti bayar D5 dan penolakan trip mitra D9). Tidak ada tombol "buat baru": pengajuan datang dari customer, bukan dikarang admin.
+- **MITRA TIDAK TERLIBAT sama sekali.** Uang masuk ke rekening E-GOTO, jadi yang mengembalikannya juga E-GOTO. Tidak ada Resource kembar untuk model ini di panel vendor, dan tidak boleh ditambahkan.
+- **Halaman admin "Riwayat Customer"** — pembayaran + refund satu customer berdampingan dalam satu layar, read-only. Gunanya sempit dan tajam: saat ada sengketa ("saya sudah transfer", "refund saya belum masuk"), mencarinya lewat dua daftar terpisah yang difilter manual adalah cara paling mudah melewatkan satu baris. Keputusan tetap diambil di antrean masing-masing, supaya tiap perubahan status melewati penjaga yang sama.
+- Kursi dilepas saat pengajuan **refund 100% disetujui**, bukan saat uang terkirim — begitu keputusan diambil, peserta itu sudah pasti tidak berangkat. Opsi `ganti_trip` dan `waitlist` **tidak** melepas kursi lewat jalur ini: pemindahannya manual (selisih harga case-by-case per GUIDE), dan booking lama baru dibatalkan setelah penggantinya ada.
+- ✅ **Selesai kalau:** customer melihat seluruh pembayaran & refund-nya sendiri dan tidak pernah melihat milik orang lain; opsi karangan ditolak validasi server; pengajuan ganda ditolak selama yang pertama berjalan; penolakan tanpa alasan gagal; `disetujui` tidak bisa dilompati ke `selesai`; mitra dan Manajer Trip sama-sama ditolak 403 dari antrean refund. **Status: selesai, 21 test.**
+
+**D15 — Metode pembayaran kedua: Transfer Bank** (dipindahkan dari GUIDE "Backlog — Menunggu Giliran" ke fase resmi, 2026-08-29)
 
 - **Sejajar QRIS, bukan pengganti.** Customer memilih salah satu di panel konfirmasi metode yang **sudah ada** dari D7.6 (f) — menambah pilihan di layar yang sudah dibaca orang, bukan membuat layar baru yang harus dipelajari lagi.
 - Yang berbeda **cuma instruksi yang tampil**: nomor rekening, nama pemilik, nama bank. Nominal unik, kode booking di berita transfer, unggah bukti, `proof_hash` penanda duplikat, dan verifikasi manual admin **identik** dengan jalur QRIS. Tidak ada cabang logika kedua untuk uang — hanya cabang tampilan.
@@ -380,6 +394,25 @@ Pola wajib mengikuti `app/Filament/Resources/CategoryResource.php` yang sudah te
 - Config baru di `config/booking.php`: `bank_account_number`, `bank_account_name`, `bank_name` (env `BANK_ACCOUNT_NUMBER`, `BANK_ACCOUNT_NAME`, `BANK_NAME`). **Selama nomor rekening kosong, opsi transfer bank tidak dirender sama sekali** — pola yang sama dengan tombol Google di D3 dan widget chat: kode disiapkan penuh, dinyalakan oleh config.
 - Ancaman yang ditutup: metode dikirim dari form, jadi nilainya **wajib** divalidasi terhadap Enum (`Rule::enum`), bukan disimpan apa adanya — kalau tidak, metode karangan masuk ke database dan antrean verifikasi menampilkan instruksi yang tidak pernah ada. Nominal tetap dibaca dari `booking.total_amount`, tidak pernah dari request.
 - ✅ Selesai kalau: customer bisa memilih dua metode dan instruksi yang tampil sesuai pilihan; nominal unik sama persis di kedua jalur; admin melihat metode yang dipakai di antrean verifikasi; opsi transfer hilang total saat `BANK_ACCOUNT_NUMBER` kosong; metode karangan ditolak validasi; test pembayaran lama tidak ada yang merah.
+
+**D16 — Operasional & keamanan platform** (2026-08-29, dikerjakan bersamaan dengan D14)
+
+Bukan fitur produk; ini yang membuat produknya tetap bisa dijalankan dan tidak jadi pintu masuk.
+
+- **Header keamanan** lewat satu middleware global (`SecurityHeaders`), bukan per route — satu route yang terlupa adalah satu route tanpa perlindungan. Terpasang `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy`; `X-Powered-By` dibuang lewat `header_remove()` **dan** HeaderBag karena `expose_php=On` menambahkannya di level SAPI, di luar jangkauan Symfony.
+- **HSTS hanya di koneksi HTTPS** (`$request->secure()`). Terkirim dari `127.0.0.1`, browser mengunci host itu ke HTTPS selama `max-age` dan dev lokal tidak bisa dibuka lagi — penguncian yang tidak bisa dibatalkan dari sisi server. `preload` tidak dipasang karena satu arah.
+- **CSP dimulai Report-Only**, ditegakkan lewat `SECURITY_CSP_ENFORCE`. CSP yang ditegakkan sebelum diuji per halaman mematikan panel Filament tanpa suara — pelanggarannya muncul di console browser, bukan di log Laravel. `'unsafe-eval'`/`'unsafe-inline'` terpaksa diizinkan (Alpine mengevaluasi `x-data` saat runtime); yang tetap tertutup dan paling berharga adalah `default-src 'self'`.
+- **Verifikasi dua langkah (TOTP) untuk akun staf** — `pragmarx/google2fa` + `bacon/bacon-qr-code`, pustaka yang sama yang dipakai Laravel Fortify di baliknya. Fortify penuh **tidak** dipasang: ia membawa route, view, dan tumpukan autentikasi kedua yang berdampingan dengan alur `/masuk` sejak D3.
+  - Opsional per akun. Memaksanya ke seluruh akun staf sekaligus akan mengunci pemilik project keluar begitu migration jalan.
+  - Rahasia & kode pemulihan di-cast `encrypted` — aturan yang sama dengan NIK peserta. Rahasia polos membuat dump database setara kunci ke seluruh akun staf.
+  - Rahasia baru **disimpan setelah kodenya terbukti cocok**, bukan sebelum: orang yang gagal memindai QR tidak boleh terkunci oleh rahasia yang tidak pernah ada di HP-nya.
+  - Delapan kode pemulihan sekali pakai; yang terpakai langsung dibuang. Percobaan dibatasi 5 per 5 menit **per user** (penyerang bisa berganti IP, tidak bisa berganti akun sasaran). Sesi diputar ulang setelah kode benar.
+  - Tantangannya route web biasa, bukan halaman Filament — di dalam panel ia ikut tertahan middleware yang sedang menahan orangnya, dan hasilnya pengalihan tanpa henti.
+- **Mode maintenance bermerek** (`resources/views/errors/503.blade.php`), dipakai `php artisan down --render="errors::503" --retry=60`. Ditulis berdiri sendiri tanpa `@vite` dan tanpa query: halaman ini harus tampil justru saat aplikasinya tidak bisa diandalkan. Pertanyaan paling panik — "sudah bayar tapi belum diverifikasi" — dijawab di halaman itu sendiri.
+- **Backup mandiri** `db:backup`, terjadwal harian 03:15, `.sql.gz` di `storage/app/backups` (di luar `public/` dan di luar repo), retensi 14 hari. Password **tidak pernah** masuk argumen perintah — argumen proses terbaca semua pengguna lewat `ps aux`, yang di shared hosting berarti terbaca tetangga; kredensial lewat berkas sementara 0600 yang dihapus di `finally`. Pelengkap backup Hostinger, bukan pengganti: backup yang hanya ada di panel penyedia punya titik gagal yang sama dengan servernya.
+- **Rotasi log** `LOG_STACK=daily`, 14 hari. Sebelumnya stack jatuh ke `single` dan `laravel.log` tumbuh tanpa batas sampai kuota shared hosting habis.
+- **Health check** `/up` bawaan Laravel 12 sudah aktif lewat `withRouting(health: '/up')` — dikonfirmasi cukup, tidak perlu endpoint custom.
+- ✅ **Selesai kalau:** empat header tampil di halaman publik DAN di panel admin; HSTS tidak pernah terkirim lewat HTTP; CSP masih Report-Only sampai dinyalakan sadar; admin ber-2FA ditahan di `/admin` sampai kodenya benar; admin tanpa 2FA tidak terganggu; `db:backup` menghasilkan `.sql.gz` yang memuat `CREATE TABLE` dan membuang dump lewat retensi. **Status: selesai, 28 test (8 header + 7 maintenance + 13 dua langkah).**
 
 ---
 

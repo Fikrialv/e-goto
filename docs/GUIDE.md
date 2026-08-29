@@ -209,6 +209,8 @@ Enam hal yang tidak menambah alur baru, tapi memperbaiki pengalaman di alur yang
 - Web Push notification **opt-in** untuk pembayaran terverifikasi & pengingat H-1 — menumpang `manifest.json` + service worker yang sudah ada dari D7.6, izin browser hanya diminta setelah customer menekan tombolnya sendiri. Dipindahkan dari "Backlog — Menunggu Giliran" ke D12 pada 2026-08-27; detail di PLAN.md §7 blok D12
 - Vendor: daftar trip sedang/sudah berjalan + jumlah peserta
 - Teaser "Jadi Mitra E-GOTO?" tampil di homepage
+- Halaman publik profil mitra `/mitra/{slug}` — nama usaha, logo, deskripsi, badge "E-GOTO x [Nama Mitra]", dan daftar trip aktifnya. Nama mitra di kartu trip dan detail trip menautkan ke sini. Mitra yang belum disetujui dijawab 404, bukan halaman kosong. Mitra menyunting isinya sendiri lewat layar "Profil Usaha" di panel vendor
+- Halaman customer "Riwayat Transaksi" + sistem refund tiga opsi — detail di blok terpisah di atas
 - Transfer bank sebagai metode pembayaran kedua, sejajar QRIS — pola anti-fraud-nya sama persis (nominal unik, unggah bukti, verifikasi manual admin); yang berbeda cuma instruksi yang tampil: nomor rekening, bukan kode QR. **Bukan Virtual Account** (VA butuh payment gateway). Dipindahkan dari "Backlog — Menunggu Giliran" ke D14 pada 2026-08-29; detail di PLAN.md §7 blok D14
 
 **Output:** E-GOTO jadi wadah multi-mitra, customer dapat promo & bisa rating, ada jalur private trip.
@@ -221,6 +223,48 @@ Enam hal yang tidak menambah alur baru, tapi memperbaiki pengalaman di alur yang
 **Total estimasi V1 + V1.5: 11-14 hari kerja.** V2 menyusul setelah V1.5 terbukti stabil dipakai, bukan dipaksa masuk jendela waktu yang sama.
 
 **Catatan kriteria deploy.** Deploy Hostinger sengaja ditunda sampai V1 + V1.5 (D0-D13) selesai — **bukan** sampai seluruh "Backlog — Menunggu Giliran" atau "Model bisnis baru" selesai, karena kedua daftar itu memang open-ended dan tidak pernah "tuntas" secara desain. Kalau nanti pemilik project mau ubah kriteria ini (misal deploy lebih awal atau justru tunggu lebih lama), itu keputusan baru yang perlu ditulis ulang di sini, bukan diasumsikan.
+
+---
+
+## Pembagian Tugas Admin — terlaksana 2026-08-29
+
+Dipindahkan dari "Backlog — Menunggu Giliran" ke keputusan terlaksana.
+
+Dua pembagian tugas, **bukan** tiga role terpisah:
+
+| Pembagian | Yang dipegang |
+|---|---|
+| **Verifikator Pembayaran + CS** (`payment_cs`) | Antrean pembayaran, pengingat H-1, pengajuan mitra, moderasi ulasan, antrean refund, riwayat customer |
+| **Manajer Trip & Mitra** (`trip_manager`) | Trip, kategori, voucher |
+
+Ditegakkan lewat kolom `users.admin_scope` + Enum `AdminScope`, **bukan** role ketiga di `UserRole`. Role menentukan panel mana yang boleh dibuka; scope menentukan layar mana di dalam panel admin yang terlihat. Menambah role ketiga akan menyeret ulang `canAccessPanel()` dan middleware `role:` yang stabil sejak D1, demi pembagian yang cakupannya cuma di dalam satu panel.
+
+**Tanpa scope = akses penuh** — itu keadaan pemilik project, dan itu pula default setelah migration supaya tidak ada akun yang hilang haknya diam-diam. Penetapan lewat `php artisan admin:scope <email> <scope>`, bukan layar di panel: layar yang bisa mengubah hak akses adalah layar paling berharga untuk dibajak.
+
+**Spatie/Shield tidak dipasang.** Untuk dua pembagian tugas, paket itu membawa lima tabel dan sistem role kedua yang berdampingan dengan `UserRole` yang sudah ada — dua sumber kebenaran untuk pertanyaan yang sama. Kalau nanti butuh izin granular per aksi, Shield tetap bisa masuk di atas struktur ini.
+
+---
+
+## Verifikasi Dua Langkah Staf — terlaksana 2026-08-29
+
+Dipindahkan dari "Ditunda Sadar" karena prioritasnya naik: akun admin memegang tombol approve pembayaran dan penerbitan tiket, jadi satu kata sandi yang bocor cukup untuk menyetujui pembayaran yang tidak pernah masuk.
+
+TOTP (aplikasi authenticator), **opsional per akun**, tersedia di panel admin dan panel vendor lewat layar "Keamanan Akun". Delapan kode pemulihan sekali pakai. Rahasia dan kode pemulihan dienkripsi di database — aturan yang sama dengan NIK peserta.
+
+Memaksanya ke seluruh akun staf sekaligus **tidak** dilakukan: itu akan mengunci pemilik project keluar begitu migration jalan. Detail teknis di `PLAN.md` blok D16.
+
+---
+
+## Riwayat Transaksi & Refund — terlaksana 2026-08-29
+
+Sistem yang **menjalankan** kebijakan refund di atas secara tersistem — bukan kebijakan baru.
+
+- Customer punya halaman **Riwayat Transaksi** (`/riwayat-transaksi`), terpisah dari Booking Saya: yang satu menjawab "uang saya ke mana", yang satu "trip saya apa".
+- Tiga opsi pada kasus (a) dan (d) dicatat sebagai pengajuan `refund_requests`, diputuskan admin, lalu ditandai selesai setelah uangnya benar-benar dikirim — **disetujui dan selesai sengaja terpisah**.
+- **Mitra tidak terlibat sama sekali.** Uang masuk ke rekening E-GOTO, jadi yang mengembalikannya juga E-GOTO.
+- Kasus (b) dan (c) — pembatalan dari sisi peserta, 50% atau nihil — **belum** masuk sistem ini; tetap dilayani manual admin seperti sebelumnya. Yang ditambahkan sekarang adalah jalur tiga-opsi.
+
+Detail skema dan kriteria selesai di `PLAN.md` blok D14.
 
 ---
 
@@ -253,7 +297,6 @@ Aturan pakai: item di sini tidak boleh dikerjakan begitu saja. Pemilik project m
 
 ### Operasional & admin
 
-- **Pemecahan permission admin** — pembagian yang dimaksud: pemilik project sendiri memegang **Manajer Trip & Mitra** (CRUD trip, destinasi, kategori, mitra), admin kedua memegang **Verifikator Pembayaran digabung CS** (balas WA, approve/reject pembayaran) — cukup **2 pembagian tugas**, bukan 3 role terpisah. Ditegakkan lewat **permission granular** di Filament, bukan menambah role baru di enum; berbeda dari "role CS terpisah" di daftar Ditunda Sadar yang memang menambah role.
 - **Chatbot FAQ-only** — menjawab pertanyaan umum memakai API AI pihak ketiga, **read-only**, ada toggle aktif/nonaktif, dan mengeskalasi pertanyaan sulit ke WA admin. **Dilarang keras** menyentuh approve/reject pembayaran atau penerbitan tiket — jalur uang dan tiket tetap milik manusia. Ini **bukan** pembalikan penolakan "AI Assistant" di daftar Ditunda Sadar: yang ditolak itu asisten serba bisa dengan akses luas, yang ini kotak tanya-jawab sempit. **Prinsip permanen, bukan batasan sementara:** approve/reject pembayaran dan penerbitan tiket wajib tetap lewat layar verifikasi Filament (bukti-vs-nominal berdampingan, banner duplikat) yang sudah dibangun di D5 — berlaku tetap walau chatbot ini nanti naik level ke WA Business API, tidak boleh dilewati lewat jalur chat manapun.
 - **Export manifest PDF untuk trip pendakian** — daftar peserta beserta kontak darurat, siap cetak atau dikirim ke basecamp, karena pos pendakian memang memintanya dalam bentuk kertas.
 - **Diskon otomatis berjenjang per jumlah pax** — **bukan pekerjaan baru dari nol**: harga bertingkat (`trip_prices`, mis. Reguler vs Rombongan) sudah berjalan sejak D2. Yang dimaksud di sini penyempurnaannya — lebih dari dua tingkat, atau potongan dihitung dari formula alih-alih tabel harga yang diisi manual tiap jadwal.
@@ -289,7 +332,7 @@ Kelompok ini **bukan** fitur tambahan, melainkan arah bisnis. Masing-masing butu
 
 Berbeda dari "Menunggu Giliran" di atas, isi bagian ini sengaja **tidak** dibangun — bukan sekadar belum dijadwalkan.
 
-Dashboard analitik penuh, Ledger/Buku Kas, AI Assistant (asisten serba bisa berakses luas — beda dari chatbot FAQ-only di Menunggu Giliran), Web Builder (kebebasan menyusun halaman — beda dari Theme Preset Switcher di Menunggu Giliran), Ticket Designer custom, payment gateway otomatis (Midtrans — nanti setelah NIB/UMKM), WhatsApp Business API resmi (link `wa.me` manual cukup dulu — alasan lengkap di catatan bawah), GPS satelit per pendaki (perangkat satelit untuk jalur tanpa sinyal — beda dari live tracking kendaraan grup di Menunggu Giliran), audit log lengkap, 2FA staf, multi-bahasa penuh, dark mode, role CS terpisah dari Admin, sistem affiliate referral berkomisi (customer-refer-customer — **tidak ada rencana dibangun**, sudah dikonfirmasi tidak diperlukan).
+Dashboard analitik penuh, Ledger/Buku Kas, AI Assistant (asisten serba bisa berakses luas — beda dari chatbot FAQ-only di Menunggu Giliran), Web Builder (kebebasan menyusun halaman — beda dari Theme Preset Switcher di Menunggu Giliran), Ticket Designer custom, payment gateway otomatis (Midtrans — nanti setelah NIB/UMKM), WhatsApp Business API resmi (link `wa.me` manual cukup dulu — alasan lengkap di catatan bawah), GPS satelit per pendaki (perangkat satelit untuk jalur tanpa sinyal — beda dari live tracking kendaraan grup di Menunggu Giliran), audit log lengkap, multi-bahasa penuh, dark mode, role CS terpisah dari Admin, sistem affiliate referral berkomisi (customer-refer-customer — **tidak ada rencana dibangun**, sudah dikonfirmasi tidak diperlukan).
 
 *Catatan 2026-08-14, diperbarui 2026-08-27: "push notification" dikeluarkan dari daftar ini — statusnya naik jadi Web Push di "Menunggu Giliran", lalu 2026-08-27 dijadwalkan resmi ke **D12**. Satu fitur tidak boleh berada di dua daftar yang berlawanan.*
 

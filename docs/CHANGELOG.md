@@ -4,6 +4,38 @@ Entri ringkas tiap iterasi selesai (aturan `CLAUDE.md` §6). Terbaru di atas.
 
 ---
 
+## 2026-08-29 (2) — Sesi 13: keamanan, permission admin, profil mitra, refund
+
+**275 test / 1018 assertion** hijau (71 test baru), Pint lulus, `npm run build` sukses, `migrate:fresh --seed` bersih, dua grep warna nol temuan.
+
+**Audit.** `composer audit` bersih. `npm audit` menemukan satu kerentanan **high** — `nanoid <3.3.18` (GHSA-2v37-7h3g-55p8), lewat rantai `vite → postcss`. Build-time saja, tidak pernah masuk bundle browser. Diperbaiki `npm audit fix`; sekarang nol kerentanan.
+
+**Header keamanan** dipasang sebagai middleware global, bukan per route. `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy`. HSTS **hanya** di koneksi HTTPS — terkirim dari localhost, browser mengunci host itu ke HTTPS selama `max-age` dan penguncian itu tidak bisa dibatalkan dari sisi server.
+
+CSP dimulai **Report-Only**, ditegakkan lewat `SECURITY_CSP_ENFORCE`. CSP yang ditegakkan sebelum diuji per halaman mematikan panel Filament tanpa suara. `'unsafe-eval'` terpaksa diizinkan karena Alpine mengevaluasi `x-data` saat runtime; yang tetap tertutup dan paling berharga adalah `default-src 'self'`.
+
+**Jebakan yang tertangkap saat verifikasi live:** `X-Powered-By` masih terkirim walau test hijau. Test tidak menangkapnya karena PHP menambahkan header itu di level SAPI (`expose_php=On`), di luar jangkauan HeaderBag Symfony — hanya `header_remove()` yang bisa mencabutnya, dan di test PHP tidak menambahkannya sama sekali. Sekarang dibuang di dua tempat, diverifikasi lewat `curl` ke server berjalan.
+
+**Verifikasi dua langkah (TOTP) untuk akun staf.** `pragmarx/google2fa` + `bacon/bacon-qr-code` — pustaka yang sama yang dipakai Fortify di baliknya. Fortify penuh tidak dipasang: ia membawa route, view, dan tumpukan autentikasi kedua yang berdampingan dengan `/masuk` sejak D3. Opsional per akun; memaksanya ke semua staf sekaligus akan mengunci pemilik project keluar begitu migration jalan. Rahasia & 8 kode pemulihan di-cast `encrypted` (aturan yang sama dengan NIK). Rahasia baru disimpan **setelah** kodenya cocok, bukan sebelum. Rate limit 5 per 5 menit per user; sesi diputar ulang setelah lolos. Tantangannya route web biasa — di dalam panel ia ikut tertahan middleware yang sedang menahan orangnya.
+
+**Pemecahan permission admin.** `users.admin_scope` + Enum `AdminScope` (`payment_cs`, `trip_manager`), **bukan** role ketiga di `UserRole`. Ditegakkan lewat `canAccess()` Filament, bukan Policy — tiga model di sini juga dipakai panel vendor, dan Policy berlaku global. `canAccess()` menyembunyikan navigasi DAN menolak URL langsung dengan 403; menu yang disembunyikan tapi alamatnya tetap terbuka bukan pembatasan, itu penyamaran. Tanpa scope = akses penuh, supaya migration tidak mempersempit hak akun yang sedang dipakai. Penetapan lewat `admin:scope`, bukan layar di panel.
+
+**Shield/spatie-laravel-permission sengaja tidak dipasang** walau diminta: untuk dua pembagian tugas, paket itu membawa lima tabel dan sistem role kedua yang berdampingan dengan `UserRole` — dua sumber kebenaran untuk pertanyaan yang sama.
+
+**Halaman publik profil mitra** `/mitra/{slug}`: nama usaha, logo, deskripsi, badge "E-GOTO x [Nama]", daftar trip aktif. Mitra belum disetujui dijawab 404, bukan halaman kosong. Nama mitra ditautkan dari kartu trip dan detail trip, dengan `vendor.vendorProfile` di-eager load supaya tetap dua query per halaman — ada test penghitung query yang menjaganya. Kolom `vendors.logo` sebelumnya tidak punya jalan masuk sama sekali; ditambahkan layar "Profil Usaha" di panel mitra, dengan `slug` dan `status` tidak bisa disunting mitra.
+
+**D14 — Riwayat Transaksi & Refund.** Halaman customer `/riwayat-transaksi` terpisah dari Booking Saya: yang satu menjawab "uang saya ke mana", yang satu "trip saya apa". Tabel `refund_requests` dengan tiga opsi persis seperti kebijakan yang sudah tertulis di GUIDE (refund 100% / ganti trip / waitlist) — sistem ini menjalankan kebijakan yang ada, bukan membuat yang baru.
+
+`disetujui` sengaja terpisah dari `selesai`: menyetujui adalah keputusan, mengirim uang adalah pekerjaan; menggabungkannya menghapus daftar "sudah disetujui tapi belum ditransfer". Tanpa unique index pada `booking_id` — pengajuan yang ditolak harus tetap bisa diulang dengan opsi lain; pengajuan ganda dicegah `lockForUpdate()` di Action. Kursi dilepas saat refund 100% disetujui, tidak untuk ganti trip/waitlist. **Mitra tidak punya jalan masuk sama sekali** — uang masuk ke rekening E-GOTO. Ditambah halaman admin "Riwayat Customer" read-only yang menyandingkan pembayaran + refund satu orang.
+
+**Maintenance mandiri.** Halaman 503 bermerek E-GOTO, ditulis berdiri sendiri tanpa `@vite` dan tanpa query — halaman ini harus tampil justru saat aplikasinya tidak bisa diandalkan. `db:backup` terjadwal harian 03:15, `.sql.gz` di luar `public/` dan di luar repo, retensi 14 hari; password tidak pernah masuk argumen perintah karena argumen proses terbaca tetangga lewat `ps aux` di shared hosting. `LOG_STACK=daily` — sebelumnya stack jatuh ke `single` dan `laravel.log` tumbuh tanpa batas. `/up` bawaan Laravel 12 dikonfirmasi sudah aktif dan cukup.
+
+**Klarifikasi laporan Sesi 5.** Diperiksa ulang atas permintaan pemilik project: `app/Filament/Vendor/Resources/TripResource.php` ada (9.1K), route `vendor/trips/create` terdaftar, `TripStatus::PendingReview` ada, `VendorTripTest` 9 lulus. Sesi 5 tidak pernah salah lapor — yang dilaporkan di sana adalah gap CRUD trip sisi **admin**; loop mitra ini D9, dikerjakan 2026-08-27.
+
+**Penomoran:** blok Transfer Bank yang ditulis sesi sebelumnya digeser dari D14 ke **D15**; D14 sekarang Riwayat & Refund, dan blok operasional jadi **D16**.
+
+---
+
 ## 2026-08-29 — Sesi 12: QRIS bernominal, slider diperbaiki, ikon monokrom
 
 **204 test / 825 assertion** hijau (14 test baru), Pint lulus, `npm run build` sukses, grep warna terlarang nol temuan.
