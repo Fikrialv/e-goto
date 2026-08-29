@@ -39,21 +39,21 @@
         <div class="mt-8 rounded-3xl border border-mist-200 bg-white p-6 sm:p-8">
             <dl class="grid gap-5 sm:grid-cols-3">
                 <div>
-                    <dt class="text-xs tracking-wide text-teal-500 uppercase">Tanggal berangkat</dt>
+                    <dt class="inline-flex items-center gap-1.5 text-xs tracking-wide text-teal-500 uppercase"><x-lucide-calendar class="size-3.5" aria-hidden="true" />Tanggal berangkat</dt>
                     <dd class="mt-1 font-display text-lg font-bold text-teal-900">
                         {{ $schedule->start_date->translatedFormat('j F Y') }}
                     </dd>
                 </div>
 
                 <div>
-                    <dt class="text-xs tracking-wide text-teal-500 uppercase">Sisa kuota</dt>
+                    <dt class="inline-flex items-center gap-1.5 text-xs tracking-wide text-teal-500 uppercase"><x-lucide-armchair class="size-3.5" aria-hidden="true" />Sisa kuota</dt>
                     <dd class="mt-1 font-display text-lg font-bold text-teal-900">
                         {{ $schedule->remainingQuota() }} kursi
                     </dd>
                 </div>
 
                 <div>
-                    <dt class="text-xs tracking-wide text-teal-500 uppercase">Mulai dari</dt>
+                    <dt class="inline-flex items-center gap-1.5 text-xs tracking-wide text-teal-500 uppercase"><x-lucide-wallet class="size-3.5" aria-hidden="true" />Mulai dari</dt>
                     <dd class="mt-1">
                         <x-price-tag :amount="$schedule->prices->min('price')" />
                     </dd>

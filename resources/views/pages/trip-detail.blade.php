@@ -45,7 +45,7 @@
 
                 @if ($reviews->total() > 0)
                     <p class="inline-flex items-center gap-2">
-                        <x-lucide-star class="size-4 shrink-0 fill-current text-amber-500" aria-hidden="true" />
+                        <x-lucide-star class="size-4 shrink-0 fill-current text-teal-700" aria-hidden="true" />
                         <span class="font-medium text-teal-800">{{ number_format((float) $ratingRata, 1, ',', '.') }}</span>
                         dari {{ $reviews->total() }} penilaian
                     </p>
@@ -181,7 +181,7 @@
                     <ul class="mt-5 grid gap-x-6 gap-y-2.5 sm:grid-cols-2">
                         @foreach ($trip->category->gear_checklist as $barang)
                             <li class="flex gap-2.5 text-sm text-teal-700">
-                                <span aria-hidden="true" class="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-amber-500"></span>
+                                <x-lucide-check class="mt-0.5 size-4 shrink-0 text-teal-600" aria-hidden="true" />
                                 {{ $barang }}
                             </li>
                         @endforeach
@@ -211,7 +211,7 @@
                             </x-avatar-cluster>
 
                             <p class="inline-flex items-center gap-2 text-sm text-teal-700">
-                                <x-lucide-star class="size-4 fill-current text-amber-500" aria-hidden="true" />
+                                <x-lucide-star class="size-4 fill-current text-teal-700" aria-hidden="true" />
                                 Rata-rata <strong class="text-teal-900">{{ number_format((float) $ratingRata, 1, ',', '.') }}</strong> dari 5
                             </p>
                         </div>
@@ -224,7 +224,7 @@
                                         x-transition:enter-start="opacity-0 translate-y-2"
                                         x-transition:enter-end="opacity-100 translate-y-0"
                                         class="rounded-3xl border border-mist-200 bg-white p-6 sm:p-8">
-                                    <div class="flex items-center gap-1 text-amber-500" aria-hidden="true">
+                                    <div class="flex items-center gap-1 text-teal-700" aria-hidden="true">
                                         @for ($bintang = 1; $bintang <= $ulasan->rating; $bintang++)
                                             <x-lucide-star class="size-4 fill-current" />
                                         @endfor

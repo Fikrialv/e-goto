@@ -28,8 +28,12 @@
 
     <header x-data="{ menuTerbuka: false }" class="sticky top-0 z-40 border-b border-mist-200 bg-white">
         <div class="mx-auto flex max-w-6xl items-center justify-between gap-6 px-4 py-4 sm:px-6 lg:px-8">
-            <a href="{{ route('home') }}" class="font-display text-2xl font-bold tracking-tight text-teal-900">
-                E<span class="text-amber-600">·</span>GOTO
+            {{-- Wordmark, bukan teks: Logo1 memuat ikon + tulisan sejajar, pas untuk
+                 baris header. width/height ditulis supaya tidak ada geseran tata letak
+                 saat SVG-nya selesai dimuat. --}}
+            <a href="{{ route('home') }}" class="shrink-0">
+                <img src="{{ asset('images/Logo1.svg') }}" alt="E-GOTO" width="1983" height="793"
+                     class="h-8 w-auto" fetchpriority="high">
             </a>
 
             <nav class="hidden items-center gap-7 text-sm lg:flex" aria-label="Kategori">
@@ -113,7 +117,8 @@
     <footer class="mt-24 border-t border-mist-200 bg-mist-100">
         <div class="mx-auto grid max-w-6xl gap-8 px-4 py-12 sm:px-6 md:grid-cols-3 lg:px-8">
             <div>
-                <p class="font-display text-xl font-bold text-teal-900">E·GOTO</p>
+                <img src="{{ asset('images/Logo1.svg') }}" alt="E-GOTO" width="1983" height="793"
+                     class="h-7 w-auto" loading="lazy">
                 <p class="mt-2 max-w-xs text-sm leading-relaxed text-teal-600">
                     Kumpulan open trip dan aktivitas wisata dari penyelenggara lokal. Pesan, bayar, tunjukkan tiket.
                 </p>

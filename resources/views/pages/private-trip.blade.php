@@ -22,7 +22,8 @@
 
                 @if (session('tautanWhatsApp'))
                     <a href="{{ session('tautanWhatsApp') }}" target="_blank" rel="noopener"
-                       class="mt-4 inline-block rounded-full bg-amber-600 px-6 py-2.5 text-sm font-medium text-mist-50 transition-colors hover:bg-amber-700">
+                       class="mt-4 inline-flex items-center gap-2 rounded-full bg-amber-600 px-6 py-2.5 text-sm font-medium text-mist-50 transition-colors hover:bg-amber-700">
+                        <x-lucide-message-circle class="size-4" aria-hidden="true" />
                         Kirim lewat WhatsApp
                     </a>
                 @endif
@@ -46,7 +47,8 @@
 
             <div class="sm:col-span-2">
                 <button type="submit"
-                        class="rounded-full bg-amber-600 px-7 py-3 text-sm font-medium text-mist-50 transition-colors hover:bg-amber-700">
+                        class="inline-flex items-center gap-2 rounded-full bg-amber-600 px-7 py-3 text-sm font-medium text-mist-50 transition-colors hover:bg-amber-700">
+                    <x-lucide-message-circle class="size-4" aria-hidden="true" />
                     Siapkan pesan
                 </button>
 

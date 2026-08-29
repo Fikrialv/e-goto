@@ -40,7 +40,10 @@
                 <button type="button" @click="filterTerbuka = !filterTerbuka"
                         class="flex w-full items-center justify-between rounded-xl border border-mist-300 px-4 py-3 text-sm text-teal-700 lg:hidden"
                         :aria-expanded="filterTerbuka" aria-controls="panel-filter">
-                    <span>Filter &amp; urutkan</span>
+                    <span class="inline-flex items-center gap-2">
+                        <x-lucide-sliders-horizontal class="size-4" aria-hidden="true" />
+                        Filter &amp; urutkan
+                    </span>
                     <span aria-hidden="true" x-text="filterTerbuka ? '−' : '+'">+</span>
                 </button>
 
@@ -150,6 +153,7 @@
                     <x-empty-state
                         title="Tidak ada trip yang cocok"
                         message="Coba longgarkan rentang tanggal atau harga — jadwal baru terus ditambahkan penyelenggara.">
+                        <x-slot:icon><x-lucide-search class="size-6" /></x-slot:icon>
                         <a href="{{ route('categories.show', $category) }}"
                            class="inline-block rounded-full border border-mist-300 px-5 py-2.5 text-sm text-teal-700 hover:border-teal-400">
                             Hapus filter

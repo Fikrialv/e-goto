@@ -13,11 +13,11 @@
 @endphp
 
 @if (! $adaSlider)
-    <figure class="relative overflow-hidden rounded-3xl">
+    <figure class="relative aspect-[4/3] overflow-hidden rounded-3xl sm:aspect-[3/2] lg:aspect-[16/10] lg:min-h-[30rem]">
         <x-trip-image :src="$slides->first()?->cover_image" :alt="$slides->first()?->title ?? ''"
                       :caption="$slides->first()?->category->name ?? 'Foto trip menyusul'"
                       :fallback-icon="$slides->first()?->category->icon ?: 'mountain'" eager
-                      class="aspect-[4/3] w-full sm:aspect-[16/10]" />
+                      class="h-full w-full" />
 
         @if ($slides->first())
             <figcaption class="absolute inset-x-4 bottom-4">
@@ -61,10 +61,14 @@
          class="relative"
          role="region" aria-roledescription="carousel" aria-label="Trip pilihan">
 
-        <div class="relative overflow-hidden rounded-3xl">
+        {{-- Rasio dipegang pembungkus, bukan slide. Sebelumnya hanya slide pertama
+             yang berada di aliran normal dan sisanya absolut — begitu slide pertama
+             disembunyikan, pembungkusnya kehilangan tinggi dan seluruh hero lenyap
+             dari layar. --}}
+        <div class="relative aspect-[4/3] overflow-hidden rounded-3xl sm:aspect-[3/2] lg:aspect-[16/10] lg:min-h-[30rem]">
             @foreach ($slides as $indeks => $slide)
-                <figure x-show="aktif === {{ $indeks }}"
-                        @if (! $loop->first) x-cloak class="absolute inset-0" @endif
+                <figure x-show="aktif === {{ $indeks }}" class="absolute inset-0"
+                        @if (! $loop->first) x-cloak @endif
                         x-transition:enter="transition duration-250 ease-out"
                         x-transition:enter-start="opacity-0 translate-y-1"
                         x-transition:enter-end="opacity-100 translate-y-0"
@@ -74,7 +78,7 @@
                                   :caption="$slide->category->name"
                                   :fallback-icon="$slide->category->icon ?: 'compass'"
                                   :eager="$loop->first"
-                                  class="aspect-[4/3] w-full sm:aspect-[16/10]" />
+                                  class="h-full w-full" />
 
                     <figcaption class="absolute inset-x-4 bottom-4">
                         <a href="{{ route('trips.show', $slide) }}"

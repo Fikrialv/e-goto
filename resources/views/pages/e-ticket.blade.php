@@ -29,24 +29,27 @@
             @foreach ($booking->tickets as $ticket)
                 <article class="overflow-hidden rounded-3xl border border-mist-200 bg-white print:break-inside-avoid">
                     <div class="flex items-center justify-between gap-4 bg-teal-800 px-6 py-4 text-mist-50">
-                        <p class="font-display text-xl font-bold">E<span class="text-amber-400">·</span>GOTO</p>
+                        {{-- Kop tiket berlatar teal gelap: wordmark dibalik jadi terang lewat filter,
+                             supaya tidak perlu berkas logo kedua khusus latar gelap. --}}
+                        <img src="{{ asset('images/Logo1.svg') }}" alt="E-GOTO" width="1983" height="793"
+                             class="h-6 w-auto brightness-0 invert" loading="lazy">
                         <p class="font-mono text-sm">{{ $booking->code }}</p>
                     </div>
 
                     <div class="grid gap-6 p-6 sm:grid-cols-[1fr_auto] sm:p-8">
                         <div>
-                            <p class="text-xs font-semibold tracking-widest text-teal-500 uppercase">Peserta</p>
+                            <p class="inline-flex items-center gap-1.5 text-xs font-semibold tracking-widest text-teal-500 uppercase"><x-lucide-users class="size-4" aria-hidden="true" />Peserta</p>
                             <p class="mt-1 font-display text-2xl font-bold text-teal-900">
                                 {{ $ticket->participant->full_name }}
                             </p>
 
                             <dl class="mt-5 grid gap-4 sm:grid-cols-2">
                                 <div>
-                                    <dt class="text-xs tracking-wide text-teal-500 uppercase">Trip</dt>
+                                    <dt class="inline-flex items-center gap-1.5 text-xs tracking-wide text-teal-500 uppercase"><x-lucide-map-pin class="size-3.5" aria-hidden="true" />Trip</dt>
                                     <dd class="mt-0.5 text-sm font-medium text-teal-900">{{ $trip->title }}</dd>
                                 </div>
                                 <div>
-                                    <dt class="text-xs tracking-wide text-teal-500 uppercase">Tanggal</dt>
+                                    <dt class="inline-flex items-center gap-1.5 text-xs tracking-wide text-teal-500 uppercase"><x-lucide-calendar class="size-3.5" aria-hidden="true" />Tanggal</dt>
                                     <dd class="mt-0.5 text-sm font-medium text-teal-900">
                                         {{ $booking->schedule->start_date->translatedFormat('j F Y') }}
                                         @if ($booking->schedule->end_date)
@@ -56,12 +59,12 @@
                                 </div>
                                 @if ($trip->meeting_point)
                                     <div class="sm:col-span-2">
-                                        <dt class="text-xs tracking-wide text-teal-500 uppercase">Titik kumpul</dt>
+                                        <dt class="inline-flex items-center gap-1.5 text-xs tracking-wide text-teal-500 uppercase"><x-lucide-map-pin class="size-3.5" aria-hidden="true" />Titik kumpul</dt>
                                         <dd class="mt-0.5 text-sm font-medium text-teal-900">{{ $trip->meeting_point }}</dd>
                                     </div>
                                 @endif
                                 <div>
-                                    <dt class="text-xs tracking-wide text-teal-500 uppercase">Status tiket</dt>
+                                    <dt class="inline-flex items-center gap-1.5 text-xs tracking-wide text-teal-500 uppercase"><x-lucide-ticket class="size-3.5" aria-hidden="true" />Status tiket</dt>
                                     <dd class="mt-0.5">
                                         <x-status-badge>
                                             {{ $ticket->status === App\Enums\TicketStatus::Used ? 'sudah check-in' : 'siap dipakai' }}
@@ -95,7 +98,7 @@
                 <ul class="mt-5 grid gap-x-6 gap-y-2.5 sm:grid-cols-2">
                     @foreach ($trip->category->gear_checklist as $barang)
                         <li class="flex gap-2.5 text-sm text-teal-700">
-                            <span aria-hidden="true" class="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-amber-500"></span>
+                            <x-lucide-check class="mt-0.5 size-4 shrink-0 text-teal-600" aria-hidden="true" />
                             {{ $barang }}
                         </li>
                     @endforeach

@@ -77,7 +77,7 @@
 
         @if ($ratingRata && $jumlahUlasan > 0)
             <p class="flex items-center gap-1.5 text-sm text-teal-600">
-                <x-lucide-star class="size-4 fill-current text-amber-500" aria-hidden="true" />
+                <x-lucide-star class="size-4 fill-current text-teal-700" aria-hidden="true" />
                 <span class="font-medium text-teal-800">{{ number_format((float) $ratingRata, 1, ',', '.') }}</span>
                 <span class="text-teal-500">&middot; {{ $jumlahUlasan }} ulasan</span>
             </p>

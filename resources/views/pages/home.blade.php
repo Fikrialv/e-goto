@@ -16,7 +16,7 @@
          melompat jauh + weight 800 + tracking rapat. --}}
     <section class="relative border-b border-mist-200 bg-mist-100 {{ $categories->isNotEmpty() ? 'pb-28 lg:pb-24' : '' }}">
         <div class="mx-auto grid max-w-6xl gap-10 px-4 py-16 sm:px-6 lg:grid-cols-12 lg:gap-10 lg:px-8 lg:py-24">
-            <div class="lg:col-span-6">
+            <div class="lg:col-span-5">
                 <p class="text-xs font-semibold tracking-[0.18em] text-amber-600 uppercase">Open trip &amp; aktivitas wisata</p>
 
                 <h1 class="font-display text-hero mt-4 text-teal-900">
@@ -41,7 +41,7 @@
                 </div>
             </div>
 
-            <div class="lg:col-span-6">
+            <div class="lg:col-span-7">
                 <x-hero-slider :trips="$featuredTrips" />
             </div>
         </div>

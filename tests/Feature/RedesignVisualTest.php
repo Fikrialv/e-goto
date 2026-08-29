@@ -308,3 +308,86 @@ it('membedakan ikon fallback tiap slide mengikuti kategorinya', function () {
         $response->assertSee(substr($cocok[1], 0, 30), false);
     }
 });
+
+it('menaruh semua slide hero di posisi absolut supaya hero tidak runtuh', function () {
+    foreach (range(1, 3) as $urutan) {
+        tripPublished()->update(['is_featured' => true]);
+    }
+
+    $response = $this->get(route('home'));
+    $isi = $response->getContent();
+
+    $response->assertOk();
+
+    /*
+     * Sebelumnya hanya slide kedua ke atas yang absolut; begitu slide pertama
+     * disembunyikan Alpine, pembungkusnya kehilangan tinggi dan seluruh hero
+     * lenyap. Jumlah figure absolut harus sama dengan jumlah slide.
+     */
+    $jumlahSlide = substr_count($isi, 'aria-roledescription="slide"');
+    $jumlahAbsolut = substr_count($isi, '<figure x-show="aktif === ');
+
+    expect($jumlahSlide)->toBe(3)
+        ->and(substr_count($isi, 'class="absolute inset-0"'))->toBeGreaterThanOrEqual($jumlahAbsolut);
+
+    // Rasio dipegang pembungkus, bukan tiap gambar.
+    $response->assertSee('aspect-[4/3] overflow-hidden rounded-3xl', false);
+});
+
+it('memakai berkas logo di header dan footer, bukan teks', function () {
+    tripPublished();
+
+    $response = $this->get(route('home'));
+
+    $response->assertOk();
+    // Dua pemakaian: wordmark header dan wordmark footer.
+    expect(substr_count($response->getContent(), 'images/Logo1.svg'))->toBeGreaterThanOrEqual(2);
+    $response->assertDontSee('E<span class="text-amber-600">·</span>GOTO', false);
+});
+
+it('tidak mewarnai ikon di luar palet teal', function () {
+    $trip = tripPublished();
+    $trip->update(['is_featured' => true]);
+
+    $booking = bookingUntukStatistik($trip->schedules()->first(), BookingStatus::Completed, pax: 1);
+
+    Review::factory()->create([
+        'booking_id' => $booking->id,
+        'trip_id' => $trip->id,
+        'user_id' => $booking->user_id,
+        'rating' => 5,
+        'status' => ReviewStatus::Published,
+    ]);
+
+    // Bintang rating dulu amber; sekarang ikut aturan ikon monokrom.
+    $this->get(route('trips.show', $trip))
+        ->assertOk()
+        ->assertDontSee('fill-current text-amber-500', false);
+});
+
+it('memasang ikon di halaman alur transaksi yang sebelumnya kosong', function () {
+    $trip = tripPublished();
+
+    /*
+     * blade-icons merender SVG inline tanpa membawa nama ikonnya, jadi yang
+     * dicocokkan adalah potongan path dari berkas SVG-nya sendiri.
+     */
+    $petik = function (string $ikon): string {
+        $berkas = base_path('vendor/mallardduck/blade-lucide-icons/resources/svg/icons/'.$ikon.'.svg');
+        preg_match('/ d="([^"]+)"/', file_get_contents($berkas), $cocok);
+
+        return substr($cocok[1], 0, 30);
+    };
+
+    $this->get(route('categories.show', $trip->category))
+        ->assertOk()
+        ->assertSee($petik('sliders-horizontal'), false);
+
+    $this->get(route('partners.show'))
+        ->assertOk()
+        ->assertSee($petik('check'), false);
+
+    $this->get(route('private-trip.show'))
+        ->assertOk()
+        ->assertSee($petik('message-circle'), false);
+});

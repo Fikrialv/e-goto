@@ -69,6 +69,7 @@
             <x-empty-state class="mt-10"
                            title="Belum ada pemesanan"
                            message="Pilih trip yang Anda suka, pesan, dan e-tiketnya tersimpan di halaman ini.">
+                <x-slot:icon><x-lucide-ticket class="size-6" /></x-slot:icon>
                 <a href="{{ route('home') }}"
                    class="inline-block rounded-full bg-amber-600 px-6 py-3 text-sm font-medium text-mist-50 transition-colors hover:bg-amber-700">
                     Lihat trip
@@ -83,9 +84,15 @@
                                 <p class="font-display text-lg font-bold text-teal-900">
                                     {{ $booking->schedule->trip->title }}
                                 </p>
-                                <p class="mt-1 text-sm text-teal-600">
-                                    {{ $booking->schedule->start_date->translatedFormat('j F Y') }} ·
-                                    {{ $booking->pax_count }} peserta
+                                <p class="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-teal-600">
+                                    <span class="inline-flex items-center gap-1.5">
+                                        <x-lucide-calendar class="size-4 text-teal-500" aria-hidden="true" />
+                                        {{ $booking->schedule->start_date->translatedFormat('j F Y') }}
+                                    </span>
+                                    <span class="inline-flex items-center gap-1.5">
+                                        <x-lucide-users class="size-4 text-teal-500" aria-hidden="true" />
+                                        {{ $booking->pax_count }} peserta
+                                    </span>
                                 </p>
                                 <p class="mt-1 font-mono text-xs text-teal-500">{{ $booking->code }}</p>
                             </div>
@@ -96,7 +103,10 @@
                                 @if ($booking->latestPayment?->status === App\Enums\PaymentStatus::Verified)
                                     <x-status-badge tone="success">Pembayaran terverifikasi</x-status-badge>
                                 @elseif ($booking->latestPayment?->status === App\Enums\PaymentStatus::Pending)
-                                    <span class="text-xs text-teal-500">Diperiksa admin {{ config('booking.verification_eta') }}</span>
+                                    <span class="inline-flex items-center gap-1.5 text-xs text-teal-500">
+                                        <x-lucide-clock class="size-3.5" aria-hidden="true" />
+                                        Diperiksa admin {{ config('booking.verification_eta') }}
+                                    </span>
                                 @endif
                             </div>
                         </div>
@@ -139,7 +149,12 @@
 
                         @if ($aksi)
                             <a href="{{ $aksi['url'] }}"
-                               class="mt-4 inline-block rounded-full border border-mist-300 px-5 py-2 text-sm text-teal-700 hover:border-teal-500">
+                               class="mt-4 inline-flex items-center gap-2 rounded-full border border-mist-300 px-5 py-2 text-sm text-teal-700 transition-colors hover:border-teal-500">
+                                @if (str_contains($aksi['label'], 'tiket'))
+                                    <x-lucide-ticket class="size-4" aria-hidden="true" />
+                                @else
+                                    <x-lucide-wallet class="size-4" aria-hidden="true" />
+                                @endif
                                 {{ $aksi['label'] }}
                             </a>
                         @endif

@@ -21,10 +21,10 @@
                 <h2 class="font-display text-2xl font-bold text-teal-900">Yang Anda dapat</h2>
 
                 <ul class="mt-5 space-y-3.5 text-sm leading-relaxed text-teal-700">
-                    <li>Halaman trip sendiri — foto, itinerary, jadwal, harga bertingkat.</li>
-                    <li>Pemesanan dan pembayaran ditangani sistem, termasuk verifikasi bukti transfer.</li>
-                    <li>Daftar peserta per keberangkatan, lengkap dengan check-in QR di titik kumpul.</li>
-                    <li>Panel mitra sendiri di <span class="font-mono text-xs">/vendor</span>, terpisah dari admin.</li>
+                    <li class="flex items-start gap-2.5"><x-lucide-check class="mt-0.5 size-4 shrink-0 text-teal-600" aria-hidden="true" />Halaman trip sendiri — foto, itinerary, jadwal, harga bertingkat.</li>
+                    <li class="flex items-start gap-2.5"><x-lucide-check class="mt-0.5 size-4 shrink-0 text-teal-600" aria-hidden="true" />Pemesanan dan pembayaran ditangani sistem, termasuk verifikasi bukti transfer.</li>
+                    <li class="flex items-start gap-2.5"><x-lucide-check class="mt-0.5 size-4 shrink-0 text-teal-600" aria-hidden="true" />Daftar peserta per keberangkatan, lengkap dengan check-in QR di titik kumpul.</li>
+                    <li class="flex items-start gap-2.5"><x-lucide-check class="mt-0.5 size-4 shrink-0 text-teal-600" aria-hidden="true" />Panel mitra sendiri di <span class="font-mono text-xs">/vendor</span>, terpisah dari admin.</li>
                 </ul>
             </section>
 
@@ -32,10 +32,10 @@
                 <h2 class="font-display text-2xl font-bold text-teal-900">Syaratnya</h2>
 
                 <ul class="mt-5 space-y-3.5 text-sm leading-relaxed text-teal-700">
-                    <li>Usaha atau komunitas yang benar-benar menjalankan trip, bukan perantara.</li>
-                    <li>Punya penanggung jawab yang bisa dihubungi saat trip berjalan.</li>
-                    <li>Siap menunjukkan dokumen usaha dan identitas penanggung jawab.</li>
-                    <li>Bersedia ngobrol dulu dengan tim kami sebelum trip pertama tayang.</li>
+                    <li class="flex items-start gap-2.5"><x-lucide-check class="mt-0.5 size-4 shrink-0 text-teal-600" aria-hidden="true" />Usaha atau komunitas yang benar-benar menjalankan trip, bukan perantara.</li>
+                    <li class="flex items-start gap-2.5"><x-lucide-check class="mt-0.5 size-4 shrink-0 text-teal-600" aria-hidden="true" />Punya penanggung jawab yang bisa dihubungi saat trip berjalan.</li>
+                    <li class="flex items-start gap-2.5"><x-lucide-check class="mt-0.5 size-4 shrink-0 text-teal-600" aria-hidden="true" />Siap menunjukkan dokumen usaha dan identitas penanggung jawab.</li>
+                    <li class="flex items-start gap-2.5"><x-lucide-check class="mt-0.5 size-4 shrink-0 text-teal-600" aria-hidden="true" />Bersedia ngobrol dulu dengan tim kami sebelum trip pertama tayang.</li>
                 </ul>
             </section>
         </div>

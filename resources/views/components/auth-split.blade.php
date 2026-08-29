@@ -65,7 +65,7 @@
                 <div class="grid gap-4">
                     @foreach ($heroReviews as $heroReview)
                         <figure class="max-w-sm rounded-2xl bg-mist-50/95 p-5 shadow-lg backdrop-blur-sm {{ $loop->odd ? 'lg:ml-auto' : '' }}">
-                            <div class="flex items-center gap-1 text-amber-500" aria-hidden="true">
+                            <div class="flex items-center gap-1 text-teal-700" aria-hidden="true">
                                 @for ($bintang = 1; $bintang <= $heroReview->rating; $bintang++)
                                     <x-lucide-star class="size-4 fill-current" />
                                 @endfor
