@@ -6,6 +6,9 @@
     $toneClass = match ($tone) {
         'success' => 'bg-teal-50 text-teal-700 ring-teal-200',
         'warning' => 'bg-amber-100 text-amber-700 ring-amber-500/30',
+        // Keputusan sudah diambil tapi pekerjaannya belum tuntas — bukan
+        // peringatan, bukan juga selesai.
+        'info' => 'bg-white text-teal-700 ring-teal-300',
         'danger' => 'bg-mist-200 text-teal-600 ring-mist-300 line-through decoration-1',
         default => 'bg-mist-100 text-teal-600 ring-mist-200',
     };

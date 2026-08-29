@@ -69,6 +69,36 @@ class Booking extends Model
         return $this->hasMany(Payment::class);
     }
 
+    /** @return HasMany<RefundRequest, $this> */
+    public function refundRequests(): HasMany
+    {
+        return $this->hasMany(RefundRequest::class);
+    }
+
+    /** @return HasOne<RefundRequest, $this> */
+    public function latestRefundRequest(): HasOne
+    {
+        return $this->hasOne(RefundRequest::class)->latestOfMany();
+    }
+
+    /**
+     * Apakah booking ini masih boleh diajukan refund.
+     *
+     * Dua syarat, dan keduanya harus dijaga di server: uangnya memang sudah
+     * masuk (booking terkonfirmasi atau trip sudah selesai — tidak ada yang
+     * bisa dikembalikan dari booking yang belum dibayar), dan belum ada
+     * pengajuan yang masih berjalan (pengajuan ganda membuat satu booking
+     * berpotensi diproses dua kali oleh dua admin).
+     */
+    public function bolehAjukanRefund(): bool
+    {
+        if (! in_array($this->status, [BookingStatus::Confirmed, BookingStatus::Completed], true)) {
+            return false;
+        }
+
+        return ! $this->refundRequests()->berjalan()->exists();
+    }
+
     /** @return HasOne<Review, $this> */
     public function review(): HasOne
     {
