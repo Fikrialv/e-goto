@@ -100,6 +100,10 @@ Mitigasi fraud:
 
 QRIS statis (GoPay Merchant) dipakai sekarang — gratis, tidak perlu badan usaha. Upgrade ke Midtrans QRIS dinamis (auto-verifikasi webhook) ditunda sampai ada NIB/UMKM dan volume lebih besar.
 
+**QRIS bernominal (2026-08-29).** Kalau `QRIS_STATIC_PAYLOAD` di `.env` sudah diisi hasil pindai QRIS merchant, halaman bayar menyusun ulang payload itu dengan nominal booking (EMVCo tag 54) dan CRC baru, lalu merendernya sebagai QR baru. Nominal — termasuk digit uniknya — jadi terkunci di dalam kode, sehingga mitigasi #1 dan #5 di atas tidak lagi bergantung pada ketelitian pembayar mengetik angka.
+
+Ini **bukan** upgrade ke payment gateway: rekening tujuannya sama, tidak ada API pihak ketiga, tidak butuh NIB, dan **verifikasinya tetap manual admin**. Selama `QRIS_STATIC_PAYLOAD` kosong atau payloadnya tidak lolos verifikasi CRC, halaman bayar jatuh balik ke gambar QRIS statis + nominal diketik manual — QR yang cacat baru ketahuan di depan kasir, jadi kegagalannya sengaja dibuat mundur ke jalur lama, bukan menampilkan kode rusak.
+
 ---
 
 ## Batas Peserta per Booking — maksimal 12 orang
@@ -205,6 +209,7 @@ Enam hal yang tidak menambah alur baru, tapi memperbaiki pengalaman di alur yang
 - Web Push notification **opt-in** untuk pembayaran terverifikasi & pengingat H-1 — menumpang `manifest.json` + service worker yang sudah ada dari D7.6, izin browser hanya diminta setelah customer menekan tombolnya sendiri. Dipindahkan dari "Backlog — Menunggu Giliran" ke D12 pada 2026-08-27; detail di PLAN.md §7 blok D12
 - Vendor: daftar trip sedang/sudah berjalan + jumlah peserta
 - Teaser "Jadi Mitra E-GOTO?" tampil di homepage
+- Transfer bank sebagai metode pembayaran kedua, sejajar QRIS — pola anti-fraud-nya sama persis (nominal unik, unggah bukti, verifikasi manual admin); yang berbeda cuma instruksi yang tampil: nomor rekening, bukan kode QR. **Bukan Virtual Account** (VA butuh payment gateway). Dipindahkan dari "Backlog — Menunggu Giliran" ke D14 pada 2026-08-29; detail di PLAN.md §7 blok D14
 
 **Output:** E-GOTO jadi wadah multi-mitra, customer dapat promo & bisa rating, ada jalur private trip.
 
@@ -256,7 +261,6 @@ Aturan pakai: item di sini tidak boleh dikerjakan begitu saja. Pemilik project m
 ### Pembayaran & bisnis
 
 - **Split payment / patungan** — tiap peserta membayar porsinya sendiri, tidak menumpuk pada satu ketua rombongan yang harus menalangi lebih dulu.
-- **Transfer bank sebagai metode pembayaran kedua** — memakai pola yang sama persis dengan QRIS (nominal unik, upload bukti, verifikasi manual admin), bedanya cuma instruksi yang ditampilkan: nomor rekening, bukan kode QR. Numpang interface `PaymentGateway` yang sudah dirancang sejak D1 — tidak perlu bongkar fondasi pembayaran yang sudah ada.
 - **Cek status check-in tanpa login** — khusus kategori pendakian, keluarga di rumah bisa memastikan pesertanya sudah check-in lewat tautan terbatas, tanpa perlu punya akun.
 - **Theme Preset Switcher** — admin memilih tema musiman dari preset yang **sudah didesain** (warna aksen terbatas + banner + jadwal aktif otomatis). Ini **bukan** pembalikan penolakan "Web Builder": scope-nya sengaja sempit — admin **tidak** bisa mengubah background, layout, susunan tab, atau menambah halaman secara bebas. Yang ditolak itu kebebasan menyusun halaman; yang ini memilih dari pilihan yang sudah dikurasi.
 
@@ -355,6 +359,10 @@ Paket `codeat3/blade-lucide-icons` yang sempat direncanakan sudah tidak ada di P
 
 Kolom `categories.icon` sekarang dipakai (sebelumnya ditandai "belum dipakai"): isinya nama ikon Lucide dan field-nya di panel admin berupa daftar tertutup `Category::ICON_OPTIONS` — nama bebas ditolak, karena ikon yang tidak ada akan meledak di halaman publik, bukan di panel tempat mengetiknya.
 
+**Ikon tidak diwarnai (ditetapkan 2026-08-29).** Ikon mewarisi warna teks di sekitarnya, dan warna teks itu selalu dari tangga teal — `teal-900` judul, `teal-700` isi, `teal-500` keterangan sekunder. Amber **dilarang** untuk ikon, termasuk bintang rating yang sebelumnya `text-amber-500`. Amber cuma milik tombol aksi dan penanda urgensi; kalau ikon ikut kuning, penanda urgensinya kehilangan arti. Pengecualian tunggal: ikon di dalam tombol amber mewarisi warna teks tombolnya (`mist-50`).
+
+Verifikasi sebelum lapor selesai: `grep -rn "lucide.*text-amber" resources/views/` harus nol.
+
 ### Prinsip animasi
 
 Halus dan pendek. Tidak ada particle, gradient-shift, parallax, atau efek 3D. Semuanya CSS `transition` atau Alpine `x-transition` — **tidak ada library animasi JavaScript** (bukan GSAP, bukan framer-motion, bukan Lottie).
@@ -377,14 +385,20 @@ slider berdot tunggal. Auto-advance 5 detik, transisi fade, berhenti saat hover/
 **Dilarang memasang library carousel pihak ketiga** (Swiper, Slick, Glide, dan sejenisnya).
 Alpine + CSS sudah cukup, dan tiap library tambahan melawan aturan performa di `CLAUDE.md` §9.
 
+**Ukuran (diperbaiki 2026-08-29).** Kolom slider `lg:col-span-7` (teks `lg:col-span-5`),
+rasio `aspect-[4/3]` → `sm:aspect-[3/2]` → `lg:aspect-[16/10]` + `lg:min-h-[30rem]`.
+Rasionya dipegang pembungkus dan **semua** slide `absolute inset-0`, termasuk slide
+pertama — sebelumnya hanya slide pertama yang di aliran normal, jadi begitu slide berganti
+pembungkusnya kehilangan tinggi dan hero-nya lenyap dari layar.
+
 ### Dua berkas logo — jangan tertukar
 
 | Berkas | Isi | Dipakai di |
 |---|---|---|
-| `public/images/Logo1.svg` | wordmark lengkap bertuliskan "e-goto" | footer, panel hero halaman masuk/daftar, brand logo panel Filament |
+| `public/images/Logo1.svg` | wordmark lengkap bertuliskan "e-goto" | header situs, footer, header e-tiket, panel hero halaman masuk/daftar, brand logo panel Filament |
 | `public/images/logo2.svg` | bentuk saja, tanpa tulisan | loading screen, overlay submit, favicon tab (SVG) |
 
-Alasan pemisahan: wordmark tidak terbaca kalau diperkecil atau dianimasikan; bentuk saja tetap jelas di ukuran kecil. Kedua berkas sudah dioptimasi dan diberi `viewBox` supaya bisa diskalakan. **Tidak ada berkas ketiga** — peran ikon persegi (favicon) diambil `logo2.svg`; ikon PWA masih PNG bawaan D7.6 karena manifest butuh raster.
+Header dan footer memakai berkas logonya sejak 2026-08-29, menggantikan teks `E·GOTO` yang dipakai sebelumnya; tiap `<img>` diberi `width`/`height` eksplisit supaya tidak ada layout shift. Alasan pemisahan berkas: wordmark tidak terbaca kalau diperkecil atau dianimasikan; bentuk saja tetap jelas di ukuran kecil. Kedua berkas sudah dioptimasi dan diberi `viewBox` supaya bisa diskalakan. **Tidak ada berkas ketiga** — peran ikon persegi (favicon) diambil `logo2.svg`; ikon PWA masih PNG bawaan D7.6 karena manifest butuh raster.
 
 ### Fallback state — saat foto belum ada
 

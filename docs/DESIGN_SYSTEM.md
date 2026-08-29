@@ -127,10 +127,41 @@ dari maintainer yang sama.
 | Sembunyikan kata sandi | `<x-lucide-eye-off />` |
 | Jadi mitra | `<x-lucide-handshake />` |
 | Pencarian trip | `<x-lucide-search />` |
+| Panel filter | `<x-lucide-sliders-horizontal />` |
+| Kategori umum / aktivitas (fallback slide) | `<x-lucide-compass />` |
+| Kategori domestik | `<x-lucide-map />` |
+| Kategori internasional | `<x-lucide-globe />` |
+| Kategori jalan kaki | `<x-lucide-footprints />` |
+
+Empat baris terakhir tidak dipanggil sebagai komponen Blade, melainkan lewat
+`@svg('lucide-'.$icon)` dari kolom `categories.icon`. Daftar nilai yang boleh masuk kolom
+itu dikunci di `Category::ICON_OPTIONS` — nama ikon karangan akan melempar saat render,
+jadi pilihannya sengaja tertutup, bukan input bebas.
 
 Ukuran baku: `size-5` (20px) untuk ikon dalam teks, `size-6` (24px) untuk ikon berdiri
 sendiri di dalam `x-icon-circle`. Ikon yang cuma dekoratif **wajib** `aria-hidden="true"`;
 ikon yang jadi satu-satunya isi tombol wajib punya `<span class="sr-only">` penjelas.
+
+### Ikon tidak diwarnai (2026-08-29)
+
+Ikon mewarisi warna teks di sekitarnya, dan warna teks itu selalu dari tangga teal:
+`text-teal-900` (judul), `text-teal-700` (isi), `text-teal-500` (keterangan sekunder).
+
+**Amber dilarang untuk ikon** — termasuk bintang rating, yang sebelumnya `text-amber-500`
+dan sekarang `text-teal-700`. Amber cuma dipakai untuk tombol aksi dan penanda urgensi
+(tenggat, sisa kursi menipis). Begitu ikon ikut amber, penanda urgensinya kehilangan arti:
+kalau semua hal kuning, tidak ada yang mendesak.
+
+Pengecualian tunggal: ikon **di dalam** tombol amber mewarisi `text-mist-50` dari tombolnya
+— itu warna teks tombol, bukan pewarnaan ikon.
+
+Verifikasi: `grep -rn "lucide.*text-amber" resources/views/` harus nol.
+
+### Ikon hanya di tempat yang fungsinya jelas
+
+Ulangan `CLAUDE.md` §10, karena ini yang paling sering dilanggar: **tidak ada ikon
+dekoratif menempel di judul seksi**. Ikon dipasang di penanda baris data, tombol, dan
+empty state — tempat yang ikonnya menggantikan pencarian mata, bukan menghiasi.
 
 ## Prinsip animasi
 
@@ -170,7 +201,7 @@ Jangan tertukar — beda bentuk, beda tempat.
 
 | Berkas | Isi | Dipakai di |
 |---|---|---|
-| `public/images/Logo1.svg` | wordmark lengkap bertuliskan "e-goto" | footer, panel hero halaman masuk/daftar, `brandLogo` panel Filament |
+| `public/images/Logo1.svg` | wordmark lengkap bertuliskan "e-goto" | header situs (`h-8`), footer (`h-7`), header e-tiket (`h-6`, `brightness-0 invert` di atas latar gelap), panel hero halaman masuk/daftar, `brandLogo` panel Filament |
 | `public/images/logo2.svg` | bentuk saja tanpa tulisan | loading screen, overlay submit, favicon tab |
 
 Alasan pemisahan: wordmark jadi tidak terbaca kalau diperkecil atau dianimasikan; bentuk
@@ -181,6 +212,10 @@ Tidak ada berkas logo ketiga. Peran "ikon persegi" (favicon, ikon aplikasi) diam
 PNG lama supaya browser modern memakainya. Ikon PWA di `manifest.json` masih PNG 192/512
 bawaan D7.6 — manifest butuh raster, dan merasterisasi SVG butuh Imagick (GD tidak bisa
 membaca SVG), jadi penggantiannya menunggu ekspor raster dari berkas asli.
+
+Header dan footer memakai berkasnya, **bukan teks `E·GOTO`** yang dipakai sebelum
+2026-08-29. `width`/`height` ditulis eksplisit di tiap `<img>` supaya tidak ada layout
+shift saat SVG-nya dimuat.
 
 Kedua berkas sudah dioptimasi (presisi koordinat dipangkas, `viewBox` ditambahkan) — dari
 343 KB/384 KB turun ke ±74 KB/79 KB. Keduanya dipanggil lewat `<img>`, bukan di-inline ke
@@ -238,6 +273,18 @@ Sumber slide: trip `is_featured` yang sudah terbit, **maksimal 5**.
 - **Tanpa library carousel pihak ketiga.** Alpine `x-data` + `x-transition` + CSS saja.
 - Selama sampul belum diunggah, tiap slide memakai ikon fallback dari `categories.icon`
   masing-masing — supaya lima slide tidak tampil sebagai lima bidang kembar.
+
+### Ukuran dan struktur (diperbaiki 2026-08-29)
+
+- Grid hero: kolom teks `lg:col-span-5`, kolom slider `lg:col-span-7`. Sebelumnya 6/6 dan
+  slidernya terbaca terlalu kecil untuk elemen yang jadi hal pertama dilihat orang.
+- Rasio naik bertahap: `aspect-[4/3]` → `sm:aspect-[3/2]` → `lg:aspect-[16/10]`, plus
+  `lg:min-h-[30rem]` supaya tingginya tidak ikut menyusut saat kolomnya menyempit.
+- **Rasio dipegang pembungkus, dan SEMUA slide `absolute inset-0`** — termasuk slide
+  pertama. Ini bukan detail gaya: sebelumnya hanya slide pertama yang berada di aliran
+  normal, jadi begitu `aktif` berpindah dari 0 pembungkusnya kehilangan tinggi dan
+  seluruh hero lenyap dari layar. Bug yang sama juga membuat `<figcaption>` slide pertama
+  lari keluar karena tidak punya induk berposisi.
 
 ## Fallback state — saat foto belum ada
 

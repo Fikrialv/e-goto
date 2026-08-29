@@ -371,6 +371,16 @@ Pola wajib mengikuti `app/Filament/Resources/CategoryResource.php` yang sudah te
 - Regression test full alur, cek responsive ulang semua halaman baru, Pint, deploy
 - ✅ **Output V1.5:** multi-mitra jalan, promo aktif, rating aktif, jalur private trip ada
 
+**D14 — Metode pembayaran kedua: Transfer Bank** (dipindahkan dari GUIDE "Backlog — Menunggu Giliran" ke fase resmi, 2026-08-29)
+
+- **Sejajar QRIS, bukan pengganti.** Customer memilih salah satu di panel konfirmasi metode yang **sudah ada** dari D7.6 (f) — menambah pilihan di layar yang sudah dibaca orang, bukan membuat layar baru yang harus dipelajari lagi.
+- Yang berbeda **cuma instruksi yang tampil**: nomor rekening, nama pemilik, nama bank. Nominal unik, kode booking di berita transfer, unggah bukti, `proof_hash` penanda duplikat, dan verifikasi manual admin **identik** dengan jalur QRIS. Tidak ada cabang logika kedua untuk uang — hanya cabang tampilan.
+- **Bukan Virtual Account.** VA butuh payment gateway atau sambungan host-to-host ke bank; ini transfer biasa ke satu rekening tetap, dicocokkan manusia lewat mutasi. Tidak butuh NIB, tidak butuh API pihak ketiga — batas yang sama dengan QRIS manual di D5.
+- **Tidak ada migration.** Kolom `payments.method` sudah ada sejak D5 (varchar, default `qris`). Yang ditambahkan: Enum PHP `PaymentMethod` (`Qris`, `BankTransfer`) + cast di model `Payment`, pengisi di `StorePaymentProof`, dan kolom metode di antrean verifikasi admin supaya admin tahu mutasi mana yang harus dibuka.
+- Config baru di `config/booking.php`: `bank_account_number`, `bank_account_name`, `bank_name` (env `BANK_ACCOUNT_NUMBER`, `BANK_ACCOUNT_NAME`, `BANK_NAME`). **Selama nomor rekening kosong, opsi transfer bank tidak dirender sama sekali** — pola yang sama dengan tombol Google di D3 dan widget chat: kode disiapkan penuh, dinyalakan oleh config.
+- Ancaman yang ditutup: metode dikirim dari form, jadi nilainya **wajib** divalidasi terhadap Enum (`Rule::enum`), bukan disimpan apa adanya — kalau tidak, metode karangan masuk ke database dan antrean verifikasi menampilkan instruksi yang tidak pernah ada. Nominal tetap dibaca dari `booking.total_amount`, tidak pernah dari request.
+- ✅ Selesai kalau: customer bisa memilih dua metode dan instruksi yang tampil sesuai pilihan; nominal unik sama persis di kedua jalur; admin melihat metode yang dipakai di antrean verifikasi; opsi transfer hilang total saat `BANK_ACCOUNT_NUMBER` kosong; metode karangan ditolak validasi; test pembayaran lama tidak ada yang merah.
+
 ---
 
 ## 8. FASE V2 — Setelah V1.5 Stabil (tidak diestimasi)

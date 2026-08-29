@@ -4,6 +4,30 @@ Entri ringkas tiap iterasi selesai (aturan `CLAUDE.md` §6). Terbaru di atas.
 
 ---
 
+## 2026-08-29 — Sesi 12: QRIS bernominal, slider diperbaiki, ikon monokrom
+
+**204 test / 825 assertion** hijau (14 test baru), Pint lulus, `npm run build` sukses, grep warna terlarang nol temuan.
+
+**Bug fatal hero slider diperbaiki.** Sebelumnya hanya slide pertama yang berada di aliran normal dan slide 2 ke atas `absolute inset-0`; begitu `aktif` berpindah dari 0, pembungkusnya kehilangan satu-satunya anak beraliran normal, tingginya jadi 0, dan **seluruh hero lenyap dari layar** — itulah yang membuat slidernya terasa tidak jalan. Sekarang rasionya dipegang pembungkus dan semua slide absolut. Bug ikutan yang ikut hilang: `<figcaption>` slide pertama tidak punya induk berposisi, jadi posisinya beda dengan slide lain.
+
+**Slider diperbesar.** Kolom slider `lg:col-span-7` (teks `lg:col-span-5`, sebelumnya 6/6), rasio `4/3` → `sm:3/2` → `lg:16/10` + `lg:min-h-[30rem]`.
+
+**Logo dipakai di header dan footer**, menggantikan teks `E·GOTO`: `Logo1.svg` `h-8` di header, `h-7` di footer, `h-6` + `brightness-0 invert` di header e-tiket. `width`/`height` eksplisit supaya tidak ada layout shift.
+
+**Ikon jadi monokrom dan disebar ke alur transaksi.** Bintang rating dan bullet amber diganti teal; aturan barunya: ikon selalu mewarisi warna teks dari tangga teal, amber cuma milik tombol dan penanda urgensi. Ikon ditambahkan ke `booking-create`, `payment`, `booking-saya`, `e-ticket`, `category`, `jadi-mitra`, dan `private-trip` — sembilan halaman yang sebelumnya nol ikon.
+
+**QRIS bernominal (dinamis) disiapkan.** `QrisDynamicPayload::untukNominal()` membaca payload EMVCo QRIS statis merchant, mengubah tag `01` dari `11` jadi `12`, menyisipkan nominal booking ke tag `54`, mengurutkan ulang tag tingkat atas, dan menghitung ulang CRC16 tag `63`. Parsing/encoding TLV lewat `phumin/promptparse` (MIT, EMVCo generik) — bukan parser tulis sendiri, dan bukan paket QRIS mikro yang unduhannya di bawah 50 dan belum teruji siapa pun.
+
+Ini **bukan** payment gateway: rekening tujuan sama, tidak ada API pihak ketiga, tidak butuh NIB, verifikasi tetap manual admin. Nominal dibaca dari `booking.total_amount`, tidak pernah dari request. Payload dihitung saat halaman bayar dirender, tidak disimpan — ia sepenuhnya turunan kolom yang sudah beku sejak booking dibuat.
+
+**Fitur mati sampai `QRIS_STATIC_PAYLOAD` diisi.** Nilainya harus dipindai sendiri dari QRIS merchant (gambar tidak bisa disisipi nominal — yang dibutuhkan string EMVCo-nya). Selama kosong, atau kalau payloadnya gagal verifikasi CRC, halaman bayar jatuh balik ke gambar statis + nominal diketik manual. QR yang cacat baru ketahuan di depan kasir, jadi kegagalannya sengaja mundur ke jalur lama.
+
+**Jebakan yang dicatat:** `TLV::encode()` milik promptparse menulis sub-tag DAN value induknya sekaligus, jadi payload tergandakan kalau di-parse dengan `subTags: true`. Semua parsing di project ini memakai `subTags: false`.
+
+**Dokumen.** `docs/PLAN.md` dapat blok **D14 — Metode pembayaran kedua: Transfer Bank** (manual, bukan Virtual Account; `payments.method` sudah ada jadi tanpa migration; config `BANK_ACCOUNT_NUMBER`/`BANK_ACCOUNT_NAME`/`BANK_NAME`; opsi tidak dirender selama nomor rekening kosong). Entri transfer bank dipindahkan dari Backlog GUIDE ke fase resmi V1.5. **Kodenya belum disentuh** — blok ini dokumen saja. `CLAUDE.md` §10 dapat aturan permanen kelima: ikon tidak diwarnai.
+
+---
+
 ## 2026-08-28 — Sesi 11: latar putih, hero slider, aturan desain permanen
 
 **190 test / 786 assertion** hijau (6 test baru), Pint lulus, `npm run build` sukses. CSS turun **109 KB → 94 KB** (gzip 19,4 → 15,5) karena `welcome.blade.php` dibuang; JS tetap 95 KB.
