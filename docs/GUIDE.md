@@ -239,7 +239,9 @@ Dua pembagian tugas, **bukan** tiga role terpisah:
 
 Ditegakkan lewat kolom `users.admin_scope` + Enum `AdminScope`, **bukan** role ketiga di `UserRole`. Role menentukan panel mana yang boleh dibuka; scope menentukan layar mana di dalam panel admin yang terlihat. Menambah role ketiga akan menyeret ulang `canAccessPanel()` dan middleware `role:` yang stabil sejak D1, demi pembagian yang cakupannya cuma di dalam satu panel.
 
-**Tanpa scope = akses penuh** — itu keadaan pemilik project, dan itu pula default setelah migration supaya tidak ada akun yang hilang haknya diam-diam. Penetapan lewat `php artisan admin:scope <email> <scope>`, bukan layar di panel: layar yang bisa mengubah hak akses adalah layar paling berharga untuk dibajak.
+**Tanpa scope = akses penuh** — itu keadaan pemilik project, dan itu pula default setelah migration supaya tidak ada akun yang hilang haknya diam-diam.
+
+**Jangan pasang scope selama admin masih satu orang.** Mempersempit satu-satunya admin ke `trip_manager` berarti nol orang bisa memverifikasi pembayaran — antrean berhenti total sampai scope-nya dikembalikan lewat shell. Urutan yang benar: buat akun admin kedua dulu, beri dia `payment_cs`, baru pemilik project turun ke `trip_manager`. Penetapan lewat `php artisan admin:scope <email> <scope>`, bukan layar di panel: layar yang bisa mengubah hak akses adalah layar paling berharga untuk dibajak.
 
 **Spatie/Shield tidak dipasang.** Untuk dua pembagian tugas, paket itu membawa lima tabel dan sistem role kedua yang berdampingan dengan `UserRole` yang sudah ada — dua sumber kebenaran untuk pertanyaan yang sama. Kalau nanti butuh izin granular per aksi, Shield tetap bisa masuk di atas struktur ini.
 

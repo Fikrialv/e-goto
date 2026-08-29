@@ -198,13 +198,22 @@ ter-cache tidak membaca `.env` lagi.
 - [ ] Buka `/admin` dan `/vendor` dengan console browser terbuka, catat
       pelanggaran `Content-Security-Policy-Report-Only`. Kalau bersih, baru
       set `SECURITY_CSP_ENFORCE=true` lalu `php artisan config:cache`.
+      Dua sumber luar yang sudah ditangani di lokal (2026-08-29): font panel
+      dari `fonts.bunny.net` (diizinkan sempit di `style-src`/`font-src`) dan
+      avatar `ui-avatars.com` (diganti SVG lokal). Kalau muncul yang ketiga,
+      tangani dulu — jangan melebarkan `default-src`.
 - [ ] Nyalakan verifikasi dua langkah di akun admin lewat "Keamanan Akun",
       **simpan 8 kode pemulihannya** — ia hanya ditampilkan sekali.
 - [ ] `php artisan db:backup` sekali manual, pastikan `.sql.gz` muncul.
 - [ ] Pastikan `LOG_STACK=daily` di `.env` produksi — tanpa itu
       `storage/logs/laravel.log` tumbuh tanpa batas sampai kuota habis.
-- [ ] Tetapkan pembagian tugas admin kedua:
-      `php artisan admin:scope email@contoh.test payment_cs`.
+- [ ] Tetapkan pembagian tugas **setelah admin kedua benar-benar ada**:
+      `php artisan admin:scope cs@contoh.test payment_cs`, baru sesudah itu
+      `php artisan admin:scope pemilik@contoh.test trip_manager`.
+      **Urutannya bukan gaya penulisan.** Kalau satu-satunya admin dipersempit
+      ke `trip_manager` lebih dulu, tidak ada seorang pun yang bisa memverifikasi
+      pembayaran — antrean berhenti total sampai scope-nya dikembalikan lewat
+      shell. Selama admin masih satu, biarkan tanpa scope (akses penuh).
 
 ## 11. Backup
 

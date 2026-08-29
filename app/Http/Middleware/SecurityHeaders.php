@@ -100,12 +100,25 @@ class SecurityHeaders
          * frame-ancestors dan form-action menutup clickjacking dan pengalihan
          * kiriman form.
          */
+        /*
+         * fonts.bunny.net diizinkan HANYA untuk stylesheet dan berkas font.
+         * Panel Filament memuat fontnya dari sana; memblokirnya membuat panel
+         * jatuh ke font sistem tanpa peringatan apa pun. Bunny sengaja dipilih
+         * Filament sebagai pengganti Google Fonts yang tidak mencatat pengguna,
+         * tapi ia tetap domain luar — jadi izinnya dibatasi dua direktif ini,
+         * bukan dinaikkan ke `default-src`.
+         *
+         * Sisi customer tidak menyentuhnya sama sekali: fontnya dibundel lokal
+         * lewat @fontsource.
+         */
+        $fontCdn = 'https://fonts.bunny.net';
+
         return implode('; ', [
             "default-src 'self'",
             "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
-            "style-src 'self' 'unsafe-inline'",
+            "style-src 'self' 'unsafe-inline' {$fontCdn}",
             "img-src 'self' data: blob:",
-            "font-src 'self' data:",
+            "font-src 'self' data: {$fontCdn}",
             "connect-src 'self'",
             "frame-ancestors 'self'",
             "form-action 'self'",

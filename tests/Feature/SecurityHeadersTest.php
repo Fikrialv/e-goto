@@ -1,5 +1,9 @@
 <?php
 
+use App\Enums\UserRole;
+use App\Filament\InisialAvatarProvider;
+use App\Models\User;
+
 /**
  * Header keamanan (2026-08-29).
  *
@@ -54,6 +58,10 @@ it('menegakkan CSP saat config dinyalakan', function () {
 });
 
 it('menutup sumber skrip luar dan clickjacking lewat CSP', function () {
+    // Mode ditetapkan eksplisit: test tidak boleh berubah hasilnya cuma karena
+    // .env di mesin developer menyalakan penegakan CSP.
+    config()->set('security.csp_enforce', false);
+
     $csp = $this->get('/')->headers->get('Content-Security-Policy-Report-Only');
 
     // Inti perlindungannya: satu XSS tersimpan tetap tidak bisa memuat payload
@@ -62,6 +70,32 @@ it('menutup sumber skrip luar dan clickjacking lewat CSP', function () {
         ->and($csp)->toContain("object-src 'none'")
         ->and($csp)->toContain("frame-ancestors 'self'")
         ->and($csp)->toContain("form-action 'self'");
+});
+
+it('mengizinkan CDN font panel hanya untuk style dan font, bukan default-src', function () {
+    config()->set('security.csp_enforce', false);
+
+    $csp = $this->get('/')->headers->get('Content-Security-Policy-Report-Only');
+
+    // Panel Filament memuat fontnya dari bunny.net; memblokirnya membuat panel
+    // jatuh ke font sistem tanpa peringatan apa pun. Izinnya dibatasi dua
+    // direktif, tidak dinaikkan ke default-src.
+    expect($csp)->toContain("style-src 'self' 'unsafe-inline' https://fonts.bunny.net")
+        ->and($csp)->toContain("font-src 'self' data: https://fonts.bunny.net")
+        ->and($csp)->toContain("default-src 'self';")
+        ->and($csp)->not->toContain("default-src 'self' https://fonts.bunny.net");
+});
+
+it('tidak memuat avatar panel dari domain luar', function () {
+    // Bawaan Filament menembak ui-avatars.com tiap muat halaman — satu request
+    // luar untuk dua huruf, dan diblokir begitu img-src ditegakkan.
+    $admin = User::factory()->create(['role' => UserRole::Admin, 'name' => 'Admin E-GOTO']);
+
+    $avatar = app(InisialAvatarProvider::class)->get($admin);
+
+    expect($avatar)->toStartWith('data:image/svg+xml')
+        ->and($avatar)->not->toContain('ui-avatars.com')
+        ->and(rawurldecode($avatar))->toContain('>AE<');
 });
 
 it('memasang header yang sama di panel admin', function () {

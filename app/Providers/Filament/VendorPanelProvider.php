@@ -2,6 +2,7 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\InisialAvatarProvider;
 use App\Filament\Pages\Keamanan;
 use App\Http\Middleware\RequireTwoFactor;
 use Filament\Http\Middleware\Authenticate;
@@ -32,6 +33,10 @@ class VendorPanelProvider extends PanelProvider
             ->brandLogo(asset('images/Logo1.svg'))
             ->brandLogoHeight('1.6rem')
             ->favicon(asset('images/logo2.svg'))
+            // Avatar dirender lokal sebagai SVG data URI. Bawaan Filament
+            // menembak ui-avatars.com tiap muat halaman — satu request luar
+            // untuk dua huruf, dan diblokir begitu CSP ditegakkan.
+            ->defaultAvatarProvider(InisialAvatarProvider::class)
             ->colors([
                 'primary' => Color::hex('#077C82'),
             ])

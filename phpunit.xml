@@ -32,6 +32,10 @@
         <env name="DB_CONNECTION" value="mysql"/>
         <env name="DB_DATABASE" value="egoto_testing"/>
         <env name="DB_URL" value=""/>
+        <!-- Penegakan CSP dimatikan di test supaya hasilnya tidak berubah
+             mengikuti .env mesin developer. Test yang memang menguji mode
+             ditegakkan menyalakannya sendiri lewat config(). -->
+        <env name="SECURITY_CSP_ENFORCE" value="false"/>
         <env name="MAIL_MAILER" value="array"/>
         <env name="QUEUE_CONNECTION" value="sync"/>
         <env name="SESSION_DRIVER" value="array"/>

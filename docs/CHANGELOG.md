@@ -4,6 +4,29 @@ Entri ringkas tiap iterasi selesai (aturan `CLAUDE.md` §6). Terbaru di atas.
 
 ---
 
+## 2026-08-29 (3) — Sesi 13 lanjutan: frontend rusak, CSP ditegakkan
+
+**277 test / 1025 assertion** hijau, Pint lulus.
+
+**Frontend rusak — penyebabnya `public/hot` yang tertinggal.** Berkas itu ditulis `npm run dev` dan berisi `http://[::1]:5173`. Selama ia ada, `@vite` merender tag yang menunjuk ke dev server, dan `npm run build` **tidak** menghapusnya. Dev server sudah lama mati, jadi CSS dan JS 404 dan halaman tampil tanpa gaya sama sekali.
+
+Bukan regresi paket: `git diff HEAD~6 -- package.json package-lock.json` hanya menunjukkan `nanoid 3.3.17 → 3.3.18`. Versi `vite`, `postcss`, dan `tailwindcss` tidak berubah satu digit pun, jadi `rm -rf node_modules` tidak dijalankan — tidak ada yang perlu dibangun ulang. Perbaikannya `rm public/hot`; setelah itu manifest dan tiga aset 200.
+
+Browser log Boost tidak memuat satu pun error — isinya cuma `[vite] connecting/connected` level DEBUG dari sesi sebelumnya. Konsisten: yang gagal bukan JavaScript, melainkan aset yang tidak pernah dimuat.
+
+**Dua sumber luar di panel ditemukan saat audit CSP**, keduanya akan diblokir begitu CSP ditegakkan dan gagal tanpa suara:
+
+1. `fonts.bunny.net` — font panel Filament. Diizinkan **sempit** di `style-src` dan `font-src` saja, tidak dinaikkan ke `default-src`. Sisi customer tidak menyentuhnya; fontnya dibundel lokal lewat @fontsource.
+2. `ui-avatars.com` — avatar bawaan Filament, satu request luar tiap muat halaman panel demi gambar berisi dua huruf. Diganti `InisialAvatarProvider` yang merender SVG data URI lokal. Selain lolos `img-src`, ini juga menghapus kebocoran inisial staf + IP ke pihak ketiga yang tidak pernah dicantumkan di `/kebijakan-privasi`, dan menghemat satu request per halaman (§9). Diverifikasi runtime, bukan hanya lewat test.
+
+`SECURITY_CSP_ENFORCE=true` — CSP sekarang ditegakkan, dikonfirmasi lewat `curl` di halaman publik dan panel.
+
+**Dua test bergantung pada `.env` mesin developer** dan langsung merah begitu penegakan dinyalakan: keduanya membaca header `-Report-Only` yang jadi null. Diperbaiki dengan menetapkan `config()` eksplisit di test, plus `SECURITY_CSP_ENFORCE=false` di `phpunit.xml` supaya suite tidak pernah lagi berubah hasilnya mengikuti konfigurasi lokal.
+
+**`admin:scope` dijalankan lalu dikembalikan, sengaja.** Akun admin baru satu (`admin@egoto.test`). Mempersempitnya ke `trip_manager` membuat hitungan admin yang bisa memverifikasi pembayaran jadi **nol** — diperiksa langsung, bukan diperkirakan. Dikembalikan ke akses penuh. Pembagian tugas baru berlaku setelah admin kedua ada; urutan wajibnya dicatat di GUIDE dan checklist rilis `hostinger.md`.
+
+---
+
 ## 2026-08-29 (2) — Sesi 13: keamanan, permission admin, profil mitra, refund
 
 **275 test / 1018 assertion** hijau (71 test baru), Pint lulus, `npm run build` sukses, `migrate:fresh --seed` bersih, dua grep warna nol temuan.
