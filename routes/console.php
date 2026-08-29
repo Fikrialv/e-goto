@@ -18,3 +18,15 @@ Artisan::command('inspire', function () {
  * memperebutkan baris jadwal yang sama.
  */
 Schedule::command('bookings:expire')->everyFiveMinutes()->withoutOverlapping();
+
+/*
+ * Backup mandiri, pelengkap backup otomatis Hostinger — bukan penggantinya.
+ * Backup yang hanya ada di panel penyedia punya titik gagal yang sama dengan
+ * servernya.
+ *
+ * Dijalankan dini hari saat trafik paling sepi: `--single-transaction` memang
+ * tidak mengunci tabel, tapi dump tetap memakan I/O.
+ */
+Schedule::command('db:backup')
+    ->dailyAt('03:15')
+    ->withoutOverlapping();
