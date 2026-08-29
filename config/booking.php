@@ -64,6 +64,27 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | QRIS bernominal
+    |--------------------------------------------------------------------------
+    |
+    | String EMVCo hasil memindai QRIS merchant E-GOTO (diawali 000201...).
+    | Diisi sekali, hasil scan pakai aplikasi pembaca QR biasa. Kalau terisi,
+    | halaman bayar menyusun ulang payload ini dengan nominal booking (tag 54)
+    | supaya pembayar tidak perlu mengetik angka sendiri.
+    |
+    | Ini BUKAN payment gateway: rekening tujuannya sama, verifikasinya tetap
+    | manual admin. Selama kosong, halaman bayar memakai gambar QRIS statis
+    | seperti sebelumnya.
+    |
+    | Ditaruh di .env, bukan di berkas ter-track git — isinya memang publik
+    | (tercetak di QR yang ditempel di kasir), tapi tetap bukan milik repo.
+    |
+    */
+
+    'qris_static_payload' => env('QRIS_STATIC_PAYLOAD'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Estimasi waktu verifikasi pembayaran
     |--------------------------------------------------------------------------
     |

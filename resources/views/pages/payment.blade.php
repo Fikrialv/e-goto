@@ -1,3 +1,7 @@
+@php
+    use SimpleSoftwareIO\QrCode\Facades\QrCode;
+@endphp
+
 <x-layouts.app title="Pembayaran">
     <div class="mx-auto w-full max-w-3xl px-4 py-12 sm:px-6 lg:py-16">
         <p class="text-xs font-semibold tracking-widest text-teal-500 uppercase">Langkah terakhir</p>
@@ -14,7 +18,10 @@
 
         <div class="mt-8 grid gap-6 md:grid-cols-2">
             <div class="rounded-3xl border border-mist-200 bg-white p-6">
-                <p class="text-xs font-semibold tracking-widest text-teal-500 uppercase">Kode booking</p>
+                <p class="inline-flex items-center gap-1.5 text-xs font-semibold tracking-widest text-teal-500 uppercase">
+                    <x-lucide-file-text class="size-4" aria-hidden="true" />
+                    Kode booking
+                </p>
                 <p class="mt-2 font-mono text-3xl font-semibold tracking-tight text-teal-900 sm:text-4xl">
                     {{ $booking->code }}
                 </p>
@@ -24,7 +31,10 @@
 
                 <hr class="my-6 border-mist-200">
 
-                <p class="text-xs font-semibold tracking-widest text-teal-500 uppercase">Nominal yang harus dibayar</p>
+                <p class="inline-flex items-center gap-1.5 text-xs font-semibold tracking-widest text-teal-500 uppercase">
+                    <x-lucide-wallet class="size-4" aria-hidden="true" />
+                    Nominal yang harus dibayar
+                </p>
                 <p class="mt-2 font-display text-3xl font-bold text-teal-900 sm:text-4xl">
                     Rp{{ number_format($instruksi->totalAmount, 0, ',', '.') }}
                 </p>
@@ -66,22 +76,40 @@
                     <p class="text-xs font-semibold tracking-widest text-teal-500 uppercase">Scan QRIS</p>
                     <p class="mt-1 text-sm text-teal-600">{{ $instruksi->merchantName }}</p>
 
-                    <img src="{{ asset($instruksi->qrisImagePath) }}" alt="Kode QRIS pembayaran {{ $instruksi->merchantName }}"
-                         loading="lazy" class="mt-4 w-full max-w-xs rounded-2xl border border-mist-200 bg-mist-50">
+                    @if ($instruksi->qrisPayload)
+                        {{-- QR bernominal: nominal (termasuk kode unik) sudah terkunci di
+                             dalam kodenya, jadi tidak ada lagi angka yang bisa salah ketik.
+                             Dirender inline supaya tidak ada request gambar tambahan. --}}
+                        <div class="mt-4 w-full max-w-xs rounded-2xl border border-mist-200 bg-white p-3 [&>svg]:h-auto [&>svg]:w-full"
+                             role="img" aria-label="Kode QRIS pembayaran {{ $instruksi->merchantName }} senilai Rp{{ number_format($instruksi->totalAmount, 0, ',', '.') }}">
+                            {!! QrCode::size(320)->margin(0)->generate($instruksi->qrisPayload) !!}
+                        </div>
 
-                    {{-- Unduh kodenya: banyak orang membayar dari HP lain atau dari
-                         aplikasi bank yang tidak bisa memindai layar yang sama. --}}
-                    <a href="{{ asset($instruksi->qrisImagePath) }}" download
-                       class="mt-4 inline-flex items-center gap-2 rounded-full border border-mist-300 px-4 py-2 text-sm text-teal-700 transition-colors hover:border-teal-400">
-                        Unduh gambar QRIS
-                    </a>
+                        <ol class="mt-5 list-decimal space-y-1.5 pl-5 text-sm leading-relaxed text-teal-700">
+                            <li>Buka aplikasi bank/e-wallet, pilih bayar QRIS.</li>
+                            <li>Pindai kode di atas — <strong>nominalnya sudah terisi otomatis, jangan diubah</strong>.</li>
+                            <li>Tulis kode booking di catatan transfer.</li>
+                            <li>Unggah bukti pembayaran di halaman ini.</li>
+                        </ol>
+                    @else
+                        <img src="{{ asset($instruksi->qrisImagePath) }}" alt="Kode QRIS pembayaran {{ $instruksi->merchantName }}"
+                             loading="lazy" class="mt-4 w-full max-w-xs rounded-2xl border border-mist-200 bg-mist-50">
 
-                    <ol class="mt-5 list-decimal space-y-1.5 pl-5 text-sm leading-relaxed text-teal-700">
-                        <li>Buka aplikasi bank/e-wallet, pilih bayar QRIS.</li>
-                        <li>Masukkan nominal <strong>persis</strong> seperti di samping.</li>
-                        <li>Tulis kode booking di catatan transfer.</li>
-                        <li>Unggah bukti pembayaran di halaman ini.</li>
-                    </ol>
+                        {{-- Unduh kodenya: banyak orang membayar dari HP lain atau dari
+                             aplikasi bank yang tidak bisa memindai layar yang sama. --}}
+                        <a href="{{ asset($instruksi->qrisImagePath) }}" download
+                           class="mt-4 inline-flex items-center gap-2 rounded-full border border-mist-300 px-4 py-2 text-sm text-teal-700 transition-colors hover:border-teal-400">
+                            <x-lucide-camera class="size-4" aria-hidden="true" />
+                            Unduh gambar QRIS
+                        </a>
+
+                        <ol class="mt-5 list-decimal space-y-1.5 pl-5 text-sm leading-relaxed text-teal-700">
+                            <li>Buka aplikasi bank/e-wallet, pilih bayar QRIS.</li>
+                            <li>Masukkan nominal <strong>persis</strong> seperti di samping.</li>
+                            <li>Tulis kode booking di catatan transfer.</li>
+                            <li>Unggah bukti pembayaran di halaman ini.</li>
+                        </ol>
+                    @endif
                 </div>
             @else
                 {{-- Konfirmasi metode pembayaran (D7.6 f). QRIS & form unggah baru
@@ -198,7 +226,8 @@
                 <p class="mt-1.5 text-xs text-teal-500">JPG, PNG, atau WebP. Maksimal 4 MB.</p>
 
                 <button type="submit"
-                        class="mt-5 rounded-full bg-amber-600 px-7 py-3 text-sm font-medium text-mist-50 transition-colors hover:bg-amber-700">
+                        class="mt-5 inline-flex items-center gap-2 rounded-full bg-amber-600 px-7 py-3 text-sm font-medium text-mist-50 transition-colors hover:bg-amber-700">
+                    <x-lucide-upload class="size-4" aria-hidden="true" />
                     Kirim bukti pembayaran
                 </button>
             </form>
@@ -206,7 +235,8 @@
             <p class="mt-6 text-sm text-teal-600">
                 Sudah mengunggah tapi ingin memberi tahu admin langsung?
                 <a href="{{ $linkWhatsApp }}" target="_blank" rel="noopener"
-                   class="font-medium text-teal-800 underline underline-offset-4 hover:text-amber-600">
+                   class="inline-flex items-center gap-1.5 font-medium text-teal-800 underline underline-offset-4 hover:text-amber-600">
+                    <x-lucide-message-circle class="size-4" aria-hidden="true" />
                     Kirim notifikasi lewat WhatsApp
                 </a>
             </p>

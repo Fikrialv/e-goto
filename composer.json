@@ -12,6 +12,7 @@
         "laravel/socialite": "^5.29",
         "laravel/tinker": "^2.10.1",
         "mallardduck/blade-lucide-icons": "^2.0",
+        "phumin/promptparse": "^1.0",
         "simplesoftwareio/simple-qrcode": "^4.2"
     },
     "require-dev": {

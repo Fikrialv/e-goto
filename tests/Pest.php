@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use phumin\PromptParse\Library\TLV;
 use Tests\TestCase;
 
 /*
@@ -47,4 +48,32 @@ expect()->extend('toBeOne', function () {
 function something()
 {
     // ..
+}
+
+/**
+ * Payload QRIS statis tiruan, disusun lewat TLV::withCrcTag() supaya CRC-nya
+ * benar-benar sah — bukan angka yang diketik lalu kebetulan lolos.
+ */
+function qrisStatisContoh(): string
+{
+    $isiMerchant = TLV::encode([
+        TLV::tag('00', 'ID.CO.QRIS.WWW'),
+        TLV::tag('01', '936000140123456789'),
+        TLV::tag('02', '123456789012345'),
+        TLV::tag('03', 'UMI'),
+    ]);
+
+    $tanpaCrc = TLV::encode([
+        TLV::tag('00', '01'),
+        TLV::tag('01', '11'),
+        TLV::tag('26', $isiMerchant),
+        TLV::tag('52', '4722'),
+        TLV::tag('53', '360'),
+        TLV::tag('58', 'ID'),
+        TLV::tag('59', 'E-GOTO INDONESIA'),
+        TLV::tag('60', 'BANDUNG'),
+        TLV::tag('61', '40123'),
+    ]);
+
+    return TLV::withCrcTag($tanpaCrc, '63');
 }

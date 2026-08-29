@@ -230,6 +230,22 @@ it('menampilkan QRIS dan form unggah setelah konfirmasi', function () {
         ->assertSee('Unggah bukti pembayaran');
 });
 
+it('merender QR bernominal, bukan gambar statis, saat payload merchant terisi', function () {
+    // Payload tiruan ber-CRC sah; isinya sama dengan yang dipakai QrisPayloadTest.
+    config()->set('booking.qris_static_payload', qrisStatisContoh());
+
+    $booking = bookingSiapBayar();
+
+    $this->actingAs($booking->user)->post(route('payments.confirm', $booking));
+
+    $this->actingAs($booking->user)
+        ->get(route('payments.show', $booking))
+        ->assertOk()
+        ->assertSee('nominalnya sudah terisi otomatis', escape: false)
+        ->assertSee('<svg', escape: false)
+        ->assertDontSee('Unduh gambar QRIS');
+});
+
 it('meminta konfirmasi ulang untuk booking berikutnya', function () {
     $user = User::factory()->customer()->create();
 
