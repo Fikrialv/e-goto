@@ -8,6 +8,7 @@ use App\Models\Category;
 use App\Models\Trip;
 use App\Models\TripPrice;
 use App\Models\TripSchedule;
+use App\Models\Vendor;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
@@ -144,6 +145,14 @@ class DemoTripSeeder extends Seeder
             ],
         ];
 
+        /*
+         * Trip demo dimiliki mitra demo supaya panel mitra, halaman publik
+         * `/mitra/{slug}`, dan tautan "oleh [nama mitra]" di kartu trip
+         * punya isi yang bisa dilihat. Null kalau seedernya belum jalan —
+         * trip tanpa mitra tetap sah, kolomnya nullable.
+         */
+        $vendorId = Vendor::query()->value('user_id');
+
         foreach ($trips as $data) {
             $category = Category::where('slug', $data['category'])->first();
 
@@ -154,7 +163,7 @@ class DemoTripSeeder extends Seeder
             $trip = Trip::updateOrCreate(
                 ['slug' => Str::slug($data['title'])],
                 [
-                    'vendor_id' => null,
+                    'vendor_id' => $vendorId,
                     'category_id' => $category->id,
                     'title' => $data['title'],
                     'description' => 'Perjalanan dikawal pemandu lokal. Kuota dibatasi supaya rombongan tetap nyaman dan jalur tidak padat.',

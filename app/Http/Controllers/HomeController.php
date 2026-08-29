@@ -30,6 +30,9 @@ class HomeController extends Controller
                 ->where('is_featured', true)
                 ->with([
                     'category',
+                    // Nama mitra di kartu trip. Dua query tetap untuk seluruh
+                    // halaman, bukan dua per kartu.
+                    'vendor.vendorProfile',
                     'schedules' => fn ($query) => $query->upcoming()->orderBy('start_date'),
                     'schedules.prices',
                 ])
@@ -49,7 +52,7 @@ class HomeController extends Controller
                 ->upcoming()
                 ->whereColumn('booked_count', '<', 'quota')
                 ->whereHas('trip', fn ($query) => $query->published())
-                ->with(['trip.category', 'prices'])
+                ->with(['trip.category', 'trip.vendor.vendorProfile', 'prices'])
                 ->orderBy('start_date')
                 ->take(6)
                 ->get();

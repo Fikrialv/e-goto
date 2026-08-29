@@ -14,6 +14,8 @@ class DatabaseSeeder extends Seeder
         $this->call([
             CategorySeeder::class,
             DemoUserSeeder::class,
+            // Sebelum DemoTripSeeder: trip demo ditempelkan ke mitra ini.
+            DemoVendorSeeder::class,
             DemoTripSeeder::class,
         ]);
     }
